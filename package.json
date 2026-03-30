@@ -1,0 +1,28 @@
+{
+  "name": "gestaoregistroclinicopessoal",
+  "version": "1.0.0",
+  "description": "Pedro Almeida nmec:114915\r Nadia Bento nmec:124533\r António Sacchetti nmec:124558\r Jessica Pereira nmec:76147",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nadiabento/GestaoRegistroClinicoPessoal.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/nadiabento/GestaoRegistroClinicoPessoal/issues"
+  },
+  "homepage": "https://github.com/nadiabento/GestaoRegistroClinicoPessoal#readme",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.20.0"
+  }
+}

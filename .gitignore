@@ -1,0 +1,23 @@
+# Dependências (A pasta que te assustou, nunca se envia!)
+node_modules/
+
+# Configurações de Segurança (Contém as passwords da BD)
+.env
+
+# Ficheiros do Editor
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.swp
+
+# Logs de erros
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Ficheiros do Sistema Operativo
+Thumbs.db
+.DS_Store
