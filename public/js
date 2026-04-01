@@ -1,0 +1,27 @@
+document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    try {
+        const response = await fetch('/api/login', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email, password })
+        });
+
+        const result = await response.json();
+        const msgDiv = document.getElementById('message');
+
+        if (response.ok) {
+            msgDiv.innerHTML = `<span class="text-success">${result.mensagem}</span>`;
+            // Redirecionar para o Dashboard após 1 segundo
+            setTimeout(() => window.location.href = 'dashboard.html', 1000);
+        } else {
+            msgDiv.innerHTML = `<span class="text-danger">${result.erro}</span>`;
+        }
+    } catch (error) {
+        console.error('Erro na ligação:', error);
+    }
+});

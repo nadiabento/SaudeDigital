@@ -1,0 +1,80 @@
+:root {
+    --primary-color: #0d6efd;
+    --bg-gradient: linear-gradient(135deg, #0d6efd 0%, #003d99 100%);
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    color: #334155;
+}
+
+.bg-gradient-custom {
+    background: var(--bg-gradient) !important;
+}
+
+.max-w-400 { max-width: 500px; }
+
+.feature-item {
+    text-align: center;
+    font-size: 0.9rem;
+    opacity: 0.9;
+}
+
+.feature-item i {
+    font-size: 2rem;
+    margin-bottom: 10px;
+}
+
+.form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+}
+
+.form-control:focus {
+    box-shadow: 0 0 0 4px rgba(13, 110, 253, 0.1);
+}
+
+.input-group-text {
+    border-radius: 8px 0 0 8px;
+    color: #64748b;
+}
+
+.btn-primary {
+    border-radius: 8px;
+    background: var(--primary-color);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(13, 110, 253, 0.2);
+}
+
+/* Animação suave para as mensagens de erro/sucesso */
+#message {
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    border-radius: 8px;
+}
+.nav-link {
+    transition: all 0.2s ease;
+    font-weight: 500;
+}
+
+.nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+    color: var(--primary-color) !important;
+}
+
+.card {
+    transition: transform 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.badge {
+    border-radius: 6px;
+    font-weight: 600;
+}

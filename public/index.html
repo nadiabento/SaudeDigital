@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaúdeDigital | Gestão Clínica</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+    <div class="container-fluid vh-100 p-0">
+        <div class="row g-0 h-100">
+            <div class="col-lg-7 d-none d-lg-flex bg-primary align-items-center justify-content-center text-white p-5 bg-gradient-custom">
+                <div class="max-w-400">
+                    <h1 class="display-4 fw-bold mb-4">A sua saúde, <br>agora centralizada.</h1>
+                    <p class="lead opacity-75">Gira as suas consultas, exames e medicação num único lugar seguro e intuitivo.</p>
+                    <div class="mt-5 d-flex gap-4">
+                        <div class="feature-item"><i class="bi bi-shield-check"></i><br>Seguro</div>
+                        <div class="feature-item"><i class="bi bi-graph-up"></i><br>Estatísticas</div>
+                        <div class="feature-item"><i class="bi bi-file-earmark-pdf"></i><br>Relatórios</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-5 d-flex align-items-center justify-content-center bg-white p-4">
+                <div class="w-100" style="max-width: 400px;">
+                    <div class="text-center mb-5">
+                        <div class="icon-box-logo mb-3">
+                            <i class="bi bi-heart-pulse-fill text-primary fs-1"></i>
+                        </div>
+                        <h2 class="fw-bold text-dark">Bem-vindo de volta</h2>
+                        <p class="text-muted">Introduza as suas credenciais para aceder</p>
+                    </div>
+
+                    <form id="loginForm">
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">E-mail</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-envelope"></i></span>
+                                <input type="email" id="email" class="form-control bg-light border-start-0" placeholder="nome@exemplo.com" required>
+                            </div>
+                        </div>
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Palavra-passe</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-light border-end-0"><i class="bi bi-lock"></i></span>
+                                <input type="password" id="password" class="form-control bg-light border-start-0" placeholder="••••••••" required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">Entrar na Plataforma</button>
+                    </form>
+                    
+                    <div id="message" class="mt-4"></div>
+                    
+                    <p class="text-center mt-5 text-muted small">
+                        &copy; 2026 SaúdeDigital - ESTGA PAW
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/main.js"></script>
+</body>
+</html>
