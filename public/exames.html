@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exames | SaúdeDigital</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+    <div class="d-flex">
+        <nav class="bg-white border-end vh-100 d-none d-md-block sticky-top" style="width: 280px;">
+            <div class="p-4">
+                <h4 class="text-primary fw-bold"><i class="bi bi-heart-pulse-fill me-2"></i>SaúdeDigital</h4>
+            </div>
+            <ul class="nav flex-column px-3">
+                <li class="nav-item mb-2">
+                    <a href="dashboard.html" class="nav-link text-dark p-3">
+                        <i class="bi bi-house-door me-2"></i> Resumo Geral
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="consultas.html" class="nav-link text-dark p-3"><i class="bi bi-calendar-event me-2"></i> Consultas</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="medicacao.html" class="nav-link text-dark p-3"><i class="bi bi-capsule me-2"></i> Medicação</a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="exames.html" class="nav-link active bg-primary text-white rounded-3 p-3 shadow-sm">
+                        <i class="bi bi-file-earmark-medical me-2"></i> Exames
+                    </a>
+                </li>
+                <hr>
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link text-danger p-3"><i class="bi bi-box-arrow-left me-2"></i> Sair</a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="flex-grow-1 p-4">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold">Gestão de Exames</h2>
+                    <p class="text-muted">Organize os seus relatórios e exporte o seu histórico clínico.</p>
+                </div>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-secondary shadow-sm px-3" onclick="exportarJSON()">
+                        <i class="bi bi-code-slash me-2"></i>JSON
+                    </button>
+                    <button class="btn btn-primary shadow-sm px-4 rounded-pill" onclick="window.print()">
+                        <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                    </button>
+                </div>
+            </header>
+
+            <div class="row g-4">
+                <div class="col-lg-5">
+                    <div class="card border-0 shadow-sm p-4">
+                        <h5 class="fw-bold mb-4">Registar Novo Exame</h5>
+                        <form id="formExame">
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Tipo de Exame</label>
+                                <select class="form-select bg-light border-0 p-3" id="tipoExame" required>
+                                    <option value="">A carregar categorias...</option>
+                                    </select>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Data de Realização</label>
+                                <input type="date" class="form-control bg-light border-0 p-3" required>
+                            </div>
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Anexar Relatório (PDF)</label>
+                                <div class="border rounded-3 p-4 text-center bg-light" style="border-style: dashed !important;">
+                                    <i class="bi bi-cloud-arrow-up-fill text-primary fs-1"></i>
+                                    <input type="file" class="form-control mt-2" accept=".pdf">
+                                    <p class="small text-muted mb-0 mt-2">Arraste ou clique para carregar o ficheiro oficial.</p>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
+                                <i class="bi bi-check-circle me-2"></i>Guardar Registo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-4">Histórico Recente</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Exame</th>
+                                        <th>Data</th>
+                                        <th>Documento</th>
+                                        <th class="text-end">Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Hemograma Completo</strong></td>
+                                        <td>12/04/2026</td>
+                                        <td><span class="badge bg-danger-subtle text-danger px-3"><i class="bi bi-file-pdf me-1"></i> PDF</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-light btn-sm border"><i class="bi bi-three-dots"></i></button>
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Raio-X Tórax</strong></td>
+                                        <td>10/04/2026</td>
+                                        <td><span class="badge bg-danger-subtle text-danger px-3"><i class="bi bi-file-pdf me-1"></i> PDF</span></td>
+                                        <td class="text-end">
+                                            <button class="btn btn-light btn-sm border"><i class="bi bi-three-dots"></i></button>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        function exportarJSON() {
+            console.log("A executar serviço de interoperabilidade JSON...");
+        }
+    </script>
+</body>
+</html>

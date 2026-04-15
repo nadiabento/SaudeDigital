@@ -19,18 +19,18 @@
             </div>
             <ul class="nav flex-column px-3">
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link active bg-primary text-white rounded-3 p-3">
+                    <a href="dashboard.html" class="nav-link active bg-primary text-white rounded-3 p-3 shadow-sm">
                         <i class="bi bi-house-door me-2"></i> Resumo Geral
                     </a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-dark p-3"><i class="bi bi-calendar-event me-2"></i> Consultas</a>
+                    <a href="consultas.html" class="nav-link text-dark p-3"><i class="bi bi-calendar-event me-2"></i> Consultas</a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-dark p-3"><i class="bi bi-capsule me-2"></i> Medicação</a>
+                    <a href="medicacao.html" class="nav-link text-dark p-3"><i class="bi bi-capsule me-2"></i> Medicação</a>
                 </li>
                 <li class="nav-item mb-2">
-                    <a href="#" class="nav-link text-dark p-3"><i class="bi bi-file-earmark-medical me-2"></i> Exames</a>
+                    <a href="exames.html" class="nav-link text-dark p-3"><i class="bi bi-file-earmark-medical me-2"></i> Exames</a>
                 </li>
                 <hr>
                 <li class="nav-item">
@@ -92,71 +92,68 @@
                 </div>
             </div>
 
-            <<div class="row g-4">
-    <div class="col-lg-8">
-        <div class="card border-0 shadow-sm p-4 h-100">
-            <h5 class="fw-bold mb-4">Plano Terapêutico Ativo</h5>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                    <thead class="table-light">
-                        <tr>
-                            <th>Medicamento</th>
-                            <th>Dosagem</th>
-                            <th>Próxima Toma</th>
-                            <th>Estado</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><strong>Atorvastatina</strong></td>
-                            <td>20mg (1x/dia)</td>
-                            <td>21:00</td>
-                            <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
-                        </tr>
-                        <tr>
-                            <td><strong>Lisinopril</strong></td>
-                            <td>10mg (2x/dia)</td>
-                            <td>09:00</td>
-                            <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
-                        </tr>
-                    </tbody>
-                </table>
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-4">Plano Terapêutico Ativo</h5>
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medicamento</th>
+                                        <th>Dosagem</th>
+                                        <th>Próxima Toma</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><strong>Atorvastatina</strong></td>
+                                        <td>20mg (1x/dia)</td>
+                                        <td>21:00</td>
+                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Lisinopril</strong></td>
+                                        <td>10mg (2x/dia)</td>
+                                        <td>09:00</td>
+                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <button class="btn btn-outline-primary mt-auto w-100">Ver Histórico Completo</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column">
+                        <h5 class="fw-bold mb-4">Monitorização de Sinais Vitais</h5>
+                        
+                        <div style="position: relative; height:220px;">
+                            <canvas id="healthChart"></canvas>
+                        </div>
+
+                        <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
+                            <span class="badge bg-primary-subtle text-primary border border-primary-subtle p-2">
+                                <i class="bi bi-heart-pulse me-1"></i> FC (bpm)
+                            </span>
+                            <span class="badge bg-danger-subtle text-danger border border-danger-subtle p-2">
+                                <i class="bi bi-droplet me-1"></i> Glicose (mg/dL)
+                            </span>
+                        </div>
+                        
+                        <div class="mt-auto pt-4">
+                            <button class="btn btn-primary w-100 py-3 shadow-sm fw-bold" onclick="location.href='exames.html'">
+                                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gerir Exames e Relatórios
+                            </button>
+                            <p class="text-center small text-muted mt-2 mb-0">
+                                <i class="bi bi-info-circle me-1"></i> Exportação disponível em PDF e JSON[cite: 32].
+                            </p>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <button class="btn btn-outline-primary mt-auto w-100">Ver Histórico Completo</button>
-        </div>
-    </div>
-
-    <div class="col-lg-4">
-    <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column">
-        <h5 class="fw-bold mb-4">Monitorização de Sinais Vitais</h5>
-        
-        <div style="position: relative; height:220px;">
-            <canvas id="healthChart"></canvas>
-        </div>
-
-    <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-    <span class="badge bg-primary-subtle text-primary border border-primary-subtle p-2">
-        <i class="bi bi-heart-pulse me-1"></i> FC (bpm)
-    </span>
-    <span class="badge bg-danger-subtle text-danger border border-danger-subtle p-2">
-        <i class="bi bi-droplet me-1"></i> Glicose (mg/dL)
-    </span>
-    <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
-        <i class="bi bi-activity me-1"></i> Pressão Art. (mmHg)
-    </span>
-    </div>
-        
-        <div class="mt-auto pt-4">
-            <button class="btn btn-primary w-100 py-3 shadow-sm fw-bold" onclick="gerarRelatorio()">
-                <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gerar Relatório Completo
-            </button>
-            <p class="text-center small text-muted mt-2 mb-0">
-                <i class="bi bi-info-circle me-1"></i> Formatos disponíveis: PDF e JSON
-            </p>
-        </div>
-    </div>
-</div>
-</div>
         </main>
     </div>
 
