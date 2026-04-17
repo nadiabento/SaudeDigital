@@ -62,3 +62,17 @@ nav.vh-100 {
     font-weight: 600;
     padding: 8px 12px;
 }
+
+/* Página de Medicação */
+.form-control,
+.form-select {
+    border-radius: 10px;
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: none;
+    border-color: var(--primary-color);
+}
+
+/* Fim da Página de Medicação */
