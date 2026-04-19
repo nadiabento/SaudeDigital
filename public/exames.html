@@ -64,13 +64,51 @@
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Tipo de Exame</label>
                                 <select class="form-select bg-light border-0 p-3" id="tipoExame" required>
-                                    <option value="">A carregar categorias...</option>
-                                    </select>
+                                <option value="" selected disabled>Selecione o exame...</option>
+                                <optgroup label="Análises Clínicas">
+                                    <option value="Hemograma Completo">Hemograma Completo</option>
+                                    <option value="Glicemia em Jejum">Glicemia em Jejum</option>
+                                    <option value="Hemoglobina Glicada">Hemoglobina Glicada (HbA1c)</option>
+                                    <option value="Perfil Lipídico">Perfil Lipídico (Colesterol/Triglicerídeos)</option>
+                                    <option value="Função Renal">Função Renal (Ureia/Creatinina)</option>
+                                    <option value="Função Hepática">Função Hepática (TGO/TGP/GGT)</option>
+                                    <option value="TSH e T4 Livre">TSH e T4 Livre</option>
+                                    <option value="Urina Tipo II">Urina Tipo II</option>
+                                    <option value="Sangue Oculto nas Fezes">Sangue Oculto nas Fezes</option>
+                                </optgroup>
+                                <optgroup label="Imagiologia">
+                                    <option value="Raio-X">Raio-X (Tórax/Coluna/Membros)</option>
+                                    <option value="Ecografia">Ecografia (Abdominal/Pélvica/Tiroide)</option>
+                                    <option value="Mamografia">Mamografia Bilateral</option>
+                                    <option value="TAC">Tomografia Computorizada (TAC)</option>
+                                    <option value="Ressonância Magnética">Ressonância Magnética (RM)</option>
+                                    <option value="Densitometria Óssea">Densitometria Óssea</option>
+                                </optgroup>
+                                <optgroup label="Cardiologia e Funcionais">
+                                    <option value="Eletrocardiograma">Eletrocardiograma (ECG)</option>
+                                    <option value="Ecocardiograma">Ecocardiograma</option>
+                                    <option value="Holter/MAPA">Holter / MAPA 24h</option>
+                                    <option value="Prova de Esforço">Prova de Esforço</option>
+                                    <option value="Espirometria">Espirometria</option>
+                                </optgroup>
+                                <optgroup label="Endoscopia">
+                                    <option value="Endoscopia Digestiva">Endoscopia Digestiva Alta</option>
+                                    <option value="Colonoscopia">Colonoscopia</option>
+                                </optgroup>
+                                <option value="Outros">Outros (Especificar nas observações)</option>
+                                </select>
                             </div>
+
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">Data de Realização</label>
                                 <input type="date" class="form-control bg-light border-0 p-3" required>
                             </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Observações Médicas</label>
+                                <textarea class="form-control bg-light border-0 p-3" id="observacoes" rows="3" placeholder="Ex: Resultado normal, indicação de repetir em 6 meses, etc."></textarea>
+                            </div>
+
                             <div class="mb-4">
                                 <label class="form-label fw-semibold">Anexar Relatório (PDF)</label>
                                 <div class="border rounded-3 p-4 text-center bg-light" style="border-style: dashed !important;">
@@ -79,6 +117,7 @@
                                     <p class="small text-muted mb-0 mt-2">Arraste ou clique para carregar o ficheiro oficial.</p>
                                 </div>
                             </div>
+
                             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
                                 <i class="bi bi-check-circle me-2"></i>Guardar Registo
                             </button>
