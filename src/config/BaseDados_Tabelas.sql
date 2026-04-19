@@ -1,5 +1,5 @@
 -- Criar a base de dados
-CREATE DATABASE IF NOT EXISTS registo_clinico_db;
+USE paw-2026-grd;
 USE registo_clinico_db;
 
 
