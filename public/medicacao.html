@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaúdeDigital | Medicação</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body class="bg-light">
+
+    <div class="d-flex">
+        <nav class="bg-white border-end vh-100 d-none d-md-block sticky-top" style="width: 280px;">
+            <div class="p-4">
+                <h4 class="text-primary fw-bold"><i class="bi bi-heart-pulse-fill me-2"></i>SaúdeDigital</h4>
+            </div>
+            <ul class="nav flex-column px-3">
+                <li class="nav-item mb-2">
+                    <a href="dashboard.html" class="nav-link text-dark p-3">
+                        <i class="bi bi-house-door me-2"></i> Resumo Geral
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="consultas.html" class="nav-link text-dark p-3">
+                        <i class="bi bi-calendar-event me-2"></i> Consultas
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="medicacao.html" class="nav-link active bg-primary text-white rounded-3 p-3 shadow-sm">
+                        <i class="bi bi-capsule me-2"></i> Medicação
+                    </a>
+                </li>
+                <li class="nav-item mb-2">
+                    <a href="exames.html" class="nav-link text-dark p-3">
+                        <i class="bi bi-file-earmark-medical me-2"></i> Exames
+                    </a>
+                </li>
+                <hr>
+                <li class="nav-item">
+                    <a href="index.html" class="nav-link text-danger p-3">
+                        <i class="bi bi-box-arrow-left me-2"></i> Sair
+                    </a>
+                </li>
+            </ul>
+        </nav>
+
+        <main class="flex-grow-1 p-4">
+            <header class="d-flex justify-content-between align-items-center mb-5">
+                <div>
+                    <h2 class="fw-bold">Gestão de Medicação</h2>
+                    <p class="text-muted">Aqui pode consultar, registar e acompanhar a sua terapêutica atual.</p>
+                </div>
+                <button class="btn btn-primary shadow-sm py-2 px-4 rounded-pill">
+                    <i class="bi bi-plus-lg me-2"></i> Nova Medicação
+                </button>
+            </header>
+
+            <div class="row g-4 mb-5">
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-success bg-opacity-10 p-3 rounded-3 text-success me-3">
+                                <i class="bi bi-capsule-pill fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">Medicação Ativa</h6>
+                                <p class="fw-bold mb-0">3 Medicamentos</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-primary bg-opacity-10 p-3 rounded-3 text-primary me-3">
+                                <i class="bi bi-clock-history fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">Próxima Toma</h6>
+                                <p class="fw-bold mb-0">Hoje às 21:00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="card border-0 shadow-sm p-3">
+                        <div class="d-flex align-items-center">
+                            <div class="bg-warning bg-opacity-10 p-3 rounded-3 text-warning me-3">
+                                <i class="bi bi-exclamation-triangle fs-3"></i>
+                            </div>
+                            <div>
+                                <h6 class="text-muted mb-0">Efeitos Secundários</h6>
+                                <p class="fw-bold mb-0">1 Alerta (Ligeiro)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row g-4">
+                <div class="col-lg-8">
+                    <div class="card border-0 shadow-sm p-4 h-100">
+                        <h5 class="fw-bold mb-4">Plano Terapêutico Ativo</h5>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover align-middle">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Medicamento</th>
+                                        <th>Dosagem</th>
+                                        <th>Posologia</th>
+                                        <th>Duração</th>
+                                        <th>Dias restantes</th>
+                                        <th>Estado</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tabela-medicacao">
+                                    <tr>
+                                        <td><strong>Lisinopril</strong></td>
+                                        <td>10mg</td>
+                                        <td>2x/dia</td>
+                                        <td class="data-fim" data-fim="2026-04-30">01/04/2026 - 30/04/2026</td>
+                                        <td class="dias-restantes"></td>
+                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Amoxicilina</strong></td>
+                                        <td>500mg</td>
+                                        <td>8/8h</td>
+                                        <td class="data-fim" data-fim="2026-04-17">10/04/2026 - 17/04/2026</td>
+                                        <td class="dias-restantes"></td>
+                                        <td><span class="badge bg-warning-subtle text-warning px-3">A terminar</span></td>
+                                    </tr>
+                                    <tr>
+                                        <td><strong>Metformina</strong></td>
+                                        <td>850mg</td>
+                                        <td>2x/dia</td>
+                                        <td class="data-fim" data-fim="2026-12-31">Crónico</td>
+                                        <td class="dias-restantes"></td>
+                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <button class="btn btn-outline-primary mt-auto w-100">Ver Histórico Completo</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-4">
+                    <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column">
+                        <h5 class="fw-bold mb-4">Registar Medicação</h5>
+
+                        <form>
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Medicamento</label>
+                                <input type="text" class="form-control" placeholder="Ex.: Ibuprofeno">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Dosagem</label>
+                                <input type="text" class="form-control" placeholder="Ex.: 400mg">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Posologia</label>
+                                <input type="text" class="form-control" placeholder="Ex.: 1 comprimido de 8 em 8 horas">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Data de início</label>
+                                <input type="date" class="form-control">
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold">Data de fim</label>
+                                <input type="date" class="form-control">
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold">Estado</label>
+                                <select class="form-select">
+                                    <option>Ativo</option>
+                                    <option>A terminar</option>
+                                    <option>Crónico</option>
+                                </select>
+                            </div>
+
+                            <button type="button" class="btn btn-primary w-100 py-3 shadow-sm fw-bold">
+                                Guardar Medicação
+                            </button>
+                        </form>
+
+                        <div class="mt-4">
+                            <h6 class="fw-bold mb-3">Efeitos Secundários Recentes</h6>
+
+                            <div class="border rounded-3 p-3 mb-2 bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Náuseas</strong><br>
+                                        <small class="text-muted">Amoxicilina</small>
+                                    </div>
+                                    <span class="badge bg-warning-subtle text-warning">Ligeiro</span>
+                                </div>
+                            </div>
+
+                            <div class="border rounded-3 p-3 bg-light">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>Tonturas</strong><br>
+                                        <small class="text-muted">Metformina</small>
+                                    </div>
+                                    <span class="badge bg-danger-subtle text-danger">Grave</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="js/medicacao.js"></script>
+</body>
+</html>
