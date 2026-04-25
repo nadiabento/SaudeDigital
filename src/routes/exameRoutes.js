@@ -1,13 +1,34 @@
 const express = require("express");
 const router = express.Router();
 const exameController = require("../controllers/exameController");
+const multer = require("multer");
+const path = require("path");
 
-// Rota para carregar as categorias no primeiro Select do HTML
-// URL: http://localhost:3000/api/exames/categorias
+// --- Configuração do Multer (Upload de PDF) ---
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/uploads/");
+  },
+  filename: (req, file, cb) => {
+    cb(null, Date.now() + path.extname(file.originalname));
+  },
+});
+
+const upload = multer({ storage: storage });
+
+// --- DEFINIÇÃO DAS ROTAS ---
+
+// GET: Listagens
 router.get("/categorias", exameController.listarCategorias);
-
-// Rota para carregar os tipos de exame filtrados pela categoria escolhida
-// URL: http://localhost:3000/api/exames/tipos/:id_categoria
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
+router.get("/historico", exameController.listarHistorico); // Garante que esta rota existe!
+
+// POST: Registar Exame com PDF
+// 'relatorio' deve ser o 'name' do input no HTML
+router.post(
+  "/registar",
+  upload.single("relatorio"),
+  exameController.registarExame,
+);
 
 module.exports = router;
