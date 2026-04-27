@@ -1,62 +1,103 @@
 // src/controllers/authController.js
-const bcrypt = require('bcrypt'); 
-const User = require('../models/User'); 
+const bcrypt = require("bcrypt");
+const User = require("../models/User");
 
 const authController = {
-    // 1. Função de Registo
-    registar: async (req, res) => {
-        try {
-            const { nome, email, password, data_nascimento, grupo_sanguineo } = req.body;
+  // 1. Função de Registo
+  registar: async (req, res) => {
+    try {
+      const { nome, email, password, data_nascimento, grupo_sanguineo } =
+        req.body;
 
-            const utilizadorExistente = await User.encontrarEmail(email);
-            if (utilizadorExistente) {
-                return res.status(400).json({ erro: 'Este e-mail já está registado.' });
-            }
+      // Verifica se o email já existe
+      const utilizadorExistente = await User.encontrarEmail(email);
+      if (utilizadorExistente) {
+        return res.status(400).json({ erro: "Este e-mail já está registado." });
+      }
 
-            const password_hash = await bcrypt.hash(password, 10);
+      // Encripta a password
+      const password_hash = await bcrypt.hash(password, 10);
 
-            const novoUserId = await User.criar({
-                nome,
-                email,
-                password_hash,
-                data_nascimento,
-                grupo_sanguineo
-            });
+      // Cria o utilizador na BD
+      const novoUserId = await User.criar({
+        nome,
+        email,
+        password_hash,
+        data_nascimento,
+        grupo_sanguineo,
+      });
 
-            res.status(201).json({ mensagem: 'Conta criada com sucesso!', id: novoUserId });
-
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ erro: 'Erro interno no servidor ao registar.' });
-        }
-    },
-
-    // 2. Função de Login
-    login: async (req, res) => {
-        try {
-            const { email, password } = req.body;
-
-            const utilizador = await User.encontrarEmail(email);
-            
-            if (!utilizador) {
-                return res.status(401).json({ erro: 'E-mail ou palavra-passe incorretos.' });
-            }
-
-            const passwordCorreta = await bcrypt.compare(password, utilizador.password_hash);
-            
-            if (!passwordCorreta) {
-                return res.status(401).json({ erro: 'E-mail ou palavra-passe incorretos.' });
-            }
-
-            req.session.userId = utilizador.id; 
-
-            res.status(200).json({ mensagem: 'Login efetuado com sucesso!', redirecionar: '/dashboard.html' });
-
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ erro: 'Erro interno no servidor ao fazer login.' });
-        }
+      res
+        .status(201)
+        .json({ mensagem: "Conta criada com sucesso!", id: novoUserId });
+    } catch (error) {
+      console.error("Erro no Registo:", error);
+      res.status(500).json({ erro: "Erro interno no servidor ao registar." });
     }
+  },
+
+  // 2. Função de Login
+  login: async (req, res) => {
+    try {
+      const { email, password } = req.body;
+
+      // Procura o utilizador pelo email
+      const utilizador = await User.encontrarEmail(email);
+
+      if (!utilizador) {
+        return res
+          .status(401)
+          .json({ erro: "E-mail ou palavra-passe incorretos." });
+      }
+
+      // Compara a password enviada com o hash da BD
+      const passwordCorreta = await bcrypt.compare(
+        password,
+        utilizador.password_hash,
+      );
+
+      if (!passwordCorreta) {
+        return res
+          .status(401)
+          .json({ erro: "E-mail ou palavra-passe incorretos." });
+      }
+
+      // --- RECORDAÇÃO: Guardamos o ID na sessão usando o nome 'userId' ---
+      req.session.userId = utilizador.id;
+
+      // Forçamos a gravação da sessão para garantir que o ID está lá no redirecionamento
+      req.session.save((err) => {
+        if (err) {
+          console.error("Erro ao gravar sessão:", err);
+          return res.status(500).json({ erro: "Erro ao processar login." });
+        }
+
+        console.log(`Utilizador ${utilizador.id} logado com sucesso.`);
+        res.status(200).json({
+          mensagem: "Login efetuado com sucesso!",
+          redirecionar: "/dashboard.html",
+        });
+      });
+    } catch (error) {
+      console.error("Erro no Login:", error);
+      res
+        .status(500)
+        .json({ erro: "Erro interno no servidor ao fazer login." });
+    }
+  },
+
+  // 3. Função de Logout (Adicionada para completar o sistema)
+  logout: (req, res) => {
+    req.session.destroy((err) => {
+      if (err) {
+        return res
+          .status(500)
+          .json({ erro: "Não foi possível encerrar a sessão." });
+      }
+      res.clearCookie("connect.sid"); // Limpa o cookie da sessão no navegador
+      res.status(200).json({ mensagem: "Sessão encerrada." });
+    });
+  },
 };
 
 module.exports = authController;
