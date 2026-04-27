@@ -1,0 +1,98 @@
+/* Estilo para o grupo de botões de atalho rápido */
+.card-atalhos {
+  border-radius: 12px;
+  background-color: transparent; /* Permite que o fundo do card controle a cor */
+}
+
+/* Botão de Atalho (Nova Categoria / Novo Tipo) */
+.btn-atalho {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0 !important;
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column; /* Ícone em cima, texto em baixo */
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  width: 100%;
+  cursor: pointer;
+}
+
+/* Efeito de elevação (Float) ao passar o rato */
+.btn-atalho:hover {
+  background-color: #f8fbff;
+  border-color: var(--primary-color) !important;
+  transform: translateY(-3px); /* Move o botão 3px para cima */
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
+}
+
+/* Transição suave para o ícone dentro do botão */
+.btn-atalho i {
+  transition: transform 0.3s ease;
+}
+
+/* O ícone cresce ligeiramente no hover */
+.btn-atalho:hover i {
+  transform: scale(1.1);
+}
+
+/* Texto abaixo do ícone */
+.btn-atalho span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+  color: var(--text-dark);
+}
+
+/* Estilo para a lista de sugestões (Autocomplete) */
+datalist {
+  border-radius: 10px;
+}
+
+/* Melhora o aspeto do campo de entrada */
+#classeExameInput,
+#tipoExameInput {
+  border: 1px solid #eee !important;
+  background-color: #f8f9fa;
+  transition: all 0.2s ease-in-out;
+  font-weight: 500;
+}
+
+#classeExameInput:focus {
+  background-color: #fff;
+  border-color: #0d6efd !important;
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+}
+
+/* Lista de sugestões personalizada */
+.custom-autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  max-height: 200px;
+  overflow-y: auto;
+  border: 1px solid #eee;
+  border-top: none;
+  background: white;
+  display: none; /* Escondida por padrão */
+  padding: 0;
+}
+
+/* Itens da lista */
+.custom-autocomplete-list .list-group-item {
+  cursor: pointer;
+  border: none;
+  padding: 12px 15px;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+}
+
+/* Efeito ao passar o rato ou selecionar */
+.custom-autocomplete-list .list-group-item:hover {
+  background-color: #e7f0ff;
+  color: #0d6efd;
+  font-weight: 600;
+}

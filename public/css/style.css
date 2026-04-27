@@ -1,78 +1,96 @@
-/* public/css/style.css */
+/* Definição de variáveis globais para facilitar mudanças de cor rápidas */
 :root {
-    --primary-color: #0d6efd;
-    --primary-light: #e7f0ff;
+  --primary-color: #0d6efd;
+  --primary-light: #e7f0ff;
+  --text-dark: #333;
+  --border-color: #dee2e6;
+  --bg-light: #f8f9fa;
 }
 
 body {
-    font-family: 'Inter', sans-serif;
-    color: #333;
+  font-family: "Inter", sans-serif;
+  color: var(--text-dark);
+  background-color: var(--bg-light);
 }
 
-/* Sidebar Styling */
+/* --- SIDEBAR (NAVEGAÇÃO LATERAL) --- */
 nav.vh-100 {
-    min-width: 280px;
-    background-color: #ffffff;
+  min-width: 280px;
+  background-color: #ffffff;
 }
 
 .nav-link {
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    margin-bottom: 5px;
+  transition: all 0.2s ease; /* Transição suave para hover */
+  border-radius: 8px;
+  margin-bottom: 5px;
+  color: var(--text-dark);
 }
 
+/* Estado ao passar o rato nos links da sidebar */
 .nav-link:hover {
-    background-color: var(--primary-light);
-    color: var(--primary-color) !important;
+  background-color: var(--primary-light);
+  color: var(--primary-color) !important;
 }
 
+/* Estado ativo (página atual) */
 .nav-link.active {
-    background-color: var(--primary-color) !important;
-    color: white !important;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
+  background-color: var(--primary-color) !important;
+  color: white !important;
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2); /* Sombra suave azul */
 }
 
-/* Upload Box (RF05.6) */
+/* --- CAIXA DE UPLOAD (DASHED BOX) --- */
 .upload-box {
-    border: 2px dashed #dee2e6;
-    background-color: #f8f9fa;
-    padding: 20px;
-    border-radius: 12px;
-    transition: all 0.3s ease;
+  border: 2px dashed var(--border-color); /* Borda tracejada */
+  background-color: var(--bg-light);
+  padding: 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-align: center;
 }
 
+/* Efeito visual ao arrastar ficheiros ou passar o rato */
 .upload-box:hover {
-    border-color: var(--primary-color);
-    background-color: #fff;
+  border-color: var(--primary-color);
+  background-color: #fff;
+  cursor: pointer;
 }
 
-/* Cards & Tables */
+/* --- COMPONENTES DE UI (CARDS E TABELAS) --- */
 .card {
-    border-radius: 16px;
-    border: none;
+  border-radius: 16px; /* Cantos mais arredondados para aspeto moderno */
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
+/* Estilização do cabeçalho das tabelas */
 .table thead th {
-    font-size: 0.75rem;
-    letter-spacing: 0.05em;
-    border-top: none;
+  font-size: 0.75rem;
+  text-transform: uppercase; /* Cabeçalhos em maiúsculas */
+  letter-spacing: 0.05em;
+  border-top: none;
+  color: #6c757d;
 }
 
+/* Badges (Etiquetas) mais robustas */
 .badge {
-    font-weight: 600;
-    padding: 8px 12px;
+  font-weight: 600;
+  padding: 8px 12px;
+  border-radius: 6px;
 }
 
-/* Página de Medicação */
+/* --- FORMULÁRIOS --- */
 .form-control,
 .form-select {
-    border-radius: 10px;
+  border-radius: 10px;
+  padding: 0.75rem; /* Mais espaçamento interno */
+  border: 1px solid var(--border-color);
 }
 
+/* Efeito ao clicar nos inputs */
 .form-control:focus,
 .form-select:focus {
-    box-shadow: none;
-    border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); /* Brilho azul suave */
+  border-color: var(--primary-color);
+  outline: none;
 }
-
-/* Fim da Página de Medicação */
