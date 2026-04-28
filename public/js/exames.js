@@ -6,7 +6,7 @@ let tiposGlobais = [];
 let examesParaTabela = [];
 let direcaoOrdenacao = { exame: 1, data: 1 };
 let paginaAtual = 1;
-const examesPorPagina = 5;
+const examesPorPagina = 10;
 
 // --- CONFIGURAÇÃO INICIAL ---
 window.onload = () => {
@@ -18,7 +18,6 @@ window.onload = () => {
 /**
  * --- 1. COMUNICAÇÃO COM A API (GET) ---
  */
-
 async function carregarCategorias() {
   try {
     const response = await fetch("/api/exames/categorias");
@@ -65,7 +64,6 @@ async function atualizarTiposExame(idCategoria) {
 /**
  * --- 2. RENDERIZAÇÃO E PAGINAÇÃO ---
  */
-
 function renderizarTabela() {
   const tbody = document.getElementById("tabelaExames");
   if (!tbody) return;
@@ -81,50 +79,80 @@ function renderizarTabela() {
       : "---";
 
     tbody.innerHTML += `
-            <tr>
-                <td><input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()"></td>
-                <td><strong>${exame.nome}</strong></td>
-                <td>${dataF}</td>
-                <td>
-                    ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none">PDF</a>` : "---"}
-                </td>
-                <td class="text-end">
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
-                        </ul>
-                    </div>
-                </td>
-            </tr>`;
+        <tr>
+            <td><input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()"></td>
+            <td><strong>${exame.nome}</strong></td>
+            <td>${dataF}</td>
+            <td>
+                ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none">PDF</a>` : "---"}
+            </td>
+            <td class="text-end">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+<ul class="dropdown-menu dropdown-menu-end shadow border-0">
+    <li><a class="dropdown-item" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes || ""}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+    
+    <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+    <li><hr class="dropdown-divider"></li>
+    <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+</ul>
+                </div>
+            </td>
+        </tr>`;
   });
+
   renderizarControlosPaginacao();
 }
 
 function renderizarControlosPaginacao() {
   const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
-  const container = document.querySelector(".table-responsive");
-  let pagExistente = document.querySelector(".pagination-container");
-  if (pagExistente) pagExistente.remove();
+  const container = document.getElementById("paginacaoContainer");
 
-  if (totalPaginas <= 1) return;
+  if (!container) return;
+  container.innerHTML = "";
 
-  let html = `<div class="pagination-container d-flex justify-content-center gap-2 mt-3">`;
-  for (let i = 1; i <= totalPaginas; i++) {
-    html += `<button class="btn btn-sm ${i === paginaAtual ? "btn-primary" : "btn-outline-primary"}" 
-                 onclick="mudarPagina(${i})">${i}</button>`;
+  // REMOVIDO: a verificação (totalPaginas <= 1) para que apareça sempre
+
+  let html = `<nav aria-label="Paginação de exames"><ul class="pagination shadow-sm">`;
+
+  // Botão Anterior
+  html += `
+        <li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">
+                <i class="bi bi-chevron-left"></i>
+            </a>
+        </li>`;
+
+  // Números das Páginas (Se não houver exames, mostrará pelo menos o número 1)
+  const paginasAMostrar = totalPaginas > 0 ? totalPaginas : 1;
+  for (let i = 1; i <= paginasAMostrar; i++) {
+    html += `
+            <li class="page-item ${i === paginaAtual ? "active" : ""}">
+                <a class="page-link fw-bold" href="#" onclick="mudarPagina(${i})">${i}</a>
+            </li>`;
   }
-  html += `</div>`;
-  container.insertAdjacentHTML("afterend", html);
+
+  // Botão Próximo
+  html += `
+        <li class="page-item ${paginaAtual === totalPaginas || totalPaginas === 0 ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">
+                <i class="bi bi-chevron-right"></i>
+            </a>
+        </li>`;
+
+  html += `</ul></nav>`;
+  container.innerHTML = html;
 }
 
+// Função de apoio para mudar a página e refrescar a tabela
 function mudarPagina(num) {
+  const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
+  if (num < 1 || num > totalPaginas) return;
+
   paginaAtual = num;
-  renderizarTabela();
+  renderizarTabela(); // Esta função deve chamar o renderizarControlosPaginacao() no fim
 }
 
 function filtrarTabela() {
@@ -139,7 +167,6 @@ function filtrarTabela() {
 /**
  * --- 3. SELEÇÃO E AÇÕES EM MASSA ---
  */
-
 function toggleTodos(master) {
   document
     .querySelectorAll(".exame-checkbox")
@@ -163,36 +190,28 @@ async function eliminarSelecionados() {
   executarEliminacao(ids);
 }
 
-async function executarEliminacao(ids) {
-  try {
-    const res = await fetch("/api/exames/eliminar-massa", {
-      method: "DELETE", // Garante que o método é DELETE
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    });
-
-    if (res.ok) {
-      alert("Exame(s) eliminado(s)!");
-      carregarHistorico(); // Recarrega a tabela
-    } else {
-      const erro = await res.json();
-      alert("Erro: " + erro.error);
-    }
-  } catch (error) {
-    console.error("Erro na comunicação com o servidor:", error);
-  }
-}
-
 async function eliminarUm(id) {
   if (!confirm("Tem a certeza que deseja eliminar este exame?")) return;
   executarEliminacao([id]);
 }
+
+async function executarEliminacao(ids) {
+  try {
+    const res = await fetch("/api/exames/eliminar-massa", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+    if (res.ok) carregarHistorico();
+  } catch (error) {
+    console.error("Erro na eliminação:", error);
+  }
+}
+
 /**
  * --- 4. CONFIGURAÇÃO DE EVENTOS E SUBMISSÃO ---
  */
-
 function configurarEventosInterface() {
-  // Autocompletes
   const inputClasse = document.getElementById("classeExameInput");
   const listaUlClasse = document.getElementById("sugestoesClasse");
   const inputTipo = document.getElementById("tipoExameInput");
@@ -250,7 +269,6 @@ function configurarEventosInterface() {
     });
   }
 
-  // --- SUBMISSÃO ÚNICA DO FORMULÁRIO ---
   const form = document.getElementById("formExame");
   if (form) {
     form.addEventListener("submit", async (e) => {
@@ -259,8 +277,8 @@ function configurarEventosInterface() {
       const dataExame = document.getElementById("dataExame").value;
       const obs = document.getElementById("observacoes").value;
 
-      if (!idTipoExame) return alert("Selecione um exame da lista.");
-      if (!dataExame) return alert("Selecione a data do exame.");
+      if (!idTipoExame || !dataExame)
+        return alert("Preencha o tipo e a data do exame.");
 
       const formData = new FormData();
       formData.append("data_exame", dataExame);
@@ -269,24 +287,18 @@ function configurarEventosInterface() {
       formData.append("local_realizacao", "SaúdeDigital Clinic");
 
       const fileInput = document.querySelector('input[name="relatorio"]');
-      if (fileInput && fileInput.files[0]) {
+      if (fileInput && fileInput.files[0])
         formData.append("relatorio", fileInput.files[0]);
-      }
 
-      try {
-        const response = await fetch("/api/exames/registar", {
-          method: "POST",
-          body: formData,
-        });
-        if (response.ok) {
-          alert("Exame registado com sucesso!");
-          location.reload();
-        } else {
-          const res = await response.json();
-          alert("Erro: " + (res.error || "Erro no servidor"));
-        }
-      } catch (error) {
-        console.error("Erro no envio:", error);
+      const response = await fetch("/api/exames/registar", {
+        method: "POST",
+        body: formData,
+      });
+      if (response.ok) {
+        alert("Exame registado!");
+        location.reload();
+      } else {
+        alert("Erro ao registar.");
       }
     });
   }
@@ -299,50 +311,36 @@ function configurarEventosInterface() {
 }
 
 /**
- * --- 5. CRIAÇÃO DE CATEGORIAS/TIPOS (MODAIS) ---
+ * --- 5. MODAIS E UTILITÁRIOS ---
  */
-
 async function adicionarClasse() {
-  const nomeInput = document.getElementById("inputNovaClasse");
-  const nome = nomeInput?.value.trim();
-  if (!nome) return alert("Insira o nome da categoria.");
+  const nome = document.getElementById("inputNovaClasse")?.value.trim();
+  if (!nome) return alert("Insira o nome.");
   const res = await fetch("/api/exames/categorias", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome }),
   });
   if (res.ok) {
-    alert("Categoria guardada!");
-    nomeInput.value = "";
-    bootstrap.Modal.getInstance(
-      document.getElementById("modalNovaClasse"),
-    )?.hide();
-    carregarCategorias();
+    alert("Sucesso!");
+    location.reload();
   }
 }
 
 async function adicionarTipo() {
   const idCat = document.getElementById("selectCategoriaPai")?.value;
-  const nomeInput = document.getElementById("inputNovoTipo");
-  const nome = nomeInput?.value.trim();
-  if (!idCat || !nome) return alert("Preencha todos os campos.");
+  const nome = document.getElementById("inputNovoTipo")?.value.trim();
+  if (!idCat || !nome) return alert("Preencha tudo.");
   const res = await fetch("/api/exames/tipos", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ nome, id_categoria: idCat }),
   });
   if (res.ok) {
-    alert("Tipo guardado!");
-    nomeInput.value = "";
-    bootstrap.Modal.getInstance(
-      document.getElementById("modalNovoTipo"),
-    )?.hide();
+    alert("Sucesso!");
+    location.reload();
   }
 }
-
-/**
- * --- 6. UTILITÁRIOS ---
- */
 
 function ordenarTabela(coluna) {
   const fator = direcaoOrdenacao[coluna];
@@ -356,7 +354,7 @@ function ordenarTabela(coluna) {
 }
 
 async function gerarLinkPartilha(id = null) {
-  const ids = id
+  let ids = id
     ? [id]
     : Array.from(document.querySelectorAll(".exame-checkbox:checked")).map(
         (cb) => cb.value,
@@ -371,16 +369,70 @@ async function gerarLinkPartilha(id = null) {
     });
     const dados = await res.json();
     if (res.ok) {
-      const link = window.location.origin + "/view/share/" + dados.token;
-      navigator.clipboard.writeText(link);
-      alert("Link copiado para o clipboard!");
+      const linkFinal = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
+      document.getElementById("inputLinkPartilha").value = linkFinal;
+      new bootstrap.Modal(document.getElementById("modalPartilha")).show();
+      navigator.clipboard.writeText(linkFinal);
     }
   } catch (error) {
     console.error(error);
   }
 }
 
+function copiarLinkManual() {
+  const input = document.getElementById("inputLinkPartilha");
+  input.select();
+  navigator.clipboard.writeText(input.value);
+  const msg = document.getElementById("msgCopiado");
+  msg.classList.remove("d-none");
+  setTimeout(() => msg.classList.add("d-none"), 3000);
+}
+
 function exportarJSON() {
   console.log(examesParaTabela);
   alert("Dados na consola!");
+}
+
+// Função para abrir o modal e preencher os campos com os dados atuais
+function abrirModalEditar(id, data, obs) {
+  document.getElementById("editExameId").value = id;
+  // Formata a data para o padrão do input date (YYYY-MM-DD)
+  if (data) {
+    document.getElementById("editDataExame").value = data.split("T")[0];
+  }
+  document.getElementById("editObservacoes").value = obs || "";
+
+  // Mostra o modal
+  const modalEditar = new bootstrap.Modal(
+    document.getElementById("modalEditarExame"),
+  );
+  modalEditar.show();
+}
+
+// Função para enviar os novos dados para o Backend
+async function guardarEdicao() {
+  const id = document.getElementById("editExameId").value;
+  const data = document.getElementById("editDataExame").value;
+  const obs = document.getElementById("editObservacoes").value;
+
+  if (!data) return alert("A data é obrigatória.");
+
+  try {
+    const res = await fetch(`/api/exames/editar/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ data_exame: data, observacoes: obs }),
+    });
+
+    if (res.ok) {
+      alert("Exame atualizado com sucesso!");
+      location.reload(); // Recarrega para mostrar os novos dados
+    } else {
+      const erro = await res.json();
+      alert("Erro ao atualizar: " + erro.error);
+    }
+  } catch (error) {
+    console.error("Erro na edição:", error);
+    alert("Erro de comunicação com o servidor.");
+  }
 }

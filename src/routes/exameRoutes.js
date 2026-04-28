@@ -39,6 +39,7 @@ const upload = multer({
 router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/historico", exameController.listarHistorico);
+router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
 
 // POST: Registar Exame com PDF
 // O middleware 'upload.single' deve ser chamado ANTES do controller
@@ -51,8 +52,11 @@ router.post(
 // POST: Criar novas Categorias e Tipos (Modais)
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
+router.post("/gerar-partilha", exameController.gerarPartilha);
 
 // --- RETIFICAÇÃO: A rota DELETE deve estar ANTES do module.exports ---
 router.delete("/eliminar-massa", exameController.eliminarMassa);
+
+router.put("/editar/:id", exameController.editarExame);
 
 module.exports = router; // O ficheiro deve terminar aqui
