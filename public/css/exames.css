@@ -96,3 +96,22 @@ datalist {
   color: #0d6efd;
   font-weight: 600;
 }
+/* Permite que o dropdown transborde para fora da div responsiva */
+.table-responsive {
+  overflow: visible !important;
+}
+
+/* Garante que o menu de ações fique sempre por cima de tudo */
+.dropdown-menu {
+  position: absolute;
+  z-index: 9999;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Paginação - Estilo básico */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 15px;
+}

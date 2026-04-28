@@ -74,20 +74,6 @@
               Organize os seus relatórios e exporte o seu histórico clínico.
             </p>
           </div>
-          <div class="d-flex gap-2">
-            <button
-              class="btn btn-outline-secondary shadow-sm px-3"
-              onclick="exportarJSON()"
-            >
-              <i class="bi bi-code-slash me-2"></i>JSON
-            </button>
-            <button
-              class="btn btn-primary shadow-sm px-4 rounded-pill"
-              onclick="window.print()"
-            >
-              <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
-            </button>
-          </div>
         </header>
 
         <div class="row g-4">
@@ -210,11 +196,54 @@
 
           <div class="col-lg-7">
             <div class="card border-0 shadow-sm p-4 h-100">
-              <h5 class="fw-bold mb-4">Histórico Recente</h5>
+              <div
+                class="d-flex justify-content-between align-items-center mb-4"
+              >
+                <h5 class="fw-bold m-0">Histórico Recente</h5>
+                <div
+                  id="acoesMassa"
+                  class="d-none animate__animated animate__fadeIn"
+                >
+                  <button
+                    class="btn btn-outline-primary btn-sm me-2"
+                    onclick="gerarLinkPartilha()"
+                  >
+                    <i class="bi bi-share me-1"></i> Partilhar
+                  </button>
+                  <button
+                    class="btn btn-outline-danger btn-sm"
+                    onclick="eliminarSelecionados()"
+                  >
+                    <i class="bi bi-trash me-1"></i> Eliminar
+                  </button>
+                </div>
+              </div>
+
+              <div class="input-group mb-3">
+                <span class="input-group-text bg-light border-0"
+                  ><i class="bi bi-search"></i
+                ></span>
+                <input
+                  type="text"
+                  id="inputSearch"
+                  class="form-control bg-light border-0"
+                  placeholder="Pesquisar exames por nome..."
+                  onkeyup="filtrarTabela()"
+                />
+              </div>
+
               <div class="table-responsive">
                 <table class="table table-hover align-middle">
                   <thead class="table-light">
                     <tr>
+                      <th style="width: 40px">
+                        <input
+                          type="checkbox"
+                          id="checkAll"
+                          class="form-check-input"
+                          onclick="toggleTodos(this)"
+                        />
+                      </th>
                       <th
                         onclick="ordenarTabela('exame')"
                         style="cursor: pointer"
@@ -244,6 +273,7 @@
               </div>
             </div>
           </div>
+          >
         </div>
       </main>
     </div>

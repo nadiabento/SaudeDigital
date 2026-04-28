@@ -52,4 +52,7 @@ router.post(
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
 
-module.exports = router;
+// --- RETIFICAÇÃO: A rota DELETE deve estar ANTES do module.exports ---
+router.delete("/eliminar-massa", exameController.eliminarMassa);
+
+module.exports = router; // O ficheiro deve terminar aqui

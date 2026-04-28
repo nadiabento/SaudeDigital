@@ -1,107 +1,28 @@
-/*VARIÁVEIS GLOBAIS ---
- * categoriasGlobais: Armazena as classes (ex: Cardiologia) vindas da BD.
- * tiposGlobais: Armazena os tipos (ex: ECG) da classe selecionada.
- * examesParaTabela: Armazena o histórico para permitir ordenação sem novo fetch.
+/**
+ * --- VARIÁVEIS GLOBAIS ---
  */
-
 let categoriasGlobais = [];
 let tiposGlobais = [];
 let examesParaTabela = [];
 let direcaoOrdenacao = { exame: 1, data: 1 };
+let paginaAtual = 1;
+const examesPorPagina = 5;
 
-// --- CONFIGURAÇÃO INICIAL (EVENTOS) ---
+// --- CONFIGURAÇÃO INICIAL ---
 window.onload = () => {
-  carregarCategorias(); // Carrega as classes para o autocomplete e modais
-  carregarHistorico(); // Carrega a tabela de exames realizados
-
-  // --- LÓGICA DO AUTOCOMPLETE: CLASSE DO EXAME ---
-  const inputClasse = document.getElementById("classeExameInput");
-  const listaUlClasse = document.getElementById("sugestoesClasse");
-
-  if (inputClasse && listaUlClasse) {
-    inputClasse.addEventListener("input", (e) => {
-      const termo = e.target.value.toLowerCase();
-      listaUlClasse.innerHTML = ""; // Limpa a lista anterior
-
-      if (termo.length > 0) {
-        // Filtra categorias que COMEÇAM com o texto digitado
-        const filtradas = categoriasGlobais.filter((cat) =>
-          cat.nome.toLowerCase().startsWith(termo),
-        );
-
-        if (filtradas.length > 0) {
-          listaUlClasse.style.display = "block";
-          filtradas.forEach((cat) => {
-            const li = document.createElement("li");
-            li.className = "list-group-item list-group-item-action";
-            li.textContent = cat.nome;
-            li.onclick = () => {
-              inputClasse.value = cat.nome;
-              listaUlClasse.style.display = "none";
-              atualizarTiposExame(cat.id); // Desbloqueia e carrega os tipos desta classe
-            };
-            listaUlClasse.appendChild(li);
-          });
-        } else {
-          listaUlClasse.style.display = "none";
-        }
-      } else {
-        listaUlClasse.style.display = "none";
-      }
-    });
-  }
-
-  // --- LÓGICA DO AUTOCOMPLETE: TIPO DE EXAME ---
-  const inputTipo = document.getElementById("tipoExameInput");
-  const listaUlTipo = document.getElementById("sugestoesTipo");
-
-  if (inputTipo && listaUlTipo) {
-    inputTipo.addEventListener("input", (e) => {
-      const termo = e.target.value.toLowerCase();
-      listaUlTipo.innerHTML = "";
-
-      if (termo.length > 0) {
-        const filtrados = tiposGlobais.filter((t) =>
-          t.nome.toLowerCase().startsWith(termo),
-        );
-
-        if (filtrados.length > 0) {
-          listaUlTipo.style.display = "block";
-          filtrados.forEach((tipo) => {
-            const li = document.createElement("li");
-            li.className = "list-group-item list-group-item-action";
-            li.textContent = tipo.nome;
-            li.onclick = () => {
-              inputTipo.value = tipo.nome;
-              // Guarda o ID no campo oculto (input hidden) para o formulário
-              document.getElementById("idTipoSelecionado").value = tipo.id;
-              listaUlTipo.style.display = "none";
-            };
-            listaUlTipo.appendChild(li);
-          });
-        } else {
-          listaUlTipo.style.display = "none";
-        }
-      } else {
-        listaUlTipo.style.display = "none";
-      }
-    });
-  }
-
-  // Fecha as listas de sugestões se o utilizador clicar fora delas
-  document.addEventListener("click", (e) => {
-    if (e.target !== inputClasse) listaUlClasse.style.display = "none";
-    if (e.target !== inputTipo) listaUlTipo.style.display = "none";
-  });
+  carregarCategorias();
+  carregarHistorico();
+  configurarEventosInterface();
 };
 
-// --- 1. CARREGAR CLASSES (CATEGORIAS) ---
+/**
+ * --- 1. COMUNICAÇÃO COM A API (GET) ---
+ */
+
 async function carregarCategorias() {
   try {
     const response = await fetch("/api/exames/categorias");
     categoriasGlobais = await response.json();
-
-    // Preenche o select dentro do Modal "Novo Tipo"
     const selectModal = document.getElementById("selectCategoriaPai");
     if (selectModal) {
       selectModal.innerHTML =
@@ -114,178 +35,315 @@ async function carregarCategorias() {
       });
     }
   } catch (error) {
-    console.error("Erro ao carregar categorias:", error);
+    console.error("Erro categorias:", error);
   }
 }
 
-// --- 2. CARREGAR TIPOS (FILTRO DINÂMICO) ---
-async function atualizarTiposExame(idCategoria) {
-  const inputTipo = document.getElementById("tipoExameInput");
-  try {
-    const response = await fetch(`/api/exames/tipos/${idCategoria}`);
-    tiposGlobais = await response.json();
-
-    inputTipo.value = "";
-    inputTipo.disabled = false; // Ativa o campo agora que temos a classe
-    inputTipo.placeholder = "Escreva o tipo de exame...";
-  } catch (error) {
-    console.error("Erro ao carregar tipos:", error);
-  }
-}
-
-// --- 3. HISTÓRICO E TABELA ---
 async function carregarHistorico() {
   try {
     const response = await fetch("/api/exames/historico");
     examesParaTabela = await response.json();
     renderizarTabela();
   } catch (error) {
-    console.error("Erro ao buscar histórico:", error);
+    console.error("Erro histórico:", error);
   }
 }
+
+async function atualizarTiposExame(idCategoria) {
+  const inputTipo = document.getElementById("tipoExameInput");
+  try {
+    const response = await fetch(`/api/exames/tipos/${idCategoria}`);
+    tiposGlobais = await response.json();
+    inputTipo.value = "";
+    inputTipo.disabled = false;
+    inputTipo.placeholder = "Escreva o tipo de exame...";
+  } catch (error) {
+    console.error("Erro tipos:", error);
+  }
+}
+
+/**
+ * --- 2. RENDERIZAÇÃO E PAGINAÇÃO ---
+ */
 
 function renderizarTabela() {
   const tbody = document.getElementById("tabelaExames");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  examesParaTabela.forEach((exame) => {
-    // Formata a data (YYYY-MM-DD -> DD/MM/YYYY)
-    let dataF = "---";
-    if (exame.data) {
-      const dataLimpa = exame.data.includes("T")
-        ? exame.data.split("T")[0]
-        : exame.data;
-      dataF = dataLimpa.split("-").reverse().join("/");
-    }
+  const inicio = (paginaAtual - 1) * examesPorPagina;
+  const fim = inicio + examesPorPagina;
+  const examesPaginados = examesParaTabela.slice(inicio, fim);
+
+  examesPaginados.forEach((exame) => {
+    let dataF = exame.data
+      ? exame.data.split("T")[0].split("-").reverse().join("/")
+      : "---";
 
     tbody.innerHTML += `
             <tr>
+                <td><input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()"></td>
                 <td><strong>${exame.nome}</strong></td>
                 <td>${dataF}</td>
                 <td>
-                    ${
-                      exame.resultado
-                        ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none"><i class="bi bi-file-pdf"></i> PDF</a>`
-                        : "---"
-                    }
+                    ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none">PDF</a>` : "---"}
                 </td>
                 <td class="text-end">
-                    <button class="btn btn-light btn-sm border"><i class="bi bi-three-dots"></i></button>
+                    <div class="dropdown">
+                        <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                            <i class="bi bi-three-dots"></i>
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                        </ul>
+                    </div>
                 </td>
             </tr>`;
   });
+  renderizarControlosPaginacao();
 }
 
-// --- 4. FUNÇÕES PARA OS MODAIS (CRIAÇÃO) ---
+function renderizarControlosPaginacao() {
+  const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
+  const container = document.querySelector(".table-responsive");
+  let pagExistente = document.querySelector(".pagination-container");
+  if (pagExistente) pagExistente.remove();
 
-// --- FUNÇÃO PARA ADICIONAR CATEGORIA ---
+  if (totalPaginas <= 1) return;
+
+  let html = `<div class="pagination-container d-flex justify-content-center gap-2 mt-3">`;
+  for (let i = 1; i <= totalPaginas; i++) {
+    html += `<button class="btn btn-sm ${i === paginaAtual ? "btn-primary" : "btn-outline-primary"}" 
+                 onclick="mudarPagina(${i})">${i}</button>`;
+  }
+  html += `</div>`;
+  container.insertAdjacentHTML("afterend", html);
+}
+
+function mudarPagina(num) {
+  paginaAtual = num;
+  renderizarTabela();
+}
+
+function filtrarTabela() {
+  const termo = document.getElementById("inputSearch").value.toLowerCase();
+  const linhas = document.querySelectorAll("#tabelaExames tr");
+  linhas.forEach((linha) => {
+    const texto = linha.innerText.toLowerCase();
+    linha.style.display = texto.includes(termo) ? "" : "none";
+  });
+}
+
+/**
+ * --- 3. SELEÇÃO E AÇÕES EM MASSA ---
+ */
+
+function toggleTodos(master) {
+  document
+    .querySelectorAll(".exame-checkbox")
+    .forEach((cb) => (cb.checked = master.checked));
+  verificarSelecao();
+}
+
+function verificarSelecao() {
+  const n = document.querySelectorAll(".exame-checkbox:checked").length;
+  const acoes = document.getElementById("acoesMassa");
+  if (acoes)
+    n > 0 ? acoes.classList.remove("d-none") : acoes.classList.add("d-none");
+}
+
+async function eliminarSelecionados() {
+  const ids = Array.from(
+    document.querySelectorAll(".exame-checkbox:checked"),
+  ).map((cb) => cb.value);
+  if (ids.length === 0) return;
+  if (!confirm(`Deseja eliminar ${ids.length} exames?`)) return;
+  executarEliminacao(ids);
+}
+
+async function executarEliminacao(ids) {
+  try {
+    const res = await fetch("/api/exames/eliminar-massa", {
+      method: "DELETE", // Garante que o método é DELETE
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+
+    if (res.ok) {
+      alert("Exame(s) eliminado(s)!");
+      carregarHistorico(); // Recarrega a tabela
+    } else {
+      const erro = await res.json();
+      alert("Erro: " + erro.error);
+    }
+  } catch (error) {
+    console.error("Erro na comunicação com o servidor:", error);
+  }
+}
+
+async function eliminarUm(id) {
+  if (!confirm("Tem a certeza que deseja eliminar este exame?")) return;
+  executarEliminacao([id]);
+}
+/**
+ * --- 4. CONFIGURAÇÃO DE EVENTOS E SUBMISSÃO ---
+ */
+
+function configurarEventosInterface() {
+  // Autocompletes
+  const inputClasse = document.getElementById("classeExameInput");
+  const listaUlClasse = document.getElementById("sugestoesClasse");
+  const inputTipo = document.getElementById("tipoExameInput");
+  const listaUlTipo = document.getElementById("sugestoesTipo");
+
+  if (inputClasse) {
+    inputClasse.addEventListener("input", (e) => {
+      const termo = e.target.value.toLowerCase();
+      listaUlClasse.innerHTML = "";
+      if (termo.length > 0) {
+        const filtradas = categoriasGlobais.filter((c) =>
+          c.nome.toLowerCase().startsWith(termo),
+        );
+        filtradas.forEach((cat) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item list-group-item-action";
+          li.textContent = cat.nome;
+          li.onclick = () => {
+            inputClasse.value = cat.nome;
+            listaUlClasse.style.display = "none";
+            atualizarTiposExame(cat.id);
+          };
+          listaUlClasse.appendChild(li);
+        });
+        listaUlClasse.style.display = filtradas.length > 0 ? "block" : "none";
+      } else {
+        listaUlClasse.style.display = "none";
+      }
+    });
+  }
+
+  if (inputTipo) {
+    inputTipo.addEventListener("input", (e) => {
+      const termo = e.target.value.toLowerCase();
+      listaUlTipo.innerHTML = "";
+      if (termo.length > 0) {
+        const filtrados = tiposGlobais.filter((t) =>
+          t.nome.toLowerCase().startsWith(termo),
+        );
+        filtrados.forEach((tipo) => {
+          const li = document.createElement("li");
+          li.className = "list-group-item list-group-item-action";
+          li.textContent = tipo.nome;
+          li.onclick = () => {
+            inputTipo.value = tipo.nome;
+            document.getElementById("idTipoSelecionado").value = tipo.id;
+            listaUlTipo.style.display = "none";
+          };
+          listaUlTipo.appendChild(li);
+        });
+        listaUlTipo.style.display = filtrados.length > 0 ? "block" : "none";
+      } else {
+        listaUlTipo.style.display = "none";
+      }
+    });
+  }
+
+  // --- SUBMISSÃO ÚNICA DO FORMULÁRIO ---
+  const form = document.getElementById("formExame");
+  if (form) {
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const idTipoExame = document.getElementById("idTipoSelecionado").value;
+      const dataExame = document.getElementById("dataExame").value;
+      const obs = document.getElementById("observacoes").value;
+
+      if (!idTipoExame) return alert("Selecione um exame da lista.");
+      if (!dataExame) return alert("Selecione a data do exame.");
+
+      const formData = new FormData();
+      formData.append("data_exame", dataExame);
+      formData.append("observacoes", obs);
+      formData.append("id_tipo_exame", idTipoExame);
+      formData.append("local_realizacao", "SaúdeDigital Clinic");
+
+      const fileInput = document.querySelector('input[name="relatorio"]');
+      if (fileInput && fileInput.files[0]) {
+        formData.append("relatorio", fileInput.files[0]);
+      }
+
+      try {
+        const response = await fetch("/api/exames/registar", {
+          method: "POST",
+          body: formData,
+        });
+        if (response.ok) {
+          alert("Exame registado com sucesso!");
+          location.reload();
+        } else {
+          const res = await response.json();
+          alert("Erro: " + (res.error || "Erro no servidor"));
+        }
+      } catch (error) {
+        console.error("Erro no envio:", error);
+      }
+    });
+  }
+
+  document.addEventListener("click", (e) => {
+    if (inputClasse && e.target !== inputClasse)
+      listaUlClasse.style.display = "none";
+    if (inputTipo && e.target !== inputTipo) listaUlTipo.style.display = "none";
+  });
+}
+
+/**
+ * --- 5. CRIAÇÃO DE CATEGORIAS/TIPOS (MODAIS) ---
+ */
+
 async function adicionarClasse() {
-  console.log("Botão Categoria Clicado!"); // Isto tem de aparecer na consola (F12)
-
   const nomeInput = document.getElementById("inputNovaClasse");
-  if (!nomeInput)
-    return console.error("Não encontrei o input 'inputNovaClasse'");
-
-  const nome = nomeInput.value.trim();
-  if (!nome) return alert("Escreve um nome para a categoria.");
-
-  try {
-    const res = await fetch("/api/exames/categorias", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nome }),
-    });
-
-    if (res.ok) {
-      alert("Categoria guardada!");
-      nomeInput.value = "";
-      // Fecha o modal
-      const modal = bootstrap.Modal.getInstance(
-        document.getElementById("modalNovaClasse"),
-      );
-      if (modal) modal.hide();
-      await carregarCategorias(); // Atualiza a lista
-    } else {
-      alert("Erro ao gravar no servidor.");
-    }
-  } catch (error) {
-    console.error("Erro no fetch:", error);
-    alert("Erro de ligação.");
+  const nome = nomeInput?.value.trim();
+  if (!nome) return alert("Insira o nome da categoria.");
+  const res = await fetch("/api/exames/categorias", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome }),
+  });
+  if (res.ok) {
+    alert("Categoria guardada!");
+    nomeInput.value = "";
+    bootstrap.Modal.getInstance(
+      document.getElementById("modalNovaClasse"),
+    )?.hide();
+    carregarCategorias();
   }
 }
 
-// --- FUNÇÃO PARA ADICIONAR TIPO ---
 async function adicionarTipo() {
-  console.log("Botão Tipo Clicado!");
-
-  const idCat = document.getElementById("selectCategoriaPai").value;
+  const idCat = document.getElementById("selectCategoriaPai")?.value;
   const nomeInput = document.getElementById("inputNovoTipo");
-  const nome = nomeInput.value.trim();
-
-  if (!idCat || !nome) return alert("Preenche todos os campos.");
-
-  try {
-    const res = await fetch("/api/exames/tipos", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ nome: nome, id_categoria: idCat }),
-    });
-
-    if (res.ok) {
-      alert("Tipo de exame guardado!");
-      nomeInput.value = "";
-      const modal = bootstrap.Modal.getInstance(
-        document.getElementById("modalNovoTipo"),
-      );
-      if (modal) modal.hide();
-    }
-  } catch (error) {
-    console.error("Erro no fetch:", error);
+  const nome = nomeInput?.value.trim();
+  if (!idCat || !nome) return alert("Preencha todos os campos.");
+  const res = await fetch("/api/exames/tipos", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ nome, id_categoria: idCat }),
+  });
+  if (res.ok) {
+    alert("Tipo guardado!");
+    nomeInput.value = "";
+    bootstrap.Modal.getInstance(
+      document.getElementById("modalNovoTipo"),
+    )?.hide();
   }
 }
 
-// --- 5. SUBMISSÃO DO FORMULÁRIO (UPLOAD) ---
-document.getElementById("formExame").addEventListener("submit", async (e) => {
-  e.preventDefault();
+/**
+ * --- 6. UTILITÁRIOS ---
+ */
 
-  // Captura o ID do campo oculto preenchido pelo autocomplete do Tipo
-  const idTipoExame = document.getElementById("idTipoSelecionado").value;
-
-  if (!idTipoExame)
-    return alert("Por favor, selecione um exame válido da lista.");
-
-  const formData = new FormData();
-  formData.append(
-    "data_exame",
-    e.target.querySelector('input[type="date"]').value,
-  );
-  formData.append("observacoes", document.getElementById("observacoes").value);
-  formData.append("id_tipo_exame", idTipoExame);
-  formData.append("local_realizacao", "SaúdeDigital Clinic");
-
-  const fileInput = e.target.querySelector('input[name="relatorio"]');
-  if (fileInput.files[0]) formData.append("relatorio", fileInput.files[0]);
-
-  try {
-    const response = await fetch("/api/exames/registar", {
-      method: "POST",
-      body: formData,
-    });
-
-    if (response.ok) {
-      alert("Exame registado com sucesso!");
-      location.reload();
-    } else {
-      const res = await response.json();
-      alert("Erro: " + res.error);
-    }
-  } catch (error) {
-    console.error("Erro no envio:", error);
-  }
-});
-
-// --- 6. UTILITÁRIOS (ORDENAÇÃO E JSON) ---
 function ordenarTabela(coluna) {
   const fator = direcaoOrdenacao[coluna];
   examesParaTabela.sort((a, b) => {
@@ -297,7 +355,32 @@ function ordenarTabela(coluna) {
   renderizarTabela();
 }
 
+async function gerarLinkPartilha(id = null) {
+  const ids = id
+    ? [id]
+    : Array.from(document.querySelectorAll(".exame-checkbox:checked")).map(
+        (cb) => cb.value,
+      );
+  if (ids.length === 0) return alert("Selecione exames.");
+
+  try {
+    const res = await fetch("/api/exames/gerar-partilha", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ examesIds: ids }),
+    });
+    const dados = await res.json();
+    if (res.ok) {
+      const link = window.location.origin + "/view/share/" + dados.token;
+      navigator.clipboard.writeText(link);
+      alert("Link copiado para o clipboard!");
+    }
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 function exportarJSON() {
-  alert("Dados exportados para a consola!");
-  console.log(JSON.stringify(examesParaTabela, null, 2));
+  console.log(examesParaTabela);
+  alert("Dados na consola!");
 }

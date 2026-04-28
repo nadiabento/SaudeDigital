@@ -1,4 +1,6 @@
 const db = require("../config/db");
+const fs = require("fs");
+const path = require("path");
 
 /**
  * --- LISTAGENS (GET) ---
@@ -148,4 +150,71 @@ exports.listarHistorico = async (req, res) => {
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
+};
+
+// --- ELIMINAR EM MASSA (E INDIVIDUAL) ---
+// --- ELIMINAR EM MASSA (E INDIVIDUAL) ---
+exports.eliminarMassa = async (req, res) => {
+  const { ids } = req.body;
+  const utilizadorId = req.session.userId;
+
+  if (!utilizadorId) {
+    return res
+      .status(401)
+      .json({ error: "Sessão expirada. Faça login novamente." });
+  }
+
+  if (!ids || ids.length === 0) {
+    return res.status(400).json({ error: "Nenhum exame selecionado." });
+  }
+
+  try {
+    // 1. Procurar os nomes dos ficheiros PDF para apagar do disco
+    const [ficheiros] = await db.query(
+      "SELECT resultado FROM Exame_TipoExame WHERE id_exame IN (?)",
+      [ids],
+    );
+
+    // 2. Apagar primeiro da tabela Exame_TipoExame (tabela filha)
+    await db.query("DELETE FROM Exame_TipoExame WHERE id_exame IN (?)", [ids]);
+
+    // 3. Apagar da tabela Exame (tabela pai), validando o dono
+    const [resultado] = await db.query(
+      "DELETE FROM Exame WHERE id IN (?) AND utilizador_id = ?",
+      [ids, utilizadorId],
+    );
+
+    // 4. Remover os ficheiros físicos da pasta uploads
+    if (resultado.affectedRows > 0) {
+      ficheiros.forEach((f) => {
+        if (f.resultado) {
+          const caminhoFicheiro = path.join(
+            __dirname,
+            "../../public/uploads/",
+            f.resultado,
+          );
+          if (fs.existsSync(caminhoFicheiro)) {
+            fs.unlinkSync(caminhoFicheiro);
+          }
+        }
+      });
+    }
+
+    res.json({
+      message: "Eliminado com sucesso!",
+      quantidade: resultado.affectedRows,
+    });
+  } catch (error) {
+    console.error("Erro ao eliminar:", error);
+    res.status(500).json({ error: "Erro interno ao apagar da base de dados." });
+  }
+};
+
+// --- GERAR TOKEN DE PARTILHA (Lógica Simplificada) ---
+exports.gerarPartilha = async (req, res) => {
+  const { ids } = req.body;
+  // Aqui criarias um registo numa tabela 'Partilhas' com um UUID/Token e validade
+  // Por agora, vamos simular o retorno de um token
+  const token = Math.random().toString(36).substring(2, 15);
+  res.json({ token: token });
 };
