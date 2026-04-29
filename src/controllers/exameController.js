@@ -86,24 +86,29 @@ exports.criarTipo = async (req, res) => {
   }
 };
 
-/**
- * --- REGISTO PRINCIPAL (UPLOAD) ---
- */
-
+/*- REGISTO PRINCIPAL (UPLOAD) -*/
 exports.registarExame = async (req, res) => {
   const { data_exame, observacoes, id_tipo_exame, local_realizacao } = req.body;
-  const nomeFicheiro = req.file ? req.file.filename : null;
-
-  // --- RECOLHA DO ID (Tem de ser igual ao que está no authController) ---
   const utilizadorId = req.session.userId;
 
-  console.log("Sessão atual:", req.session); // Debug: verifica se o ID aparece no terminal
+  // Validação de Data Futura
+  const hoje = new Date();
+  hoje.setHours(23, 59, 59, 999); // Define para o final do dia atual
+  const dataEscolhida = new Date(data_exame);
+
+  if (dataEscolhida > hoje) {
+    return res
+      .status(400)
+      .json({ error: "A data do exame não pode ser superior à data atual." });
+  }
 
   if (!utilizadorId) {
     return res
       .status(401)
       .json({ error: "Sessão expirada. Por favor, faça login novamente." });
   }
+
+  const nomeFicheiro = req.file ? req.file.filename : null;
 
   try {
     const [resultExame] = await db.query(
@@ -138,21 +143,31 @@ exports.listarHistorico = async (req, res) => {
 
   try {
     const query = `
-            SELECT E.id, E.data_exame AS data, TE.nome, ETE.resultado 
-            FROM Exame E
-            JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
-            JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
-            WHERE E.utilizador_id = ?
-            ORDER BY E.data_exame DESC`;
+    SELECT 
+        E.id, 
+        DATE_FORMAT(E.data_exame, '%Y-%m-%d') AS data, 
+        TE.nome, 
+        ETE.resultado,
+        E.observacoes
+    FROM Exame E
+    -- LEFT JOIN garante que o exame aparece mesmo que algo falte nas outras tabelas
+    LEFT JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
+    LEFT JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
+    WHERE E.utilizador_id = ?
+    ORDER BY E.data_exame DESC`;
 
     const [rows] = await db.query(query, [utilizadorId]);
+
+    // Verificação no terminal (vê se os IDs aparecem aqui)
+    console.log(`Utilizador ${utilizadorId} tem ${rows.length} exames.`);
+
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Erro na query SQL:", error);
+    res.status(500).json({ error: "Erro interno ao carregar histórico." });
   }
 };
 
-// --- ELIMINAR EM MASSA (E INDIVIDUAL) ---
 // --- ELIMINAR EM MASSA (E INDIVIDUAL) ---
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
@@ -257,10 +272,12 @@ exports.visualizarPartilha = async (req, res) => {
 
     if (rows.length === 0) {
       return res.status(404).send(`
-        <body style="font-family: sans-serif; text-align: center; padding: 50px;">
-          <h1 style="color: #dc3545;">Link Expirado ou Inválido</h1>
-          <p>Este link de partilha já não está ativo por motivos de segurança.</p>
-          <a href="/" style="color: #0d6efd;">Voltar à página inicial</a>
+        <body style="font-family: sans-serif; text-align: center; padding: 50px; background: #f4f7f6;">
+          <div style="max-width: 400px; margin: auto; background: white; padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05);">
+            <h1 style="color: #dc3545; font-size: 1.5rem;">Link Expirado ou Inválido</h1>
+            <p style="color: #666;">Por motivos de segurança, este acesso temporário já não está disponível.</p>
+            <a href="/" style="display: inline-block; margin-top: 20px; color: #0d6efd; text-decoration: none; font-weight: bold;">Voltar ao Início</a>
+          </div>
         </body>
       `);
     }
@@ -280,33 +297,35 @@ exports.visualizarPartilha = async (req, res) => {
     const listaHTML = exames
       .map((ex) => {
         const dataFormatada = ex.data_exame
-          ? new Date(ex.data_exame).toLocaleDateString("pt-PT")
+          ? new Date(ex.data_exame).toLocaleDateString("pt-PT", {
+              timeZone: "UTC",
+            })
           : "---";
 
         return `
-        <div style="border: 1px solid #eee; padding: 20px; margin-bottom: 15px; border-radius: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-             <div>
-                <strong style="display: block; color: #333; font-size: 1.1rem; margin-bottom: 4px;">${ex.nome}</strong>
-                <small style="color: #888; font-weight: 500;">Data: ${dataFormatada}</small>
-             </div>
-             ${
-               ex.resultado
-                 ? `<a href="/uploads/${ex.resultado}" target="_blank" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);">Ver PDF</a>`
-                 : '<span style="color: #ccc; font-size: 0.8rem;">Sem PDF</span>'
-             }
-          </div>
-        
-          ${
-            ex.observacoes
-              ? `
-              <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee; color: #555; font-size: 0.9rem; line-height: 1.4;">
-                  <strong style="color: #444;">Observações:</strong> ${ex.observacoes}
-              </div>
+      <div style="border: 1px solid #eee; padding: 20px; margin-bottom: 15px; border-radius: 15px; background: #fff; box-shadow: 0 2px 4px rgba(0,0,0,0.02);">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+           <div>
+              <strong style="display: block; color: #333; font-size: 1.1rem; margin-bottom: 4px;">${ex.nome || "Exame s/ nome"}</strong>
+              <small style="color: #888; font-weight: 500;">Data: ${dataFormatada}</small>
+           </div>
+           ${
+             ex.resultado
+               ? `<a href="/uploads/${ex.resultado}" target="_blank" style="background: #dc3545; color: white; padding: 10px 20px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 0.85rem; box-shadow: 0 4px 6px rgba(220, 53, 69, 0.2);">Ver PDF</a>`
+               : '<span style="color: #ccc; font-size: 0.8rem; font-style: italic;">Documento pendente</span>'
+           }
+        </div>
+      
+        ${
+          ex.observacoes
+            ? `
+            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed #eee; color: #555; font-size: 0.9rem; line-height: 1.4; font-style: italic;">
+                <strong style="color: #444; font-style: normal;">Observações:</strong> ${ex.observacoes}
+            </div>
           `
-              : ""
-          }
-        </div>`;
+            : ""
+        }
+      </div>`;
       })
       .join("");
 
@@ -317,26 +336,26 @@ exports.visualizarPartilha = async (req, res) => {
         <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>SaúdeDigital | Consulta Clínica</title>
+            <title>SaúdeDigital | Consulta Médica</title>
         </head>
-        <body style="font-family: -apple-system, system-ui, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; color: #333;">
+        <body style="font-family: -apple-system, system-ui, sans-serif; background: #f4f7f6; padding: 20px; margin: 0; color: #333;">
             <div style="max-width: 650px; margin: 40px auto; background: white; padding: 40px; border-radius: 25px; box-shadow: 0 15px 35px rgba(0,0,0,0.05);">
                 <div style="text-align: center; margin-bottom: 35px;">
-                    <h2 style="color: #0d6efd; margin-bottom: 5px; font-weight: 800; letter-spacing: -0.5px;">SaúdeDigital</h2>
-                    <p style="color: #777; margin: 0; font-size: 0.95rem;">Portal de Partilha Clínica</p>
+                    <h2 style="color: #0d6efd; margin-bottom: 5px; font-weight: 800;">SaúdeDigital</h2>
+                    <p style="color: #777; margin: 0; font-size: 0.9rem;">Portal de Partilha de Exames</p>
                 </div>
                 
-                <div style="background: #e7f0ff; color: #0046af; padding: 18px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 30px; line-height: 1.5; border-left: 4px solid #0d6efd;">
-                    <strong>Nota ao Profissional:</strong> Estes documentos foram partilhados pelo paciente para fins de consulta imediata. Este link é temporário (48h) e seguro.
+                <div style="background: #e7f0ff; color: #0046af; padding: 18px; border-radius: 12px; font-size: 0.85rem; margin-bottom: 30px; border-left: 4px solid #0d6efd;">
+                    <strong>Informação ao Profissional:</strong> Estes documentos foram autorizados pelo paciente para visualização temporária (48h).
                 </div>
                 
                 <div style="margin-bottom: 20px;">
-                    ${listaHTML}
+                    ${listaHTML || '<p style="text-align:center; color:#999;">Nenhum exame selecionado para esta partilha.</p>'}
                 </div>
                 
                 <div style="text-align: center; margin-top: 40px; padding-top: 25px; border-top: 1px solid #f0f0f0;">
                     <p style="color: #bbb; font-size: 10px; text-transform: uppercase; letter-spacing: 2px;">
-                        Segurança SaúdeDigital &copy; 2026<br>Acesso via Token Encriptado
+                        Segurança SaúdeDigital &copy; 2026<br>Link encriptado e temporário
                     </p>
                 </div>
             </div>
@@ -345,7 +364,9 @@ exports.visualizarPartilha = async (req, res) => {
     `);
   } catch (error) {
     console.error("Erro na visualização:", error);
-    res.status(500).send("Erro ao carregar os exames.");
+    res
+      .status(500)
+      .send("Erro interno ao carregar os dados. Por favor, tente novamente.");
   }
 };
 

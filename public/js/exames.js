@@ -13,6 +13,16 @@ window.onload = () => {
   carregarCategorias();
   carregarHistorico();
   configurarEventosInterface();
+
+  // AQUI: Bloqueia datas futuras no calendário de registo e de edição
+  const hojeFormatado = new Date().toISOString().split("T")[0];
+
+  if (document.getElementById("dataExame")) {
+    document.getElementById("dataExame").setAttribute("max", hojeFormatado);
+  }
+  if (document.getElementById("editDataExame")) {
+    document.getElementById("editDataExame").setAttribute("max", hojeFormatado);
+  }
 };
 
 /**
@@ -74,6 +84,7 @@ function renderizarTabela() {
   const examesPaginados = examesParaTabela.slice(inicio, fim);
 
   examesPaginados.forEach((exame) => {
+    // Tratamento de data para evitar o erro de fuso horário no display
     let dataF = exame.data
       ? exame.data.split("T")[0].split("-").reverse().join("/")
       : "---";
@@ -91,13 +102,12 @@ function renderizarTabela() {
                     <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
                         <i class="bi bi-three-dots"></i>
                     </button>
-<ul class="dropdown-menu dropdown-menu-end shadow border-0">
-    <li><a class="dropdown-item" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes || ""}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-    
-    <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
-    <li><hr class="dropdown-divider"></li>
-    <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
-</ul>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes || ""}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                        <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                    </ul>
                 </div>
             </td>
         </tr>`;
@@ -113,34 +123,23 @@ function renderizarControlosPaginacao() {
   if (!container) return;
   container.innerHTML = "";
 
-  // REMOVIDO: a verificação (totalPaginas <= 1) para que apareça sempre
+  // Mostra sempre a paginação (mesmo com 1 página) conforme solicitado
+  let html = `<nav aria-label="Navegação"><ul class="pagination pagination-sm mb-0">`;
 
-  let html = `<nav aria-label="Paginação de exames"><ul class="pagination shadow-sm">`;
+  html += `<li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a>
+           </li>`;
 
-  // Botão Anterior
-  html += `
-        <li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
-            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual - 1})">
-                <i class="bi bi-chevron-left"></i>
-            </a>
-        </li>`;
-
-  // Números das Páginas (Se não houver exames, mostrará pelo menos o número 1)
   const paginasAMostrar = totalPaginas > 0 ? totalPaginas : 1;
   for (let i = 1; i <= paginasAMostrar; i++) {
-    html += `
-            <li class="page-item ${i === paginaAtual ? "active" : ""}">
-                <a class="page-link fw-bold" href="#" onclick="mudarPagina(${i})">${i}</a>
-            </li>`;
+    html += `<li class="page-item ${i === paginaAtual ? "active" : ""}">
+              <a class="page-link" href="#" onclick="mudarPagina(${i})">${i}</a>
+             </li>`;
   }
 
-  // Botão Próximo
-  html += `
-        <li class="page-item ${paginaAtual === totalPaginas || totalPaginas === 0 ? "disabled" : ""}">
-            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">
-                <i class="bi bi-chevron-right"></i>
-            </a>
-        </li>`;
+  html += `<li class="page-item ${paginaAtual === totalPaginas || totalPaginas === 0 ? "disabled" : ""}">
+            <a class="page-link" href="#" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a>
+           </li>`;
 
   html += `</ul></nav>`;
   container.innerHTML = html;
@@ -150,9 +149,8 @@ function renderizarControlosPaginacao() {
 function mudarPagina(num) {
   const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
   if (num < 1 || num > totalPaginas) return;
-
   paginaAtual = num;
-  renderizarTabela(); // Esta função deve chamar o renderizarControlosPaginacao() no fim
+  renderizarTabela();
 }
 
 function filtrarTabela() {
@@ -273,32 +271,41 @@ function configurarEventosInterface() {
   if (form) {
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const idTipoExame = document.getElementById("idTipoSelecionado").value;
+
       const dataExame = document.getElementById("dataExame").value;
+      const hoje = new Date().toISOString().split("T")[0];
+
+      if (dataExame > hoje) {
+        alert("Não é possível registar exames com datas futuras.");
+        return;
+      }
+
+      const idTipoExame = document.getElementById("idTipoSelecionado").value;
       const obs = document.getElementById("observacoes").value;
 
-      if (!idTipoExame || !dataExame)
-        return alert("Preencha o tipo e a data do exame.");
+      if (!idTipoExame) return alert("Selecione um tipo de exame.");
 
       const formData = new FormData();
       formData.append("data_exame", dataExame);
       formData.append("observacoes", obs);
       formData.append("id_tipo_exame", idTipoExame);
-      formData.append("local_realizacao", "SaúdeDigital Clinic");
 
       const fileInput = document.querySelector('input[name="relatorio"]');
-      if (fileInput && fileInput.files[0])
+      if (fileInput && fileInput.files[0]) {
         formData.append("relatorio", fileInput.files[0]);
+      }
 
-      const response = await fetch("/api/exames/registar", {
-        method: "POST",
-        body: formData,
-      });
-      if (response.ok) {
-        alert("Exame registado!");
-        location.reload();
-      } else {
-        alert("Erro ao registar.");
+      try {
+        const response = await fetch("/api/exames/registar", {
+          method: "POST",
+          body: formData,
+        });
+        if (response.ok) {
+          alert("Exame guardado!");
+          location.reload();
+        }
+      } catch (err) {
+        console.error("Erro ao enviar:", err);
       }
     });
   }
@@ -396,13 +403,11 @@ function exportarJSON() {
 // Função para abrir o modal e preencher os campos com os dados atuais
 function abrirModalEditar(id, data, obs) {
   document.getElementById("editExameId").value = id;
-  // Formata a data para o padrão do input date (YYYY-MM-DD)
   if (data) {
-    document.getElementById("editDataExame").value = data.split("T")[0];
+    const dataPura = data.includes("T") ? data.split("T")[0] : data;
+    document.getElementById("editDataExame").value = dataPura;
   }
   document.getElementById("editObservacoes").value = obs || "";
-
-  // Mostra o modal
   const modalEditar = new bootstrap.Modal(
     document.getElementById("modalEditarExame"),
   );
@@ -414,8 +419,14 @@ async function guardarEdicao() {
   const id = document.getElementById("editExameId").value;
   const data = document.getElementById("editDataExame").value;
   const obs = document.getElementById("editObservacoes").value;
+  const hoje = new Date().toISOString().split("T")[0];
 
   if (!data) return alert("A data é obrigatória.");
+
+  if (data > hoje) {
+    alert("A data editada não pode ser futura.");
+    return;
+  }
 
   try {
     const res = await fetch(`/api/exames/editar/${id}`, {
@@ -426,7 +437,7 @@ async function guardarEdicao() {
 
     if (res.ok) {
       alert("Exame atualizado com sucesso!");
-      location.reload(); // Recarrega para mostrar os novos dados
+      location.reload();
     } else {
       const erro = await res.json();
       alert("Erro ao atualizar: " + erro.error);
