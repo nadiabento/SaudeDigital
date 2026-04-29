@@ -82,10 +82,12 @@ function renderizarTabela() {
   const examesPaginados = examesParaTabela.slice(inicio, fim);
 
   examesPaginados.forEach((exame) => {
-    // Tratamento de data para evitar o erro de fuso horário no display
     let dataF = exame.data
       ? exame.data.split("T")[0].split("-").reverse().join("/")
       : "---";
+    const obsLimpa = exame.observacoes
+      ? exame.observacoes.replace(/'/g, "\\'")
+      : "";
 
     tbody.innerHTML += `
         <tr>
@@ -101,10 +103,27 @@ function renderizarTabela() {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item" href="#" onclick="verDetalhes(${exame.id}, '${exame.nome}', '${exame.data}', '${exame.observacoes || ""}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                        <li> <a class="dropdown-item" href="#"  onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes ? exame.observacoes.replace(/'/g, "\\'") : ""}')"><i class="bi bi-pencil me-2"> </i> Editar </a> </li>                        <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li>
+                            <a class="dropdown-item btn-acao-individual" href="#" onclick="verDetalhes(${exame.id}, '${exame.nome}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')">
+                                <i class="bi bi-eye me-2"></i> Ver Detalhes
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item btn-acao-individual" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')">
+                                <i class="bi bi-pencil me-2"></i> Editar
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})">
+                                <i class="bi bi-share me-2"></i> Partilhar
+                            </a>
+                        </li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                        <li>
+                            <a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})">
+                                <i class="bi bi-trash me-2"></i> Eliminar
+                            </a>
+                        </li>
                     </ul>
                 </div>
             </td>
@@ -171,12 +190,27 @@ function toggleTodos(master) {
 }
 
 function verificarSelecao() {
-  const n = document.querySelectorAll(".exame-checkbox:checked").length;
-  const acoes = document.getElementById("acoesMassa");
-  if (acoes)
-    n > 0 ? acoes.classList.remove("d-none") : acoes.classList.add("d-none");
-}
+  const marcados = obterTotalSelecionados();
 
+  // Selecionamos apenas os botões que queremos bloquear (usando a classe btn-acao-individual que adicionei no HTML acima)
+  const botoesParaBloquear = document.querySelectorAll(".btn-acao-individual");
+
+  botoesParaBloquear.forEach((item) => {
+    if (marcados > 1) {
+      item.classList.add("disabled");
+      item.style.opacity = "0.4";
+      item.style.pointerEvents = "none";
+    } else {
+      item.classList.remove("disabled");
+      item.style.opacity = "1";
+      item.style.pointerEvents = "auto";
+    }
+  });
+
+  // O botão de eliminar vários (se existir) aparece normalmente
+  const btnVarios = document.getElementById("btnEliminarVarios");
+  if (btnVarios) btnVarios.style.display = marcados > 1 ? "block" : "none";
+}
 async function eliminarSelecionados() {
   const ids = Array.from(
     document.querySelectorAll(".exame-checkbox:checked"),
@@ -485,7 +519,7 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
 function verDetalhes(id, nome, data, obs, ficheiro) {
   if (obterTotalSelecionados() > 1) {
     alert(
-      "Por favor, desmarque as seleções múltiplas para ver os detalhes de um exame individual.",
+      "Para ver os detalhes, desmarque as seleções múltiplas. Esta ação só é permitida para um exame de cada vez.",
     );
     return;
   }
@@ -506,7 +540,7 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
             </a>`;
   } else {
     containerFicheiro.innerHTML =
-      '<p class="text-muted small text-center italic">Nenhum documento anexo.</p>';
+      '<p class="text-muted small text-center">Nenhum documento anexo.</p>';
   }
 
   new bootstrap.Modal(document.getElementById("modalDetalhesExame")).show();
