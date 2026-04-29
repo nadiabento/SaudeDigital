@@ -103,6 +103,7 @@ function renderizarTabela() {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item" href="#" onclick="verDetalhes(${exame.id}, '${exame.nome}', '${exame.data}', '${exame.observacoes || ""}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
                         <li><a class="dropdown-item" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes || ""}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
                         <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -446,4 +447,36 @@ async function guardarEdicao() {
     console.error("Erro na edição:", error);
     alert("Erro de comunicação com o servidor.");
   }
+}
+
+function verDetalhes(id, nome, data, obs, ficheiro) {
+  // Preencher os campos do modal
+  document.getElementById("detalheNome").textContent = nome;
+
+  // Formatar data
+  const dataF = data
+    ? data.split("T")[0].split("-").reverse().join("/")
+    : "---";
+  document.getElementById("detalheData").textContent = dataF;
+
+  // Observações
+  document.getElementById("detalheObservacoes").textContent =
+    obs || "Nenhuma observação registada.";
+
+  // Ficheiro PDF
+  const containerFicheiro = document.getElementById("detalheFicheiro");
+  if (ficheiro) {
+    containerFicheiro.innerHTML = `
+            <a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 py-2 fw-bold shadow-sm">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Abrir Documento PDF
+            </a>`;
+  } else {
+    containerFicheiro.innerHTML = `<p class="text-muted small italic">Nenhum documento anexado.</p>`;
+  }
+
+  // Abrir o modal
+  const modal = new bootstrap.Modal(
+    document.getElementById("modalDetalhesExame"),
+  );
+  modal.show();
 }
