@@ -1,6 +1,4 @@
-/**
- * --- VARIÁVEIS GLOBAIS ---
- */
+/**  --- VARIÁVEIS GLOBAIS --- */
 let categoriasGlobais = [];
 let tiposGlobais = [];
 let examesParaTabela = [];
@@ -104,8 +102,7 @@ function renderizarTabela() {
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
                         <li><a class="dropdown-item" href="#" onclick="verDetalhes(${exame.id}, '${exame.nome}', '${exame.data}', '${exame.observacoes || ""}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes || ""}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                        <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li> <a class="dropdown-item" href="#"  onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${exame.observacoes ? exame.observacoes.replace(/'/g, "\\'") : ""}')"><i class="bi bi-pencil me-2"> </i> Editar </a> </li>                        <li><a class="dropdown-item" href="#" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
                         <li><a class="dropdown-item text-danger" href="#" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
                     </ul>
@@ -403,16 +400,19 @@ function exportarJSON() {
 
 // Função para abrir o modal e preencher os campos com os dados atuais
 function abrirModalEditar(id, data, obs) {
+  if (obterTotalSelecionados() > 1) {
+    alert("Não é possível editar enquanto tiver vários exames selecionados.");
+    return;
+  }
+
   document.getElementById("editExameId").value = id;
   if (data) {
     const dataPura = data.includes("T") ? data.split("T")[0] : data;
     document.getElementById("editDataExame").value = dataPura;
   }
   document.getElementById("editObservacoes").value = obs || "";
-  const modalEditar = new bootstrap.Modal(
-    document.getElementById("modalEditarExame"),
-  );
-  modalEditar.show();
+
+  new bootstrap.Modal(document.getElementById("modalEditarExame")).show();
 }
 
 // Função para enviar os novos dados para o Backend
@@ -479,4 +479,40 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
     document.getElementById("modalDetalhesExame"),
   );
   modal.show();
+}
+
+// 1. Função Ver Detalhes (Bloqueia se > 1 selecionado)
+function verDetalhes(id, nome, data, obs, ficheiro) {
+  if (obterTotalSelecionados() > 1) {
+    alert(
+      "Por favor, desmarque as seleções múltiplas para ver os detalhes de um exame individual.",
+    );
+    return;
+  }
+
+  document.getElementById("detalheNome").textContent = nome;
+  const dataF = data
+    ? data.split("T")[0].split("-").reverse().join("/")
+    : "---";
+  document.getElementById("detalheData").textContent = dataF;
+  document.getElementById("detalheObservacoes").textContent =
+    obs || "Sem observações.";
+
+  const containerFicheiro = document.getElementById("detalheFicheiro");
+  if (ficheiro && ficheiro !== "null" && ficheiro !== "") {
+    containerFicheiro.innerHTML = `
+            <a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 fw-bold shadow-sm">
+                <i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF do Exame
+            </a>`;
+  } else {
+    containerFicheiro.innerHTML =
+      '<p class="text-muted small text-center italic">Nenhum documento anexo.</p>';
+  }
+
+  new bootstrap.Modal(document.getElementById("modalDetalhesExame")).show();
+}
+
+// Função auxiliar para contar quantos exames estão selecionados
+function obterTotalSelecionados() {
+  return document.querySelectorAll(".exame-checkbox:checked").length;
 }

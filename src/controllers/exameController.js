@@ -158,9 +158,6 @@ exports.listarHistorico = async (req, res) => {
 
     const [rows] = await db.query(query, [utilizadorId]);
 
-    // Verificação no terminal (vê se os IDs aparecem aqui)
-    console.log(`Utilizador ${utilizadorId} tem ${rows.length} exames.`);
-
     res.json(rows);
   } catch (error) {
     console.error("Erro na query SQL:", error);
