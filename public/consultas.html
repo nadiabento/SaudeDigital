@@ -33,6 +33,7 @@
   </head>
   <body class="bg-light">
     <div class="d-flex">
+      <!-- Menu Lateral -->
       <nav
         class="bg-white border-end vh-100 d-none d-md-block sticky-top"
         style="width: 280px"
@@ -48,6 +49,7 @@
               <i class="bi bi-house-door me-2"></i> Resumo Geral
             </a>
           </li>
+          <!-- ACTIVE nas Consultas -->
           <li class="nav-item mb-2">
             <a href="consultas.html" class="nav-link active rounded-3 p-3 shadow-sm">
               <i class="bi bi-calendar-event me-2"></i> Consultas
@@ -72,7 +74,9 @@
         </ul>
       </nav>
 
+      <!-- Conteúdo Principal -->
       <main class="flex-grow-1 p-4">
+        <!-- Cabeçalho -->
         <header class="d-flex justify-content-between align-items-center mb-5">
           <div>
             <h2 class="fw-bold">Registo de Consultas</h2>
@@ -91,8 +95,10 @@
         </header>
 
         <div class="row g-4">
+          <!-- Coluna Esquerda: Separadores e Formulário -->
           <div class="col-lg-5">
             
+            <!-- Os dois botões no topo -->
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px">
               <div class="card-body p-3">
                 <div class="row g-2">
@@ -114,32 +120,47 @@
               </div>
             </div>
 
+            <!-- Formulário com Selects em Cascata -->
             <div class="card border-0 shadow-sm p-4">
               <h5 class="fw-bold mb-4">Registar Nova Consulta</h5>
               <form id="formConsulta">
                 
+                <!-- 1. Unidade de Saúde (Select) -->
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Especialidade</label>
-                  <input type="text" class="form-control bg-light border-0 p-3" id="especialidadeInput" placeholder="Ex: Clínica Geral" required />
+                  <label class="form-label fw-semibold text-muted small">Unidade de Saúde</label>
+                  <select class="form-select bg-light border-0 p-3" id="unidadeInput" onchange="atualizarEspecialidades()" required>
+                    <option value="" selected disabled>Selecione a unidade...</option>
+                    <!-- Preenchido via JS -->
+                  </select>
                 </div>
 
+                <!-- 2. Especialidade (Select) -->
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Médico</label>
-                  <input type="text" class="form-control bg-light border-0 p-3" id="medicoInput" placeholder="Nome do médico" required />
+                  <label class="form-label fw-semibold text-muted small">Especialidade</label>
+                  <select class="form-select bg-light border-0 p-3" id="especialidadeInput" onchange="atualizarMedicos()" disabled required>
+                    <option value="" selected disabled>Selecione primeiro a unidade...</option>
+                    <!-- Preenchido via JS -->
+                  </select>
                 </div>
 
+                <!-- 3. Médico (Select) -->
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Unidade de Saúde</label>
-                  <input type="text" class="form-control bg-light border-0 p-3" id="unidadeInput" placeholder="Local da consulta" required />
+                  <label class="form-label fw-semibold text-muted small">Médico</label>
+                  <select class="form-select bg-light border-0 p-3" id="medicoInput" disabled required>
+                    <option value="" selected disabled>Selecione primeiro a especialidade...</option>
+                    <!-- Preenchido via JS -->
+                  </select>
                 </div>
 
+                <!-- 4. Data e Hora -->
                 <div class="mb-3">
-                  <label class="form-label fw-semibold">Data e Hora</label>
-                  <input type="datetime-local" class="form-control bg-light border-0 p-3" id="dataHoraInput" required />
+                  <label class="form-label fw-semibold text-muted small">Data e Hora</label>
+                  <input type="datetime-local" class="form-control bg-light border-0 p-3 text-muted" id="dataHoraInput" required />
                 </div>
 
+                <!-- 5. Notas Médicas -->
                 <div class="mb-4">
-                  <label class="form-label fw-semibold">Notas Médicas</label>
+                  <label class="form-label fw-semibold text-muted small">Notas Médicas</label>
                   <textarea class="form-control bg-light border-0 p-3" id="notasConsulta" rows="3" placeholder="Resumo do parecer médico..."></textarea>
                 </div>
 
@@ -150,13 +171,14 @@
             </div>
           </div>
 
+          <!-- Coluna Direita: Tabela de Histórico -->
           <div class="col-lg-7">
             <div class="card border-0 shadow-sm p-4 h-100">
               <h5 class="fw-bold mb-4">Histórico Recente</h5>
               <div class="table-responsive">
                 <table class="table table-hover align-middle" id="tabelaConsultas">
                   <thead class="table-light">
-                    <tr>
+                    <tr class="small text-muted">
                       <th>Especialidade</th>
                       <th>Data</th>
                       <th>Médico</th>
@@ -165,20 +187,12 @@
                     </tr>
                   </thead>
                   <tbody>
+                    <!-- Exemplo estático inicial -->
                     <tr>
                       <td><strong>Endocrinologia</strong></td>
                       <td>12/05/2026</td>
                       <td>Dr. António Costa</td>
-                      <td>Hospital de Aveiro</td>
-                      <td class="text-end">
-                        <button class="btn btn-light btn-sm border"><i class="bi bi-three-dots"></i></button>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td><strong>Cardiologia</strong></td>
-                      <td>18/03/2026</td>
-                      <td>Dra. Sofia Ribeiro</td>
-                      <td>Hospital da Luz</td>
+                      <td class="text-muted">Hospital de Aveiro</td>
                       <td class="text-end">
                         <button class="btn btn-light btn-sm border"><i class="bi bi-three-dots"></i></button>
                       </td>
@@ -191,6 +205,10 @@
         </div>
       </main>
     </div>
+
+    <!-- ========================================== -->
+    <!-- MODAL: NOVO MÉDICO                         -->
+    <!-- ========================================== -->
     <div class="modal fade" id="modalNovoMedico" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
@@ -219,6 +237,9 @@
       </div>
     </div>
 
+    <!-- ========================================== -->
+    <!-- MODAL: NOVA UNIDADE DE SAÚDE               -->
+    <!-- ========================================== -->
     <div class="modal fade" id="modalNovaUnidade" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
