@@ -3,10 +3,20 @@ const session = require("express-session"); // ADICIONADO: Para gerir o login
 const db = require("./src/config/db");
 const exameRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // ADICIONADO: Importar as tuas rotas
+const medRoutes = require("./src/routes/medRoutes");
 require("dotenv").config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+console.log("=== SERVER.JS ATUALIZADO - TESTE MEDICACAO ===");
+
+app.get("/teste-direto", (req, res) => {
+  console.log("Entrou na rota /teste-direto");
+  res.send("O server.js certo está a correr");
+});
+
+
 
 // Permite que o Express entenda dados enviados em formato JSON (essencial para API)
 app.use(express.json());
@@ -28,8 +38,15 @@ app.use(session({
 // Regista as rotas de exames da equipa com o prefixo /api/exames
 app.use("/api/exames", exameRoutes);
 
+
 // ADICIONADO: Regista as tuas rotas de autenticação com o prefixo /api/auth
 app.use("/api/auth", authRoutes);
+
+// Regista as rotas de medicação com o prefixo /api/medicacao
+app.use("/api/medicacao", medRoutes);
+
+
+
 
 
 // --- INICIALIZAÇÃO E TESTE DA DB ---
@@ -44,6 +61,7 @@ db.getConnection()
       console.log(`Frontend: http://localhost:${PORT}/index.html`);
       console.log(`API Categorias: http://localhost:${PORT}/api/exames/categorias`);
       console.log(`API Autenticação: Pronta a receber pedidos em /api/auth`); // ADICIONADO
+      console.log(`API Medicação: Pronta a receber pedidos em /api/medicacao`);
     });
   })
   .catch((erro) => {
