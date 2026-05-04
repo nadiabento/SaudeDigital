@@ -4,6 +4,7 @@ const db = require("./src/config/db");
 const exameRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes"); // ADICIONADO: Importar as tuas rotas
 const medRoutes = require("./src/routes/medRoutes");
+const clinicaRoutes = require("./src/routes/clinicaRoutes"); // <-- NOVA ROTA AQUI
 require("dotenv").config();
 
 const app = express();
@@ -45,11 +46,11 @@ app.use("/api/auth", authRoutes);
 // Regista as rotas de medicação com o prefixo /api/medicacao
 app.use("/api/medicacao", medRoutes);
 
+// Regista as rotas da clinica (Unidades, Especialidades, Médicos) 
+app.use("/api/clinica", clinicaRoutes); // 
 
 
-
-
-// --- INICIALIZAÇÃO E TESTE DA DB ---
+// INICIALIZAÇÃO E TESTE DA DB 
 
 db.getConnection()
   .then((connection) => {
@@ -60,8 +61,10 @@ db.getConnection()
       console.log(`Servidor a correr em http://localhost:${PORT}`);
       console.log(`Frontend: http://localhost:${PORT}/index.html`);
       console.log(`API Categorias: http://localhost:${PORT}/api/exames/categorias`);
-      console.log(`API Autenticação: Pronta a receber pedidos em /api/auth`); // ADICIONADO
+      console.log(`API Autenticação: Pronta a receber pedidos em /api/auth`); 
       console.log(`API Medicação: Pronta a receber pedidos em /api/medicacao`);
+      console.log(`API Autenticação: Pronta a receber pedidos em /api/auth`);
+      console.log(`API Clínica: Pronta a receber pedidos em /api/clinica`); 
     });
   })
   .catch((erro) => {
