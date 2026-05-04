@@ -136,3 +136,176 @@ function formatarData(data) {
 
   return d.toLocaleDateString("pt-PT");
 }
+
+
+const formMedicacao = document.getElementById("form-medicacao");
+
+if (formMedicacao) {
+  formMedicacao.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const erroDiv = document.getElementById("erro-medicacao");
+    const sucessoDiv = document.getElementById("sucesso-medicacao");
+
+    erroDiv.classList.add("d-none");
+    sucessoDiv.classList.add("d-none");
+    erroDiv.textContent = "";
+    sucessoDiv.textContent = "";
+
+    const medicamento = document.getElementById("medicamento").value.trim();
+    const idCatalogoMedicamento = document.getElementById("idCatalogoMedicamento").value;
+    const dosagem = document.getElementById("dosagem").value.trim();
+    const posologia = document.getElementById("posologia").value.trim();
+    const dataInicio = document.getElementById("dataInicio").value;
+    const dataFim = document.getElementById("dataFim").value;
+    const estado = document.getElementById("estado").value;
+
+    if (dataFim && dataFim < dataInicio) {
+      erroDiv.textContent = "A data de fim não pode ser anterior à data de início.";
+      erroDiv.classList.remove("d-none");
+      return;
+    }
+
+    if (!idCatalogoMedicamento) {
+  erroDiv.textContent = "Selecione um medicamento da lista de sugestões.";
+  erroDiv.classList.remove("d-none");
+  return;
+}
+
+    try {
+      const resposta = await fetch("/api/medicacao", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          medicamento: medicamento,
+          dosagem: dosagem,
+          posologia: posologia,
+          data_inicio: dataInicio,
+          data_fim: dataFim,
+          estado: estado
+        })
+      });
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(resultado.erro || "Erro ao registar medicação.");
+      }
+
+      sucessoDiv.textContent = resultado.mensagem;
+      sucessoDiv.classList.remove("d-none");
+
+      formMedicacao.reset();
+
+      carregarMedicacao();
+    } catch (erro) {
+      erroDiv.textContent = erro.message;
+      erroDiv.classList.remove("d-none");
+    }
+  });
+}
+
+const inputMedicamento = document.getElementById("medicamento");
+const inputIdCatalogoMedicamento = document.getElementById("idCatalogoMedicamento");
+const caixaSugestoes = document.getElementById("sugestoes-medicamentos");
+
+let temporizadorPesquisa = null;
+
+if (inputMedicamento && caixaSugestoes) {
+  inputMedicamento.addEventListener("input", function () {
+    const termo = inputMedicamento.value.trim();
+
+    inputIdCatalogoMedicamento.value = "";
+
+    clearTimeout(temporizadorPesquisa);
+
+    if (termo.length < 2) {
+      esconderSugestoesMedicamentos();
+      return;
+    }
+
+    temporizadorPesquisa = setTimeout(function () {
+      pesquisarMedicamentos(termo);
+    }, 300);
+  });
+
+  document.addEventListener("click", function (event) {
+    if (
+      !inputMedicamento.contains(event.target) &&
+      !caixaSugestoes.contains(event.target)
+    ) {
+      esconderSugestoesMedicamentos();
+    }
+  });
+}
+
+async function pesquisarMedicamentos(termo) {
+  try {
+    const resposta = await fetch(
+      `/api/medicacao/catalogo?termo=${encodeURIComponent(termo)}`
+    );
+
+    if (!resposta.ok) {
+      throw new Error("Erro ao pesquisar medicamentos.");
+    }
+
+    const medicamentos = await resposta.json();
+
+    mostrarSugestoesMedicamentos(medicamentos);
+  } catch (erro) {
+    console.error(erro);
+    esconderSugestoesMedicamentos();
+  }
+}
+
+function mostrarSugestoesMedicamentos(medicamentos) {
+  caixaSugestoes.innerHTML = "";
+
+  if (medicamentos.length === 0) {
+    caixaSugestoes.innerHTML = `
+      <div class="list-group-item text-muted">
+        Nenhum medicamento encontrado.
+      </div>
+    `;
+    caixaSugestoes.classList.remove("d-none");
+    return;
+  }
+
+  medicamentos.forEach(function (med) {
+    const item = document.createElement("button");
+
+    item.type = "button";
+    item.className = "list-group-item list-group-item-action";
+
+    item.innerHTML = `
+      <div class="fw-semibold">${med.nome_medicamento}</div>
+      <small class="text-muted">
+        ${med.substancia_ativa || "Sem substância ativa"} ·
+        ${med.forma_farmaceutica || ""} ·
+        ${med.dosagem || ""}
+      </small>
+    `;
+
+    item.addEventListener("click", function () {
+      selecionarMedicamento(med);
+    });
+
+    caixaSugestoes.appendChild(item);
+  });
+
+  caixaSugestoes.classList.remove("d-none");
+}
+
+function selecionarMedicamento(med) {
+  inputMedicamento.value = med.nome_medicamento;
+  inputIdCatalogoMedicamento.value = med.id;
+
+  esconderSugestoesMedicamentos();
+}
+
+function esconderSugestoesMedicamentos() {
+  caixaSugestoes.classList.add("d-none");
+  caixaSugestoes.innerHTML = "";
+}

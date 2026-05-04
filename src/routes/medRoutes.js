@@ -8,6 +8,46 @@ router.get("/teste", (req, res) => {
   res.send("Teste dentro do medRoutes.js funciona");
 });
 
+
+// Pesquisa medicamentos no catálogo conforme o utilizador escreve
+router.get("/catalogo", async (req, res) => {
+  try {
+    const termo = req.query.termo;
+
+    if (!termo || termo.trim().length < 2) {
+      return res.json([]);
+    }
+
+    const pesquisa = `%${termo.trim()}%`;
+
+    const [resultados] = await db.query(
+      `
+      SELECT
+        id,
+        nome_medicamento,
+        substancia_ativa,
+        dosagem,
+        forma_farmaceutica
+      FROM Catalogo_Medicamentos
+      WHERE nome_medicamento LIKE ?
+         OR substancia_ativa LIKE ?
+      ORDER BY nome_medicamento ASC
+      LIMIT 10
+      `,
+      [pesquisa, pesquisa]
+    );
+
+    res.json(resultados);
+  } catch (erro) {
+    console.error("Erro ao pesquisar catálogo de medicamentos:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao pesquisar medicamentos."
+    });
+  }
+});
+
+
 router.get("/", async (req, res) => {
   console.log("GET /api/medicacao foi chamado");
 
@@ -53,5 +93,61 @@ router.get("/", async (req, res) => {
     });
   }
 });
+
+// Regista nova medicação para o utilizador
+router.post("/", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId || 1;
+
+    const {
+        id_catalogo_medicamento,
+        medicamento,        
+        posologia,
+        data_inicio,
+        data_fim,
+        estado
+    } = req.body;
+
+    if (!id_catalogo_medicamento || !medicamento || !posologia || !data_inicio) {
+        return res.status(400).json({
+            erro: "Selecione um medicamento, indique a posologia e a data de início."
+        });
+    }
+
+    if (data_fim && data_fim < data_inicio) {
+      return res.status(400).json({
+        erro: "A data de fim não pode ser anterior à data de início."
+      });
+    }
+
+    await db.query(
+      `
+      INSERT INTO Medicamento
+        (id_utilizador, id_catalogo_medicamento, posologia, data_inicio, data_fim, estado)
+      VALUES
+        (?, ?, ?, ?, ?, ?)
+      `,
+      [
+        idUtilizador,
+        id_catalogo_medicamento,
+        posologia,
+        data_inicio,
+        data_fim || null,
+        estado || "Ativo"
+      ]
+    );
+
+    res.status(201).json({
+      mensagem: "Medicação registada com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao registar medicação:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao registar a medicação."
+    });
+  }
+});
+
 
 module.exports = router;
