@@ -26,6 +26,9 @@ app.use(express.urlencoded({ extended: true })); // ADICIONADO: Extra segurança
 // Serve os ficheiros estáticos (HTML, CSS, JS do frontend)
 app.use(express.static("public"));
 
+const path = require("path");
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
+
 // ADICIONADO: Configuração das sessões (para o utilizador ficar com sessão iniciada)
 app.use(session({
     secret: process.env.SESSION_SECRET || 'chave_de_reserva_segura',

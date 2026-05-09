@@ -40,6 +40,7 @@ router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/historico", exameController.listarHistorico);
 router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
+router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
 // POST: Registar Exame com PDF
 // O middleware 'upload.single' deve ser chamado ANTES do controller
