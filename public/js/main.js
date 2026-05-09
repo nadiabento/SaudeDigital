@@ -63,6 +63,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div>${data.mensagem}</div>
                         </div>
                     `;
+                    if (data.nome) {
+                       localStorage.setItem('userName', data.nome);
+                    }
+
+                    messageDiv.innerHTML = `
+                    <div class="alert alert-success d-flex align-items-center" role="alert">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        <div>${data.mensagem}</div>
+                    </div>
+                    `;
                     
                     // Aguarda 1 segundo e redireciona o utilizador para o Dashboard
                     setTimeout(() => {

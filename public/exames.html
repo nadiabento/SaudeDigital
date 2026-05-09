@@ -18,6 +18,8 @@
       href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"
     />
 
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/exames.css" />
   </head>
@@ -393,53 +395,44 @@
       </div>
     </div>
 
-    <div class="modal fade" id="modalPartilha" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
-        <div
-          class="modal-content border-0 shadow-lg"
-          style="border-radius: 20px"
-        >
-          <div class="modal-header border-0 pt-4 px-4">
-            <h5 class="modal-title fw-bold">
-              <i class="bi bi-share text-primary me-2"></i>Link Gerado!
-            </h5>
-            <button
-              type="button"
-              class="btn-close"
-              data-bs-dismiss="modal"
-              aria-label="Close"
-            ></button>
-          </div>
-          <div class="modal-body px-4 pb-4 text-center">
-            <p class="text-muted small">
-              Envie este link ao seu médico. Ele expira em 48 horas.
-            </p>
-            <div class="input-group mb-3">
-              <input
-                type="text"
-                id="inputLinkPartilha"
-                class="form-control bg-light border-0 p-3"
-                readonly
-              />
-              <button
-                class="btn btn-primary px-3"
-                type="button"
-                onclick="copiarLinkManual()"
-              >
-                <i class="bi bi-clipboard"></i>
-              </button>
-            </div>
-            <div
-              id="msgCopiado"
-              class="text-success small d-none animate__animated animate__fadeIn"
-            >
-              <i class="bi bi-check-circle-fill me-1"></i> Link copiado com
-              sucesso!
-            </div>
-          </div>
+<div class="modal fade" id="modalPartilha" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
+      <div class="modal-header border-0 pt-4 px-4">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-share text-primary me-2"></i>Partilhar Resultados
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body px-4 pb-4">
+        <p class="text-muted small mb-3">
+          Copie o link abaixo ou envie diretamente por email para o seu médico.
+        </p>
+        
+        <!-- Campo do Link -->
+        <div class="input-group mb-3">
+          <input type="text" id="inputLinkPartilha" class="form-control bg-light border-0 p-3" readonly />
+          <button class="btn btn-primary px-3" type="button" onclick="copiarLinkManual()">
+            <i class="bi bi-clipboard"></i>
+          </button>
+        </div>
+
+        <hr class="my-4 text-muted opacity-25">
+
+        <!-- Opção de Email -->
+        <div class="d-grid">
+          <button class="btn btn-outline-primary py-2 fw-bold" onclick="enviarPorEmail()">
+            <i class="bi bi-envelope-at me-2"></i>Enviar por Email
+          </button>
+        </div>
+
+        <div id="msgCopiado" class="text-success small d-none mt-2 text-center">
+          <i class="bi bi-check-circle-fill me-1"></i> Link copiado!
         </div>
       </div>
     </div>
+  </div>
+</div>
 
     <div
       class="modal fade"

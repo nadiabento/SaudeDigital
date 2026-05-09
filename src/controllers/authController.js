@@ -72,9 +72,11 @@ const authController = {
           return res.status(500).json({ erro: "Erro ao processar login." });
         }
 
-        console.log(`Utilizador ${utilizador.id} logado com sucesso.`);
+        console.log(`Utilizador ${utilizador.nome} logado com sucesso.`);
+
         res.status(200).json({
           mensagem: "Login efetuado com sucesso!",
+          nome: utilizador.nome,
           redirecionar: "/dashboard.html",
         });
       });

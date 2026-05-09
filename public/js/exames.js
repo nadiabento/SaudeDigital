@@ -23,9 +23,7 @@ window.onload = () => {
   }
 };
 
-/**
- * --- 1. COMUNICAÇÃO COM A API (GET) ---
- */
+// --- 1. COMUNICAÇÃO COM A API (GET) ---
 async function carregarCategorias() {
   try {
     const response = await fetch("/api/exames/categorias");
@@ -69,9 +67,8 @@ async function atualizarTiposExame(idCategoria) {
   }
 }
 
-/**
- * --- 2. RENDERIZAÇÃO E PAGINAÇÃO ---
- */
+//--- 2. RENDERIZAÇÃO E PAGINAÇÃO ---
+
 function renderizarTabela() {
   const tbody = document.getElementById("tabelaExames");
   if (!tbody) return;
@@ -179,9 +176,8 @@ function filtrarTabela() {
   });
 }
 
-/**
- * --- 3. SELEÇÃO E AÇÕES EM MASSA ---
- */
+//--- 3. SELEÇÃO E AÇÕES EM MASSA ---
+
 function toggleTodos(master) {
   document
     .querySelectorAll(".exame-checkbox")
@@ -190,39 +186,115 @@ function toggleTodos(master) {
 }
 
 function verificarSelecao() {
-  const marcados = obterTotalSelecionados();
-
-  // Selecionamos apenas os botões que queremos bloquear (usando a classe btn-acao-individual que adicionei no HTML acima)
-  const botoesParaBloquear = document.querySelectorAll(".btn-acao-individual");
-
-  botoesParaBloquear.forEach((item) => {
-    if (marcados > 1) {
-      item.classList.add("disabled");
-      item.style.opacity = "0.4";
-      item.style.pointerEvents = "none";
-    } else {
-      item.classList.remove("disabled");
-      item.style.opacity = "1";
-      item.style.pointerEvents = "auto";
+    const checkboxes = document.querySelectorAll('.exame-checkbox:checked');
+    const marcados = checkboxes.length;
+    
+    // 1. Gerir a Barra de Ações em Massa (Aparece se houver 1 ou mais selecionados)
+    const barraAcoes = document.getElementById("acoesMassa");
+    if (barraAcoes) {
+        // Se houver pelo menos um selecionado, mostra a barra
+        const mostrarBarra = marcados > 0;
+        barraAcoes.classList.toggle("d-none", !mostrarBarra);
+        barraAcoes.classList.toggle("d-flex", mostrarBarra);
     }
-  });
 
-  // O botão de eliminar vários (se existir) aparece normalmente
-  const btnVarios = document.getElementById("btnEliminarVarios");
-  if (btnVarios) btnVarios.style.display = marcados > 1 ? "block" : "none";
-}
-async function eliminarSelecionados() {
-  const ids = Array.from(
-    document.querySelectorAll(".exame-checkbox:checked"),
-  ).map((cb) => cb.value);
-  if (ids.length === 0) return;
-  if (!confirm(`Deseja eliminar ${ids.length} exames?`)) return;
-  executarEliminacao(ids);
+    // 2. Bloquear Ações Individuais (Editar/Detalhes) se houver MAIS de 1 selecionado
+    // Nota: Se houver apenas 1, as ações individuais devem estar ATIVAS
+    const acoesIndividuais = document.querySelectorAll('.btn-acao-individual');
+    const bloquearIndividuais = marcados > 1;
+
+    acoesIndividuais.forEach(item => {
+        if (bloquearIndividuais) {
+            item.classList.add('disabled');
+            item.style.opacity = "0.4";
+            item.style.pointerEvents = "none";
+            item.setAttribute("tabindex", "-1"); // Impede navegação por teclado
+        } else {
+            item.classList.remove('disabled');
+            item.style.opacity = "1";
+            item.style.pointerEvents = "auto";
+            item.removeAttribute("tabindex");
+        }
+    });
 }
 
+// Função para apagar um exame com confirmação animada
 async function eliminarUm(id) {
-  if (!confirm("Tem a certeza que deseja eliminar este exame?")) return;
-  executarEliminacao([id]);
+    // 1. Criamos a janela de confirmação (Aviso amarelo)
+    Swal.fire({
+        title: 'Tem a certeza?',
+        text: "Este exame será removido permanentemente!",
+        icon: 'warning', // Desenha o símbolo de exclamação animado
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545', // Cor vermelha para indicar perigo
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, eliminar',
+        cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+        // 2. Se o utilizador clicou no botão de confirmar
+        if (result.isConfirmed) {
+            try {
+                // Chamamos a função que faz o pedido ao servidor
+                await executarEliminacao([id]);
+
+                // 3. Mostramos a animação de SUCESSO (O tal "certo" verde)
+                Swal.fire({
+                    title: 'Eliminado!',
+                    text: 'O registo foi removido com sucesso.',
+                    icon: 'success', // Aqui é onde surge a animação do "certo"
+                    showConfirmButton: false,
+                    timer: 1500 // Fecha sozinho para ser rápido
+                });
+
+            } catch (error) {
+                // Caso o servidor falhe (ex: sem net), mostramos erro
+                Swal.fire('Erro!', 'Não foi possível eliminar o exame.', 'error');
+            }
+        }
+    });
+}
+
+// Função para o botão "Eliminar Selecionados" (Barra Azul)
+async function eliminarSelecionados() {
+    // 1. Captura todos os IDs dos exames que têm a checkbox marcada
+    const checkboxes = document.querySelectorAll('.exame-checkbox:checked');
+    const ids = Array.from(checkboxes).map(cb => cb.value);
+
+    // Segurança: Se não houver nada selecionado, não faz nada
+    if (ids.length === 0) return;
+
+    // 2. Lançamos o Alerta de Confirmação (Aviso Amarelo)
+    Swal.fire({
+        title: `Eliminar ${ids.length} exames?`,
+        text: "Esta ação é permanente e os dados não poderão ser recuperados!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#dc3545', // Vermelho para indicar perigo
+        cancelButtonColor: '#6c757d',
+        confirmButtonText: 'Sim, eliminar tudo',
+        cancelButtonText: 'Cancelar'
+    }).then(async (result) => {
+        // 3. Se o utilizador confirmar
+        if (result.isConfirmed) {
+            try {
+                // Chamamos a tua função que já comunica com o backend
+                await executarEliminacao(ids);
+
+                // 4. A ANIMAÇÃO DO CERTO (Sucesso Verde)
+                Swal.fire({
+                    title: 'Eliminados!',
+                    text: 'Os registos foram removidos com sucesso.',
+                    icon: 'success', // Aqui surge o símbolo do "Certo"
+                    showConfirmButton: false,
+                    timer: 1500
+                });
+
+            } catch (error) {
+                console.error("Erro ao eliminar vários:", error);
+                Swal.fire('Erro!', 'Não foi possível completar a operação.', 'error');
+            }
+        }
+    });
 }
 
 async function executarEliminacao(ids) {
@@ -238,9 +310,8 @@ async function executarEliminacao(ids) {
   }
 }
 
-/**
- * --- 4. CONFIGURAÇÃO DE EVENTOS E SUBMISSÃO ---
- */
+//--- 4. CONFIGURAÇÃO DE EVENTOS E SUBMISSÃO ---
+
 function configurarEventosInterface() {
   const inputClasse = document.getElementById("classeExameInput");
   const listaUlClasse = document.getElementById("sugestoesClasse");
@@ -333,8 +404,16 @@ function configurarEventosInterface() {
           body: formData,
         });
         if (response.ok) {
-          alert("Exame guardado!");
+          Swal.fire({
+            title: 'Sucesso!',
+            text: 'O seu exame foi guardado com segurança.',
+            icon: 'success',
+            confirmButtonColor: '#0d6efd', // Azul Primary do Bootstrap
+            timer: 2000, // Fecha sozinho após 2 segundos
+            showConfirmButton: false
+          }).then(() => {
           location.reload();
+        });
         }
       } catch (err) {
         console.error("Erro ao enviar:", err);
@@ -391,31 +470,50 @@ function ordenarTabela(coluna) {
   direcaoOrdenacao[coluna] *= -1;
   renderizarTabela();
 }
-
+//4. PARTILHA E EMAIL
 async function gerarLinkPartilha(id = null) {
-  let ids = id
-    ? [id]
-    : Array.from(document.querySelectorAll(".exame-checkbox:checked")).map(
-        (cb) => cb.value,
-      );
-  if (ids.length === 0) return alert("Selecione exames.");
-
-  try {
-    const res = await fetch("/api/exames/gerar-partilha", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ examesIds: ids }),
-    });
-    const dados = await res.json();
-    if (res.ok) {
-      const linkFinal = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
-      document.getElementById("inputLinkPartilha").value = linkFinal;
-      new bootstrap.Modal(document.getElementById("modalPartilha")).show();
-      navigator.clipboard.writeText(linkFinal);
+    let ids = [];
+    
+    if (id) {
+        // Se passarmos um ID (clique na linha), usamos esse
+        ids = [id];
+    } else {
+        // Se não, vamos buscar todos os selecionados nos checkboxes
+        ids = Array.from(document.querySelectorAll(".exame-checkbox:checked")).map(cb => cb.value);
     }
-  } catch (error) {
-    console.error(error);
-  }
+
+    if (ids.length === 0) {
+        alert("Selecione pelo menos um exame para partilhar.");
+        return;
+    }
+
+    try {
+        const res = await fetch("/api/exames/gerar-partilha", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ examesIds: ids }),
+        });
+        
+        const dados = await res.json();
+        
+        if (res.ok) {
+            // Ajuste do link para a rota correta do teu portal do médico
+            const linkFinal = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
+            document.getElementById("inputLinkPartilha").value = linkFinal;
+            
+            // Abre o modal
+            const modalElement = document.getElementById('modalPartilha');
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            
+            // Copia automaticamente para facilitar
+            navigator.clipboard.writeText(linkFinal);
+        } else {
+            alert("Erro ao gerar link: " + (dados.erro || "Erro desconhecido"));
+        }
+    } catch (error) {
+        console.error("Erro na partilha:", error);
+    }
 }
 
 function copiarLinkManual() {
@@ -427,10 +525,7 @@ function copiarLinkManual() {
   setTimeout(() => msg.classList.add("d-none"), 3000);
 }
 
-function exportarJSON() {
-  console.log(examesParaTabela);
-  alert("Dados na consola!");
-}
+
 
 // Função para abrir o modal e preencher os campos com os dados atuais
 function abrirModalEditar(id, data, obs) {
@@ -483,70 +578,61 @@ async function guardarEdicao() {
   }
 }
 
-function verDetalhes(id, nome, data, obs, ficheiro) {
-  // Preencher os campos do modal
-  document.getElementById("detalheNome").textContent = nome;
-
-  // Formatar data
-  const dataF = data
-    ? data.split("T")[0].split("-").reverse().join("/")
-    : "---";
-  document.getElementById("detalheData").textContent = dataF;
-
-  // Observações
-  document.getElementById("detalheObservacoes").textContent =
-    obs || "Nenhuma observação registada.";
-
-  // Ficheiro PDF
-  const containerFicheiro = document.getElementById("detalheFicheiro");
-  if (ficheiro) {
-    containerFicheiro.innerHTML = `
-            <a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 py-2 fw-bold shadow-sm">
-                <i class="bi bi-file-earmark-pdf me-2"></i>Abrir Documento PDF
-            </a>`;
-  } else {
-    containerFicheiro.innerHTML = `<p class="text-muted small italic">Nenhum documento anexado.</p>`;
-  }
-
-  // Abrir o modal
-  const modal = new bootstrap.Modal(
-    document.getElementById("modalDetalhesExame"),
-  );
-  modal.show();
-}
-
 // 1. Função Ver Detalhes (Bloqueia se > 1 selecionado)
 function verDetalhes(id, nome, data, obs, ficheiro) {
-  if (obterTotalSelecionados() > 1) {
-    alert(
-      "Para ver os detalhes, desmarque as seleções múltiplas. Esta ação só é permitida para um exame de cada vez.",
-    );
-    return;
-  }
+    // Bloqueio de segurança para o professor ver
+    if (obterTotalSelecionados() > 1) {
+        alert("Para ver os detalhes, desmarque as seleções múltiplas. Esta ação só é permitida para um exame de cada vez.");
+        return;
+    }
 
-  document.getElementById("detalheNome").textContent = nome;
-  const dataF = data
-    ? data.split("T")[0].split("-").reverse().join("/")
-    : "---";
-  document.getElementById("detalheData").textContent = dataF;
-  document.getElementById("detalheObservacoes").textContent =
-    obs || "Sem observações.";
+    document.getElementById("detalheNome").textContent = nome;
+    
+    // Formatação de data PT-PT
+    const dataF = data ? data.split("T")[0].split("-").reverse().join("/") : "---";
+    document.getElementById("detalheData").textContent = dataF;
+    
+    // Proteção contra texto vazio
+    document.getElementById("detalheObservacoes").textContent = obs && obs !== 'undefined' ? obs : "Sem observações.";
 
-  const containerFicheiro = document.getElementById("detalheFicheiro");
-  if (ficheiro && ficheiro !== "null" && ficheiro !== "") {
-    containerFicheiro.innerHTML = `
+    const containerFicheiro = document.getElementById("detalheFicheiro");
+    if (ficheiro && ficheiro !== "null" && ficheiro !== "undefined" && ficheiro !== "") {
+        containerFicheiro.innerHTML = `
             <a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 fw-bold shadow-sm">
                 <i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF do Exame
             </a>`;
-  } else {
-    containerFicheiro.innerHTML =
-      '<p class="text-muted small text-center">Nenhum documento anexo.</p>';
-  }
+    } else {
+        containerFicheiro.innerHTML = '<p class="text-muted small text-center italic">Nenhum documento anexo.</p>';
+    }
 
-  new bootstrap.Modal(document.getElementById("modalDetalhesExame")).show();
+    new bootstrap.Modal(document.getElementById("modalDetalhesExame")).show();
 }
 
 // Função auxiliar para contar quantos exames estão selecionados
 function obterTotalSelecionados() {
   return document.querySelectorAll(".exame-checkbox:checked").length;
+}
+
+
+function enviarPorEmail() {
+    const link = document.getElementById("inputLinkPartilha").value;
+    
+    if (!link) {
+        alert("Por favor, gere o link primeiro.");
+        return; 
+    }
+
+    const nomeUtilizador = localStorage.getItem("userName") || "Utilizador SaúdeDigital";
+    const assunto = encodeURIComponent("Resultados de Exames - SaúdeDigital");
+    
+    const corpo = encodeURIComponent(
+        `Olá,\n\n` +
+        `Partilho consigo o link para acesso aos meus exames clínicos através da plataforma SaúdeDigital:\n\n` +
+        `${link}\n\n` +
+        `Este link expirará em breve por questões de segurança.\n\n` +
+        `Melhores cumprimentos,\n` +
+        `${nomeUtilizador}`
+    );
+
+    window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
 }
