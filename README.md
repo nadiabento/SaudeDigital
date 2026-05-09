@@ -33,6 +33,7 @@ UI/UX: Bootstrap 5, Bootstrap Icons e SweetAlert2 para notificações.
 │   ├── uploads/        # PDFs (Ignorado no Git)
 │   └── partilha.html   # Portal do Médico
 └── server.js           # Entrada
+```text
 
 ⚙️ Instalação e Configuração
 npm install
