@@ -21,18 +21,18 @@ Uploads: Multer para processamento de ficheiros.
 
 UI/UX: Bootstrap 5, Bootstrap Icons e SweetAlert2 para notificações.
 
-📂 Estrutura do Projeto
+### 📂 Estrutura do Projeto
+
+```text
 ├── src/
-│   ├── config/         # Configuração da ligação à BD
-│   ├── controllers/    # Lógica de negócio (ExameController.js)
-│   └── routes/         # Definição das rotas da API
+│   ├── config/         # Conexão com a BD
+│   ├── controllers/    # Lógica (ExameController.js)
+│   └── routes/         # Rotas da API
 ├── public/
-│   ├── css/            # Estilos (exames.css, partilha.css)
-│   ├── js/             # Lógica de frontend (exames.js)
-│   ├── uploads/        # Armazenamento dos PDFs (ignorado no git)
-│   ├── exames.html     # Dashboard do Paciente
-│   └── partilha.html   # Portal de Visualização do Médico
-└── server.js           # Ponto de entrada da aplicação
+│   ├── css/            # Estilos (partilha.css)
+│   ├── uploads/        # PDFs (Ignorado no Git)
+│   └── partilha.html   # Portal do Médico
+└── server.js           # Entrada
 
 ⚙️ Instalação e Configuração
 npm install
