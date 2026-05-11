@@ -39,11 +39,13 @@ const upload = multer({
 router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/historico", exameController.listarHistorico);
+// Rota para o Médico: Serve o ficheiro HTML de partilha
 router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
+// Rota de Dados: Serve os dados JSON que preenchem a página de partilha
 router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
-// POST: Registar Exame com PDF
-// O middleware 'upload.single' deve ser chamado ANTES do controller
+// --- GRUPO POST: Criação e Upload ---
+// Registo de Exame: O middleware 'upload.single' processa o ficheiro antes da lógica do controller
 router.post(
   "/registar",
   upload.single("relatorio"), // O nome "relatorio" deve coincidir com o 'name' no <input type="file">
@@ -55,9 +57,11 @@ router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
 router.post("/gerar-partilha", exameController.gerarPartilha);
 
-// --- RETIFICAÇÃO: A rota DELETE deve estar ANTES do module.exports ---
-router.delete("/eliminar-massa", exameController.eliminarMassa);
+// --- GRUPO PUT/DELETE: Manutenção de Dados ---
 
+// Eliminação múltipla de registos selecionados na tabela
+router.delete("/eliminar-massa", exameController.eliminarMassa);
+// Edição de observações ou datas de exames existentes
 router.put("/editar/:id", exameController.editarExame);
 
 module.exports = router; // O ficheiro deve terminar aqui
