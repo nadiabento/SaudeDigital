@@ -1,10 +1,9 @@
 const db = require("../config/db");
 const fs = require("fs");
 const path = require("path");
+const crypto = require("crypto");
 
-/**
- * --- LISTAGENS (GET) ---
- */
+//--- LISTAGENS (GET) ---
 
 // Listar categorias em ordem alfabética
 exports.listarCategorias = async (req, res) => {
@@ -19,7 +18,7 @@ exports.listarCategorias = async (req, res) => {
   }
 };
 
-// Listar tipos filtrados por categoria
+// Listar tipos de exames filtrados pela categoria selecionada (Cascata)
 exports.listarTiposPorCategoria = async (req, res) => {
   const { id_categoria } = req.params;
   try {
@@ -33,58 +32,79 @@ exports.listarTiposPorCategoria = async (req, res) => {
   }
 };
 
-// Listar histórico completo com JOINs
+// Listar histórico do utilizador logado (Proteção de privacidade)
 exports.listarHistorico = async (req, res) => {
+  const utilizadorId = req.session.userId;
+
+  if (!utilizadorId) {
+    return res.status(401).json({ error: "Não autorizado" });
+  }
+
   try {
     const query = `
-            SELECT E.id, E.data_exame AS data, TE.nome, ETE.resultado 
-            FROM Exame E
-            JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
-            JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
-            ORDER BY E.data_exame DESC`;
-    const [rows] = await db.query(query);
+    SELECT 
+        E.id, 
+        DATE_FORMAT(E.data_exame, '%Y-%m-%d') AS data, 
+        TE.nome, 
+        ETE.resultado,
+        E.observacoes
+    FROM Exame E
+    -- LEFT JOIN garante que o exame aparece mesmo que algo falte nas outras tabelas
+    LEFT JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
+    LEFT JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
+    WHERE E.utilizador_id = ?
+    ORDER BY E.data_exame DESC`;
+
+    const [rows] = await db.query(query, [utilizadorId]);
+
     res.json(rows);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error("Erro na query SQL:", error);
+    res.status(500).json({ error: "Erro interno ao carregar histórico." });
   }
 };
 
+// --- PORTAL DO MÉDICO (PARTILHA EXTERNA) ---
+// Serve o ficheiro HTML estático para o portal do médico
+exports.visualizarPartilha = (req, res) => {
+  res.sendFile(path.join(__dirname, "../../public/partilha.html"));
+};
+
+// Busca os dados específicos de uma partilha via Token (Sem necessidade de login)
 exports.getDadosPartilha = async (req, res) => {
-    const { token } = req.params;
+  const { token } = req.params;
 
-    try {
-        const [partilha] = await db.query(
-            "SELECT exames_ids FROM Partilha WHERE token = ? AND data_expiracao > NOW()", 
-            [token]
-        );
+  try {
+    const [partilha] = await db.query(
+      "SELECT exames_ids FROM Partilha WHERE token = ? AND data_expiracao > NOW()",
+      [token],
+    );
 
-        if (!partilha || partilha.length === 0) {
-            return res.status(404).json({ error: "Link expirado ou inválido" });
-        }
+    if (!partilha || partilha.length === 0) {
+      return res.status(404).json({ error: "Link expirado ou inválido" });
+    }
 
-        const ids = partilha[0].exames_ids.split(",").map(Number);
+    const ids = partilha[0].exames_ids.split(",").map(Number);
 
-        // RETIFICAÇÃO: Adicionamos E.observacoes para que o frontend as receba
-        const query = `
+    // RETIFICAÇÃO: Adicionamos E.observacoes para que o frontend as receba
+    const query = `
             SELECT TE.nome, E.data_exame, E.observacoes, ETE.resultado 
             FROM Exame E 
             JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame 
             JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id 
             WHERE E.id IN (?)`;
 
-        const [exames] = await db.query(query, [ids]);
-        res.json(exames);
-    } catch (error) {
-        console.error("Erro ao carregar exames da partilha:", error);
-        res.status(500).json({ error: "Erro interno" });
-    }
+    const [exames] = await db.query(query, [ids]);
+    res.json(exames);
+  } catch (error) {
+    console.error("Erro ao carregar exames da partilha:", error);
+    res.status(500).json({ error: "Erro interno" });
+  }
 };
 
-/**
- * --- CRIAÇÃO (POST) ---
- */
+// --- CRIAÇÃO (POST) ---
 
-// Criar nova Classe/Categoria via Modal
+// Criar nova Classe/Categoria
 exports.criarCategoria = async (req, res) => {
   console.log("Recebido pedido para criar categoria:", req.body); // Debug no terminal
   try {
@@ -99,25 +119,32 @@ exports.criarCategoria = async (req, res) => {
   }
 };
 
-// Criar novo Tipo de Exame via Modal
+// Criar novo Tipo de Exame
 exports.criarTipo = async (req, res) => {
-  console.log("📥 Recebido pedido para criar tipo:", req.body);
   try {
+    // Recebemos apenas o que existe na tabela
     const { nome, id_categoria } = req.body;
 
-    // Adicionado valor para 'descricao' caso a tua tabela exija (podes mudar para texto vazio)
-    const query =
-      "INSERT INTO Tipo_Exame (nome, id_categoria, descricao) VALUES (?, ?, ?)";
-    await db.query(query, [nome, id_categoria, "Adicionado manualmente"]);
+    // Verificação de segurança
+    if (!nome || !id_categoria) {
+      return res.status(400).json({
+        error: "Dados incompletos: nome e id_categoria são obrigatórios.",
+      });
+    }
 
-    res.status(201).json({ message: "Tipo criado!" });
+    // Query ajustada exatamente à tua imagem (sem a coluna 'descricao')
+    const query = "INSERT INTO Tipo_Exame (nome, id_categoria) VALUES (?, ?)";
+
+    await db.query(query, [nome, id_categoria]);
+
+    res.status(201).json({ message: "Tipo de exame criado com sucesso!" });
   } catch (error) {
-    console.error("Erro SQL criarTipo:", error);
-    res.status(500).json({ error: error.message });
+    console.error("Erro SQL ao criar tipo:", error);
+    res.status(500).json({ error: "Erro ao guardar no banco de dados." });
   }
 };
 
-/*- REGISTO PRINCIPAL (UPLOAD) -*/
+// Registo Principal: Guarda na tabela de Exames e na tabela de ligação (TipoExame)
 exports.registarExame = async (req, res) => {
   const { data_exame, observacoes, id_tipo_exame, local_realizacao } = req.body;
   const utilizadorId = req.session.userId;
@@ -127,6 +154,7 @@ exports.registarExame = async (req, res) => {
   hoje.setHours(23, 59, 59, 999); // Define para o final do dia atual
   const dataEscolhida = new Date(data_exame);
 
+  // Bloqueio de datas futuras no servidor (Segurança extra)
   if (dataEscolhida > hoje) {
     return res
       .status(400)
@@ -164,39 +192,24 @@ exports.registarExame = async (req, res) => {
   }
 };
 
-// Também deves filtrar o histórico para o utilizador não ver exames de outras pessoas
-exports.listarHistorico = async (req, res) => {
+//--- MANUTENÇÃO (PUT, DELETE, SHARE) ---
+
+exports.editarExame = async (req, res) => {
+  const { id } = req.params;
+  const { data_exame, observacoes } = req.body;
   const utilizadorId = req.session.userId;
 
-  if (!utilizadorId) {
-    return res.status(401).json({ error: "Não autorizado" });
-  }
-
   try {
-    const query = `
-    SELECT 
-        E.id, 
-        DATE_FORMAT(E.data_exame, '%Y-%m-%d') AS data, 
-        TE.nome, 
-        ETE.resultado,
-        E.observacoes
-    FROM Exame E
-    -- LEFT JOIN garante que o exame aparece mesmo que algo falte nas outras tabelas
-    LEFT JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
-    LEFT JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
-    WHERE E.utilizador_id = ?
-    ORDER BY E.data_exame DESC`;
-
-    const [rows] = await db.query(query, [utilizadorId]);
-
-    res.json(rows);
+    await db.query(
+      "UPDATE Exame SET data_exame = ?, observacoes = ? WHERE id = ? AND utilizador_id = ?",
+      [data_exame, observacoes, id, utilizadorId],
+    );
+    res.json({ message: "Exame atualizado com sucesso!" });
   } catch (error) {
-    console.error("Erro na query SQL:", error);
-    res.status(500).json({ error: "Erro interno ao carregar histórico." });
+    res.status(500).json({ error: "Erro ao atualizar exame." });
   }
 };
 
-// --- ELIMINAR EM MASSA (E INDIVIDUAL) ---
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
   const utilizadorId = req.session.userId;
@@ -283,28 +296,5 @@ exports.gerarPartilha = async (req, res) => {
   } catch (error) {
     console.error("Erro ao gravar partilha:", error);
     res.status(500).json({ error: "Erro interno ao gerar link de partilha." });
-  }
-};
-
-const crypto = require("crypto");
-
-exports.visualizarPartilha = (req, res) => {
-    res.sendFile(path.join(__dirname, '../../public/partilha.html'));
-};
-
-
-exports.editarExame = async (req, res) => {
-  const { id } = req.params;
-  const { data_exame, observacoes } = req.body;
-  const utilizadorId = req.session.userId;
-
-  try {
-    await db.query(
-      "UPDATE Exame SET data_exame = ?, observacoes = ? WHERE id = ? AND utilizador_id = ?",
-      [data_exame, observacoes, id, utilizadorId],
-    );
-    res.json({ message: "Exame atualizado com sucesso!" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar exame." });
   }
 };
