@@ -100,10 +100,10 @@
         </header>
 
         <div class="row g-4">
-          <div class="col-lg-4">
+          <div class="col-lg-5">
             <div
-              class="card border-0 shadow-sm mb-4"
-              style="border-radius: 12px"
+              class="card border-0 shadow-sm mb-4 card-atalhos"
+              
             >
               <!-- quadro de adicionar medicamentos-->
 
@@ -141,7 +141,7 @@
                       data-bs-target="#modalNovoTipo"
                       style="
                         background-color: #ffffff;
-                        -radius: 10px;
+                        border-radius: 10px;
                         border: 1px solid #f0f0f0 !important;
                       "
                     >
@@ -168,13 +168,14 @@
               <h5 class="fw-bold mb-4">Registar Medicação</h5>
 
               <form id="form-medicacao">
-                <div class="mb-3">
+                <div class="mb-3" position-relative>
                   <label class="form-label fw-semibold">Medicamento</label>
                   <input
                     id="medicamento"
                     type="text"
                     class="form-control"
                     placeholder="Ex.: Ibuprofeno"
+                    autocomplete="off"
                     required
                   />
                   <input type="hidden" id="idCatalogoMedicamento" />
@@ -252,7 +253,7 @@
               </form>
             </div>
           </div>
-          <div class="col-lg-8">
+          <div class="col-lg-7">
             <div class="card border-0 shadow-sm p-4">
               <!-- quadro da direita-->
 

@@ -179,6 +179,7 @@ if (formMedicacao) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          id_catalogo_medicamento: idCatalogoMedicamento,
           medicamento: medicamento,
           dosagem: dosagem,
           posologia: posologia,
@@ -301,6 +302,12 @@ function mostrarSugestoesMedicamentos(medicamentos) {
 function selecionarMedicamento(med) {
   inputMedicamento.value = med.nome_medicamento;
   inputIdCatalogoMedicamento.value = med.id;
+  
+  const inputDosagem = document.getElementById("dosagem");
+
+  if (inputDosagem) {
+    inputDosagem.value = med.forma_farmaceutica || med.dosagem || "";
+  }
 
   esconderSugestoesMedicamentos();
 }
