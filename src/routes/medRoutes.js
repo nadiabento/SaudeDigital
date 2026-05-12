@@ -167,4 +167,37 @@ router.post("/", async (req, res) => {
 });
 
 
+router.delete("/:id", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId || 1;
+    const idMedicamento = req.params.id;
+
+    const [resultado] = await db.query(
+      `
+      DELETE FROM Medicamento
+      WHERE id = ?
+        AND id_utilizador = ?
+      `,
+      [idMedicamento, idUtilizador]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        erro: "Medicação não encontrada ou não pertence ao utilizador."
+      });
+    }
+
+    res.json({
+      mensagem: "Medicação eliminada com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao eliminar medicação:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao eliminar a medicação."
+    });
+  }
+});
+
+
 module.exports = router;
