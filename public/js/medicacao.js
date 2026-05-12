@@ -42,6 +42,15 @@ async function carregarMedicacao() {
           <td>${formatarDuracao(med.data_inicio, med.data_fim)}</td>
           <td>${infoDias.texto}</td>
           <td>${badgeEstado}</td>
+          <td>
+            <button 
+              type="button"
+              class="btn btn-sm btn-outline-danger"
+              onclick="eliminarMedicacao(${med.id})"
+            >
+              <i class="bi bi-trash"></i>
+            </button>
+          </td>      
         </tr>
       `;
     });
@@ -50,7 +59,7 @@ async function carregarMedicacao() {
 
     tabela.innerHTML = `
       <tr>
-        <td colspan="6" class="text-center text-danger py-4">
+        <td colspan="7" class="text-center text-danger py-4">
           Não foi possível carregar a medicação.
         </td>
       </tr>
@@ -179,6 +188,7 @@ if (formMedicacao) {
           "Content-Type": "application/json"
         },
         body: JSON.stringify({
+          id_catalogo_medicamento: idCatalogoMedicamento,
           medicamento: medicamento,
           dosagem: dosagem,
           posologia: posologia,
@@ -302,10 +312,41 @@ function selecionarMedicamento(med) {
   inputMedicamento.value = med.nome_medicamento;
   inputIdCatalogoMedicamento.value = med.id;
 
+  const inputDosagem = document.getElementById("dosagem");
+
+  if (inputDosagem) {
+    inputDosagem.value = med.forma_farmaceutica || med.dosagem || "";
+  }
+
   esconderSugestoesMedicamentos();
 }
 
 function esconderSugestoesMedicamentos() {
   caixaSugestoes.classList.add("d-none");
   caixaSugestoes.innerHTML = "";
+}
+
+
+async function eliminarMedicacao(id) {
+  const confirmar = confirm("Tem a certeza que deseja eliminar esta medicação?");
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`/api/medicacao/${id}`, {
+      method: "DELETE"
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+      throw new Error(resultado.erro || "Erro ao eliminar medicação.");
+    }
+
+    carregarMedicacao();
+  } catch (erro) {
+    alert(erro.message);
+  }
 }

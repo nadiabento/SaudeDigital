@@ -18,7 +18,9 @@ router.get("/catalogo", async (req, res) => {
       return res.json([]);
     }
 
-    const pesquisa = `%${termo.trim()}%`;
+    const termoLimpo = termo.trim();
+    const pesquisaQualquerParte = `%${termoLimpo}%`;
+    const pesquisaInicio = `${termoLimpo}%`;
 
     const [resultados] = await db.query(
       `
@@ -31,10 +33,25 @@ router.get("/catalogo", async (req, res) => {
       FROM Catalogo_Medicamentos
       WHERE nome_medicamento LIKE ?
          OR substancia_ativa LIKE ?
-      ORDER BY nome_medicamento ASC
+      ORDER BY
+        CASE
+          WHEN nome_medicamento LIKE ? THEN 1
+          WHEN substancia_ativa LIKE ? THEN 2
+          WHEN nome_medicamento LIKE ? THEN 3
+          WHEN substancia_ativa LIKE ? THEN 4
+          ELSE 5
+        END,
+        nome_medicamento ASC        
       LIMIT 10
       `,
-      [pesquisa, pesquisa]
+       [
+        pesquisaQualquerParte,
+        pesquisaQualquerParte,
+        pesquisaInicio,
+        pesquisaInicio,
+        pesquisaQualquerParte,
+        pesquisaQualquerParte
+      ]
     );
 
     res.json(resultados);
@@ -145,6 +162,39 @@ router.post("/", async (req, res) => {
 
     res.status(500).json({
       erro: "Erro ao registar a medicação."
+    });
+  }
+});
+
+
+router.delete("/:id", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId || 1;
+    const idMedicamento = req.params.id;
+
+    const [resultado] = await db.query(
+      `
+      DELETE FROM Medicamento
+      WHERE id = ?
+        AND id_utilizador = ?
+      `,
+      [idMedicamento, idUtilizador]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        erro: "Medicação não encontrada ou não pertence ao utilizador."
+      });
+    }
+
+    res.json({
+      mensagem: "Medicação eliminada com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao eliminar medicação:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao eliminar a medicação."
     });
   }
 });
