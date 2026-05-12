@@ -1,3 +1,4 @@
+<<<<<<< Updated upstream
 /** * --- VARIÁVEIS GLOBAIS ---
  * Mantêm o estado da aplicação no lado do cliente.
  */
@@ -693,3 +694,5 @@ function mostrarDetalhesMultiplos() {
 function obterTotalSelecionados() {
   return document.querySelectorAll(".exame-checkbox:checked").length;
 }
+=======
+>>>>>>> Stashed changes

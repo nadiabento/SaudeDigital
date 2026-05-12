@@ -2,10 +2,7 @@ const db = require('../config/db'); // Ligação à base de dados
 const crypto = require("crypto");
 const path = require("path");
 
-/**
- * --- LISTAGENS (GET) ---
- */
-
+// Devolve a lista de todas as unidades de saúde ordenadas por nome
 exports.getUnidades = async (req, res) => {
   try {
     const [rows] = await db.query('SELECT * FROM Unidade_Saude ORDER BY nome ASC');
@@ -16,36 +13,21 @@ exports.getUnidades = async (req, res) => {
   }
 };
 
-exports.getEspecialidadesDaUnidade = async (req, res) => {
-  const { id_unidade } = req.params;
-  try {
-    const query = `
-        SELECT DISTINCT e.id_especialidade, e.nome 
-        FROM Especialidade e
-        JOIN Medico m ON e.id_especialidade = m.id_especialidade
-        WHERE m.id_unidade = ? ORDER BY e.nome ASC
-    `;
-    const [rows] = await db.query(query, [id_unidade]);
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter especialidades' });
-  }
+// Vai buscar todos os médicos à base de dados para preencher a primeira caixa do formulário
+exports.getTodosMedicos = async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Medico ORDER BY nome ASC';
+        const [resultados] = await db.query(query);
+        res.json(resultados);
+    } catch (erro) {
+        console.error('Erro na BD:', erro);
+        res.status(500).json({ erro: 'Erro na BD' });
+    }
 };
 
-exports.getMedicos = async (req, res) => {
-  const { id_unidade, id_especialidade } = req.params;
-  try {
-    const query = 'SELECT id_medico, nome FROM Medico WHERE id_unidade = ? AND id_especialidade = ? ORDER BY nome ASC';
-    const [rows] = await db.query(query, [id_unidade, id_especialidade]);
-    res.json(rows);
-  } catch (error) {
-    res.status(500).json({ error: 'Erro ao obter médicos' });
-  }
-};
-
-// Listar histórico completo de consultas do utilizador (Igual ao da Nádia)
+// Junta a informação das Consultas, Médicos e Unidades para mostrar o histórico do utilizador atual
 exports.listarHistorico = async (req, res) => {
-  const utilizadorId = req.session.userId || 1; // Fallback seguro
+  const utilizadorId = req.session.userId || 1; // Usa o ID 1 como segurança caso a sessão falhe
   try {
     const query = `
       SELECT 
@@ -70,11 +52,7 @@ exports.listarHistorico = async (req, res) => {
   }
 };
 
-/**
- * --- CRIAÇÃO (POST) ---
- */
-
-// Criar nova Unidade via Modal (Equivalente ao criarCategoria)
+// Guarda uma nova unidade de saúde na base de dados (usado no pop-up)
 exports.criarUnidade = async (req, res) => {
   try {
     const { nome, localizacao } = req.body;
@@ -88,28 +66,62 @@ exports.criarUnidade = async (req, res) => {
   }
 };
 
-// Criar novo Médico via Modal (Equivalente ao criarTipo)
-exports.criarMedico = async (req, res) => {
-  try {
-    const { nome } = req.body;
-    if (!nome) return res.status(400).json({ error: "O nome é obrigatório." });
-
-    // Para o modal atual que insere apenas nome de forma rápida
-    await db.query("INSERT INTO Medico (nome) VALUES (?)", [nome]);
-    res.status(201).json({ message: "Médico criado com sucesso!" });
-  } catch (error) {
-    console.error("Erro SQL criarMedico:", error);
-    res.status(500).json({ error: error.message });
-  }
+// Traz a lista de especialidades para aparecerem as opções nas caixas de seleção
+exports.getTodasEspecialidades = async (req, res) => {
+    try {
+        const query = 'SELECT * FROM Especialidade ORDER BY nome ASC';
+        const [resultados] = await db.query(query);
+        res.json(resultados);
+    } catch (erro) {
+        console.error('Erro na BD:', erro);
+        res.status(500).json({ erro: 'Erro na BD' });
+    }
 };
 
-/*- REGISTO PRINCIPAL DE CONSULTA -*/
+// Cria um médico novo e liga imediatamente esse médico ao hospital escolhido
+exports.adicionarMedico = async (req, res) => {
+    const { nome, especialidade, unidade } = req.body;
+    const queryMedico = 'INSERT INTO Medico (nome, id_especialidade) VALUES (?, ?)';
+    const queryPonte = 'INSERT INTO Medico_Unidade (id_medico, id_unidade) VALUES (?, ?)';
+
+    try {
+        const [resultado] = await db.query(queryMedico, [nome, especialidade]);
+        const idMedicoInserido = resultado.insertId;
+
+        await db.query(queryPonte, [idMedicoInserido, unidade]);
+
+        res.status(201).json({ mensagem: 'Médico criado com sucesso!', id: idMedicoInserido });
+    } catch (erro) {
+        console.error('Erro ao adicionar médico:', erro);
+        res.status(500).json({ erro: 'Erro no servidor.' });
+    }
+};
+
+// Procura e devolve apenas os locais de trabalho de um médico específico
+exports.getUnidadesDoMedico = async (req, res) => {
+    const idMedico = req.params.id_medico;
+    const query = `
+        SELECT u.id_unidade, u.nome 
+        FROM Unidade_Saude u
+        JOIN Medico_Unidade mu ON u.id_unidade = mu.id_unidade
+        WHERE mu.id_medico = ?
+        ORDER BY u.nome ASC
+    `;
+    try {
+        const [resultados] = await db.query(query, [idMedico]);
+        res.json(resultados);
+    } catch (erro) {
+        res.status(500).json({ erro: 'Erro na BD' });
+    }
+};
+
+// Recebe os dados do formulário e guarda a nova marcação para o utilizador atual
 exports.registarConsulta = async (req, res) => {
   const { id_unidade, id_especialidade, id_medico, data_hora, notas } = req.body;
   const utilizadorId = req.session.userId || 1;
 
   if (!utilizadorId) {
-    return res.status(401).json({ error: "Sessão expirada. Por favor, faça login novamente." });
+    return res.status(401).json({ error: "Sessão expirada. Por favor, inicie sessão novamente." });
   }
 
   try {
@@ -124,10 +136,7 @@ exports.registarConsulta = async (req, res) => {
   }
 };
 
-/**
- * --- ELIMINAR EM MASSA E EDITAR (DELETE / PUT) ---
- */
-
+// Apaga uma ou várias consultas de uma vez (verificar sempre se pertencem ao utilizador certo)
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
   const utilizadorId = req.session.userId || 1;
@@ -148,6 +157,7 @@ exports.eliminarMassa = async (req, res) => {
   }
 };
 
+// Atualiza a data, hora e as notas de uma consulta que já existe
 exports.editarConsulta = async (req, res) => {
   const { id } = req.params;
   const { data_hora, notas } = req.body;
@@ -164,9 +174,7 @@ exports.editarConsulta = async (req, res) => {
   }
 };
 
-/**
- * --- GERAR TOKEN DE PARTILHA ---
- */
+// Cria um link temporário (válido por 48 horas) para partilhar o histórico médico
 exports.gerarPartilha = async (req, res) => {
   const { consultasIds } = req.body;
   const userId = req.session.userId || 1;
@@ -178,7 +186,6 @@ exports.gerarPartilha = async (req, res) => {
   expiracao.setHours(expiracao.getHours() + 48);
 
   try {
-    // Atenção: Certifica-te de que crias a tabela Partilha_Consulta na BD futuramente
     await db.query(
       "INSERT INTO Partilha_Consulta (token, consultas_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
       [token, consultasIds.join(","), expiracao, userId]
@@ -186,6 +193,6 @@ exports.gerarPartilha = async (req, res) => {
     res.json({ token: token });
   } catch (error) {
     console.error("Erro ao gravar partilha:", error);
-    res.status(500).json({ error: "A Tabela Partilha_Consulta pode não existir ainda." });
+    res.status(500).json({ error: "A Tabela de partilhas não está acessível." });
   }
 };

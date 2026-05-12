@@ -5,15 +5,16 @@ const consultaController = require('../controllers/consultaController');
 
 // GET (Listagens)
 router.get('/unidades', consultaController.getUnidades);
-router.get('/especialidades/:id_unidade', consultaController.getEspecialidadesDaUnidade);
 router.get('/medicos/:id_unidade/:id_especialidade', consultaController.getMedicos);
+router.get('/todos-medicos', consultaController.getTodosMedicos);
 router.get('/historico', consultaController.listarHistorico);
+router.get('/todas-especialidades', consultaController.getTodasEspecialidades);
+router.get('/medico-unidades/:id_medico', consultaController.getUnidadesDoMedico);
 
 // POST (Criação)
-// Repara: agora usamos '/' porque o prefixo no server.js será '/api/consultas'
 router.post('/', consultaController.registarConsulta); 
 router.post('/unidades', consultaController.criarUnidade);
-router.post('/medicos', consultaController.criarMedico);
+router.post('/medicos', consultaController.adicionarMedico);
 router.post('/partilha', consultaController.gerarPartilha);
 
 // PUT e DELETE (Edição e Eliminação)
