@@ -1,8 +1,10 @@
 
+
 let modoHistorico = false;
 
 document.addEventListener("DOMContentLoaded", function () {
   carregarMedicacao();
+  carregarMedicamentosParaEfeitos();
 
   const btnHistorico = document.getElementById("btn-historico");
 
@@ -438,4 +440,174 @@ async function atualizarEstadoMedicacao(id, novoEstado) {
   } catch (erro) {
     alert(erro.message);
   }
+}
+
+const formCatalogoMedicamento = document.getElementById("form-catalogo-medicamento");
+
+if (formCatalogoMedicamento) {
+  formCatalogoMedicamento.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const erroCatalogo = document.getElementById("erro-catalogo");
+    const sucessoCatalogo = document.getElementById("sucesso-catalogo");
+
+    erroCatalogo.classList.add("d-none");
+    sucessoCatalogo.classList.add("d-none");
+    erroCatalogo.textContent = "";
+    sucessoCatalogo.textContent = "";
+
+    const nomeMedicamento = document
+      .getElementById("catalogoNomeMedicamento")
+      .value.trim();
+
+    const substanciaAtiva = document
+      .getElementById("catalogoSubstanciaAtiva")
+      .value.trim();
+
+    const dosagem = document
+      .getElementById("catalogoDosagem")
+      .value.trim();
+
+    const formaFarmaceutica = document
+      .getElementById("catalogoFormaFarmaceutica")
+      .value.trim();
+
+    try {
+      const resposta = await fetch("/api/medicacao/catalogo", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          nome_medicamento: nomeMedicamento,
+          substancia_ativa: substanciaAtiva,
+          dosagem: dosagem,
+          forma_farmaceutica: formaFarmaceutica
+        })
+      });
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(resultado.erro || "Erro ao adicionar medicamento ao catálogo.");
+      }
+
+      sucessoCatalogo.textContent = resultado.mensagem;
+      sucessoCatalogo.classList.remove("d-none");
+
+      document.getElementById("medicamento").value = nomeMedicamento;
+      document.getElementById("idCatalogoMedicamento").value = resultado.id;
+      document.getElementById("dosagem").value = dosagem;
+
+      setTimeout(function () {
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("modalNovoMedicamentoCatalogo")
+        );
+
+        if (modal) {
+          modal.hide();
+        }
+
+        formCatalogoMedicamento.reset();
+      }, 800);
+    } catch (erro) {
+      erroCatalogo.textContent = erro.message;
+      erroCatalogo.classList.remove("d-none");
+    }
+  });
+}
+
+async function carregarMedicamentosParaEfeitos() {
+  const select = document.getElementById("efeitoMedicamento");
+
+  if (!select) {
+    return;
+  }
+
+  try {
+    const resposta = await fetch("/api/medicacao?historico=true");
+
+    if (!resposta.ok) {
+      throw new Error("Erro ao carregar medicações.");
+    }
+
+    const medicamentos = await resposta.json();
+
+    select.innerHTML = `
+      <option value="">Selecione uma medicação...</option>
+    `;
+
+    medicamentos.forEach(function (med) {
+      select.innerHTML += `
+        <option value="${med.id}">
+          ${med.nome_medicamento} - ${med.dosagem || ""}
+        </option>
+      `;
+    });
+  } catch (erro) {
+    console.error(erro);
+  }
+}
+
+
+const formEfeitoSecundario = document.getElementById("form-efeito-secundario");
+
+if (formEfeitoSecundario) {
+  formEfeitoSecundario.addEventListener("submit", async function (event) {
+    event.preventDefault();
+
+    const erroEfeito = document.getElementById("erro-efeito");
+    const sucessoEfeito = document.getElementById("sucesso-efeito");
+
+    erroEfeito.classList.add("d-none");
+    sucessoEfeito.classList.add("d-none");
+    erroEfeito.textContent = "";
+    sucessoEfeito.textContent = "";
+
+    const idMedicamento = document.getElementById("efeitoMedicamento").value;
+    const sintoma = document.getElementById("efeitoSintoma").value.trim();
+    const gravidade = document.getElementById("efeitoGravidade").value;
+    const dataOcorrencia = document.getElementById("efeitoData").value;
+    const notas = document.getElementById("efeitoNotas").value.trim();
+
+    try {
+      const resposta = await fetch("/api/medicacao/efeitos", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          id_medicamento: idMedicamento,
+          sintoma: sintoma,
+          gravidade: gravidade,
+          data_ocorrencia: dataOcorrencia,
+          notas: notas
+        })
+      });
+
+      const resultado = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(resultado.erro || "Erro ao registar efeito secundário.");
+      }
+
+      sucessoEfeito.textContent = resultado.mensagem;
+      sucessoEfeito.classList.remove("d-none");
+
+      formEfeitoSecundario.reset();
+
+      setTimeout(function () {
+        const modal = bootstrap.Modal.getInstance(
+          document.getElementById("modalEfeitoSecundario")
+        );
+
+        if (modal) {
+          modal.hide();
+        }
+      }, 800);
+    } catch (erro) {
+      erroEfeito.textContent = erro.message;
+      erroEfeito.classList.remove("d-none");
+    }
+  });
 }
