@@ -1,12 +1,29 @@
+
+let modoHistorico = false;
+
 document.addEventListener("DOMContentLoaded", function () {
   carregarMedicacao();
+
+  const btnHistorico = document.getElementById("btn-historico");
+
+  if (btnHistorico) {
+    btnHistorico.addEventListener("click", function () {
+      modoHistorico = !modoHistorico;
+      carregarMedicacao();
+      atualizarBotaoHistorico();
+    });
+  }
 });
 
 async function carregarMedicacao() {
   const tabela = document.getElementById("tabela-medicacao");
 
   try {
-    const resposta = await fetch("/api/medicacao");
+    const url = modoHistorico
+    ? "/api/medicacao?historico=true"
+    : "/api/medicacao";
+
+const resposta = await fetch(url);
 
     if (!resposta.ok) {
       throw new Error("Erro ao carregar medicação.");
@@ -19,7 +36,7 @@ async function carregarMedicacao() {
     if (medicamentos.length === 0) {
       tabela.innerHTML = `
         <tr>
-          <td colspan="6" class="text-center text-muted py-4">
+          <td colspan="7" class="text-center text-muted py-4">
             Ainda não existe medicação registada.
           </td>
         </tr>
@@ -43,13 +60,34 @@ async function carregarMedicacao() {
           <td>${infoDias.texto}</td>
           <td>${badgeEstado}</td>
           <td>
-            <button 
-              type="button"
-              class="btn btn-sm btn-outline-danger"
-              onclick="eliminarMedicacao(${med.id})"
-            >
-              <i class="bi bi-trash"></i>
-            </button>
+            <div class="d-flex gap-1">
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-success"
+                title="Concluir medicação"
+                onclick="atualizarEstadoMedicacao(${med.id}, 'Concluído')"
+              >
+                <i class="bi bi-check-circle"></i>
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-warning"
+                title="Suspender medicação"
+                onclick="atualizarEstadoMedicacao(${med.id}, 'Suspenso')"
+              >
+                <i class="bi bi-pause-circle"></i>
+              </button>
+
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger"
+                title="Eliminar medicação"
+                onclick="eliminarMedicacao(${med.id})"
+              >
+                <i class="bi bi-trash"></i>
+              </button>
+            </div>
           </td>      
         </tr>
       `;
@@ -109,20 +147,24 @@ function calcularDiasRestantes(dataFim) {
 }
 
 function criarBadgeEstado(estado, infoDias) {
+  if (estado === "Suspenso") {
+    return `<span class="badge bg-danger-subtle text-danger px-3">Suspenso</span>`;
+  }
+
+  if (estado === "Concluído") {
+    return `<span class="badge bg-secondary-subtle text-secondary px-3">Concluído</span>`;
+  }
+
   if (infoDias.tipo === "cronico") {
     return `<span class="badge bg-primary-subtle text-primary px-3">Crónico</span>`;
   }
 
-  if (infoDias.tipo === "concluido" || estado === "Concluído") {
+  if (infoDias.tipo === "concluido") {
     return `<span class="badge bg-secondary-subtle text-secondary px-3">Concluído</span>`;
   }
 
   if (infoDias.tipo === "a_terminar") {
     return `<span class="badge bg-warning-subtle text-warning px-3">A terminar</span>`;
-  }
-
-  if (estado === "Suspenso") {
-    return `<span class="badge bg-danger-subtle text-danger px-3">Suspenso</span>`;
   }
 
   return `<span class="badge bg-success-subtle text-success px-3">Ativo</span>`;
@@ -343,6 +385,53 @@ async function eliminarMedicacao(id) {
 
     if (!resposta.ok) {
       throw new Error(resultado.erro || "Erro ao eliminar medicação.");
+    }
+
+    carregarMedicacao();
+  } catch (erro) {
+    alert(erro.message);
+  }
+}
+
+function atualizarBotaoHistorico() {
+  const btnHistorico = document.getElementById("btn-historico");
+  const tituloPlano = document.getElementById("titulo-plano");
+
+  if (!btnHistorico || !tituloPlano) {
+    return;
+  }
+
+  if (modoHistorico) {
+    btnHistorico.textContent = "Ver Plano Terapêutico Ativo";
+    tituloPlano.textContent = "Histórico Completo de Medicação";
+  } else {
+    btnHistorico.textContent = "Ver Histórico Completo";
+    tituloPlano.textContent = "Plano Terapêutico Ativo";
+  }
+}
+
+async function atualizarEstadoMedicacao(id, novoEstado) {
+  const confirmar = confirm(`Tem a certeza que deseja marcar esta medicação como "${novoEstado}"?`);
+
+  if (!confirmar) {
+    return;
+  }
+
+  try {
+    const resposta = await fetch(`/api/medicacao/${id}/estado`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        estado: novoEstado
+      })
+    });
+
+    const resultado = await resposta.json();
+
+    if (!resposta.ok) {
+      throw new Error(resultado.erro || "Erro ao atualizar estado da medicação.");
     }
 
     carregarMedicacao();

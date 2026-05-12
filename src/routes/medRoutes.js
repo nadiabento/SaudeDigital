@@ -77,6 +77,20 @@ router.get("/", async (req, res) => {
       });
     }
 
+    const historico = req.query.historico === "true";
+
+    let filtroEstado = "";
+
+    if (!historico) {
+      filtroEstado = `
+        AND Medicamento.estado = 'Ativo'
+        AND (
+          Medicamento.data_fim IS NULL
+          OR Medicamento.data_fim >= CURDATE()
+        )
+      `;
+    }
+
     const [medicamentos] = await db.query(
       `
       SELECT 
@@ -97,6 +111,7 @@ router.get("/", async (req, res) => {
       INNER JOIN Catalogo_Medicamentos
         ON Medicamento.id_catalogo_medicamento = Catalogo_Medicamentos.id
       WHERE Medicamento.id_utilizador = ?
+      ${filtroEstado}
       ORDER BY Medicamento.data_inicio DESC
       `,
       [idUtilizador]
@@ -195,6 +210,60 @@ router.delete("/:id", async (req, res) => {
 
     res.status(500).json({
       erro: "Erro ao eliminar a medicação."
+    });
+  }
+});
+
+router.put("/:id/estado", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId;
+    const idMedicamento = req.params.id;
+    const { estado } = req.body;
+
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+
+    if (!estado) {
+      return res.status(400).json({
+        erro: "O estado da medicação é obrigatório."
+      });
+    }
+
+    const estadosPermitidos = ["Ativo", "Suspenso", "Concluído"];
+
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({
+        erro: "Estado inválido."
+      });
+    }
+
+    const [resultado] = await db.query(
+      `
+      UPDATE Medicamento
+      SET estado = ?
+      WHERE id = ?
+        AND id_utilizador = ?
+      `,
+      [estado, idMedicamento, idUtilizador]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        erro: "Medicação não encontrada ou não pertence ao utilizador."
+      });
+    }
+
+    res.json({
+      mensagem: "Estado da medicação atualizado com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao atualizar estado da medicação:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao atualizar o estado da medicação."
     });
   }
 });
