@@ -5,7 +5,6 @@ const consultaController = require('../controllers/consultaController');
 
 // GET (Listagens)
 router.get('/unidades', consultaController.getUnidades);
-router.get('/medicos/:id_unidade/:id_especialidade', consultaController.getMedicos);
 router.get('/todos-medicos', consultaController.getTodosMedicos);
 router.get('/historico', consultaController.listarHistorico);
 router.get('/todas-especialidades', consultaController.getTodasEspecialidades);
