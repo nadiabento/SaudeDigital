@@ -17,19 +17,30 @@ const Exame = {
     return rows;
   },
 
-  listarHistorico: async (utilizadorId) => {
+  listarHistoricoPaginado: async (utilizadorId, limit, offset) => {
     const query = `
-      SELECT E.id, DATE_FORMAT(E.data_exame, '%Y-%m-%d') AS data, 
-             TE.nome, ETE.resultado, E.observacoes
-      FROM Exame E
-      LEFT JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
-      LEFT JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
-      WHERE E.utilizador_id = ?
-      ORDER BY E.data_exame DESC`;
-    const [rows] = await db.query(query, [utilizadorId]);
+    SELECT E.id, DATE_FORMAT(E.data_exame, '%Y-%m-%d') AS data, 
+           TE.nome, ETE.resultado, E.observacoes
+    FROM Exame E
+    LEFT JOIN Exame_TipoExame ETE ON E.id = ETE.id_exame
+    LEFT JOIN Tipo_Exame TE ON ETE.id_tipo_exame = TE.id
+    WHERE E.utilizador_id = ?
+    ORDER BY E.data_exame DESC
+    LIMIT ? OFFSET ?`;
+
+    // O db.query com [array] garante o uso de Prepared Statements
+    const [rows] = await db.query(query, [utilizadorId, limit, offset]);
     return rows;
   },
 
+  // Necessário para o frontend saber o total de páginas
+  contarTotal: async (utilizadorId) => {
+    const [rows] = await db.query(
+      "SELECT COUNT(*) as total FROM Exame WHERE utilizador_id = ?",
+      [utilizadorId],
+    );
+    return rows[0].total;
+  },
   // --- CRIAÇÃO ---
   criarCategoria: async (nome) => {
     return await db.query("INSERT INTO Categoria_Exame (nome) VALUES (?)", [
