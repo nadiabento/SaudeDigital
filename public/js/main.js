@@ -1,11 +1,13 @@
 // Lógica de Logout
 function logout() {
-  // Limpar sessão (exemplo simplificado)
+  // Limpa o nome do utilizador da memória do browser
+  localStorage.removeItem('userName'); 
+  
+  // Limpar sessão 
   fetch("/api/auth/logout", { method: "POST" }).then(() => {
     window.location.href = "index.html";
   });
 }
-
 // Formatação de datas global
 function formatarData(dataISO) {
   return new Date(dataISO).toLocaleDateString("pt-PT");
@@ -55,31 +57,29 @@ document.addEventListener('DOMContentLoaded', () => {
                 const data = await response.json();
 
                 // Verifico se o login foi bem-sucedido (código 200) ou se houve um erro 
-                if (response.ok) {
-                    // Login com sucesso! (Código 200)
-                    messageDiv.innerHTML = `
-                        <div class="alert alert-success d-flex align-items-center" role="alert">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            <div>${data.mensagem}</div>
-                        </div>
-                    `;
-                    if (data.nome) {
-                       localStorage.setItem('userName', data.nome);
-                    }
+              // Verifico se o login foi bem-sucedido (código 200) ou se houve um erro
+                    if (response.ok) {
+                        
+                        // --> AS LINHAS NOVAS ENTRAM AQUI <--
+                        if (data.nome) {
+                            localStorage.setItem('userName', data.nome);
+                        }
 
-                    messageDiv.innerHTML = `
-                    <div class="alert alert-success d-flex align-items-center" role="alert">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        <div>${data.mensagem}</div>
-                    </div>
-                    `;
-                    
-                    // Aguarda 1 segundo e redireciona o utilizador para o Dashboard
-                    setTimeout(() => {
-                        window.location.href = data.redirecionar || '/dashboard.html';
-                    }, 1000);
+                        // Login com sucesso! (Código 200)
+                        messageDiv.innerHTML = `
+                            <div class="alert alert-success d-flex align-items-center" role="alert">
+                                <i class="bi bi-check-circle-fill me-2"></i>
+                                <div>Login efetuado com sucesso! A entrar...</div>
+                            </div>
+                        `;
 
-                } else {
+                        // Aguarda 1 segundo e força o redirecionamento de forma segura
+                        setTimeout(() => {
+                            console.log("A redirecionar para o dashboard...");
+                            window.location.href = "dashboard.html";
+                        }, 1000);
+
+                    } else {
                     // Erro de Login (Código 401 - Pass errada, etc.)
                     messageDiv.innerHTML = `
                         <div class="alert alert-danger d-flex align-items-center" role="alert">
@@ -88,7 +88,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     `;
                 }
-
+                            
             } catch (error) {
                 // Erro caso o servidor esteja em baixo ou a VPN caia
                 console.error('Erro de ligação ao servidor:', error);
@@ -159,5 +159,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 `;
             }
         });
+    }
+});
+
+// --- LÓGICA DO DASHBOARD (Carregar Perfil) ---
+document.addEventListener('DOMContentLoaded', () => {
+    const nomeTitulo = document.getElementById('nomeUtilizadorLogado');
+
+    // Se estivermos na página do dashboard...
+    if (nomeTitulo) {
+        // Vai buscar o nome que guardaste no LocalStorage durante o Login!
+        const nomeGuardado = localStorage.getItem('userName');
+        
+        if (nomeGuardado) {
+            // Se encontrou o nome, troca imediatamente no ecrã
+            nomeTitulo.textContent = `Olá, ${nomeGuardado}`;
+        } else {
+            console.log("Nenhum nome encontrado no LocalStorage.");
+        }
     }
 });
