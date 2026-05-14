@@ -1,12 +1,6 @@
-console.log("medRoutes.js foi carregado");
-
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-
-router.get("/teste", (req, res) => {
-  res.send("Teste dentro do medRoutes.js funciona");
-});
 
 
 // Pesquisa medicamentos no catálogo conforme o utilizador escreve
@@ -60,6 +54,63 @@ router.get("/catalogo", async (req, res) => {
 
     res.status(500).json({
       erro: "Erro ao pesquisar medicamentos."
+    });
+  }
+});
+
+router.post("/catalogo", async (req, res) => {
+  try {
+    const {
+      nome_medicamento,
+      substancia_ativa,
+      dosagem,
+      forma_farmaceutica
+    } = req.body;
+
+    if (!nome_medicamento || !substancia_ativa || !dosagem || !forma_farmaceutica) {
+      return res.status(400).json({
+        erro: "Preencha todos os campos do medicamento."
+      });
+    }
+
+    const [existente] = await db.query(
+      `
+      SELECT id
+      FROM Catalogo_Medicamentos
+      WHERE nome_medicamento = ?
+        AND substancia_ativa = ?
+        AND dosagem = ?
+        AND forma_farmaceutica = ?
+      LIMIT 1
+      `,
+      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica]
+    );
+
+    if (existente.length > 0) {
+      return res.status(409).json({
+        erro: "Este medicamento já existe no catálogo."
+      });
+    }
+
+    const [resultado] = await db.query(
+      `
+      INSERT INTO Catalogo_Medicamentos
+        (nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica)
+      VALUES
+        (?, ?, ?, ?)
+      `,
+      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica]
+    );
+
+    res.status(201).json({
+      mensagem: "Medicamento adicionado ao catálogo com sucesso.",
+      id: resultado.insertId
+    });
+  } catch (erro) {
+    console.error("Erro ao adicionar medicamento ao catálogo:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao adicionar medicamento ao catálogo."
     });
   }
 });
@@ -267,6 +318,85 @@ router.put("/:id/estado", async (req, res) => {
     });
   }
 });
+
+router.post("/efeitos", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId;
+
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+
+    const {
+      id_medicamento,
+      sintoma,
+      gravidade,
+      data_ocorrencia,
+      notas
+    } = req.body;
+
+    if (!id_medicamento || !sintoma || !gravidade || !data_ocorrencia) {
+      return res.status(400).json({
+        erro: "Preencha a medicação, o sintoma, a gravidade e a data."
+      });
+    }
+
+    const gravidadesPermitidas = ["Ligeiro", "Grave", "Muito Grave"];
+
+    if (!gravidadesPermitidas.includes(gravidade)) {
+      return res.status(400).json({
+        erro: "Gravidade inválida."
+      });
+    }
+
+    // Confirma se a medicação pertence ao utilizador autenticado
+    const [medicacao] = await db.query(
+      `
+      SELECT id
+      FROM Medicamento
+      WHERE id = ?
+        AND id_utilizador = ?
+      LIMIT 1
+      `,
+      [id_medicamento, idUtilizador]
+    );
+
+    if (medicacao.length === 0) {
+      return res.status(404).json({
+        erro: "Medicação não encontrada ou não pertence ao utilizador."
+      });
+    }
+
+    await db.query(
+      `
+      INSERT INTO Efeito_Secundario
+        (id_medicamento, sintoma, gravidade, data_ocorrencia, notas)
+      VALUES
+        (?, ?, ?, ?, ?)
+      `,
+      [
+        id_medicamento,
+        sintoma,
+        gravidade,
+        data_ocorrencia,
+        notas || null
+      ]
+    );
+
+    res.status(201).json({
+      mensagem: "Efeito secundário registado com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao registar efeito secundário:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao registar o efeito secundário."
+    });
+  }
+});
+
 
 
 module.exports = router;
