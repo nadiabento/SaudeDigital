@@ -137,136 +137,199 @@ datalist {
 }
 
 :root {
-    --sidebar-width: 280px;
-    --sidebar-width-collapsed: 80px;
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 85px;
 }
 
 body {
-    overflow-x: hidden;
+  overflow-x: hidden;
+  background-color: #f8f9fa;
 }
 
 .sidebar {
-    width: var(--sidebar-width);
-    height: 100vh;
-    background: linear-gradient(135deg, #1a1c2e 0%, #16181f 100%);
-    transition: all 0.3s ease;
+  width: var(--sidebar-width);
+  height: 100vh; /* Altura total da janela */
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column; /* Alinha os itens em coluna */
+  border-right: 1px solid #e9ecef;
+  z-index: 1050;
+  transition: all 0.3s ease;
 }
 
 .sidebar.collapsed {
-    width: var(--sidebar-width-collapsed);
+  width: var(--sidebar-width-collapsed);
 }
 
 .sidebar-link {
-    color: #a0a3bd;
-    transition: all 0.2s ease;
-    border-radius: 8px;
-    margin: 4px 16px;
-    white-space: nowrap;
-    overflow: hidden;
+  color: #101616; /* Cinza médio (atual) */
+  font-weight: 400; /* Letra mais grossa/forte */
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  margin: 4px 12px;
+  border-radius: 8px;
 }
 
 .sidebar-link:hover {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
-    transform: translateX(5px);
+  color: #252f40; /* Cinza quase preto (mais escuro) */
+  background-color: rgba(13, 110, 253, 0.08); /* Fundo azul bem clarinho */
+  transform: translateX(5px);
 }
 
 .sidebar-link.active {
-    color: #ffffff;
-    background: rgba(255, 255, 255, 0.1);
+  background-color: #0d6efd !important; /* Azul forte */
+  color: #ffffff !important; /* Letras brancas para contraste */
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
 }
 
 .logo-text {
-    background: linear-gradient(45deg, #6b8cff, #8b9fff);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    transition: opacity 0.3s ease;
+  background: linear-gradient(45deg, #3b5afa, #3b5afa);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  transition: opacity 0.3s ease;
 }
 
 .notification-badge {
-    background: #ff6b6b;
-    padding: 2px 6px;
-    border-radius: 6px;
-    font-size: 0.7rem;
+  background: #ff6b6b;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.7rem;
 }
 
 .profile-section {
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(
+    193,
+    192,
+    192,
+    0.15
+  ); /* Um pouco mais escuro que a sidebar */
 }
 
 .main-content {
-    /* Usa calc para garantir que preencha o resto da tela */
-    width: calc(100% - var(--sidebar-width));
-    margin-left: var(--sidebar-width);
-    
-    background-color: #f8f9fa;
-    min-height: 100vh;
-    padding: 40px; 
-    transition: all 0.3s ease;
+  /* Usa calc para garantir que preencha o resto da tela */
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width);
+
+  background-color: #f8f9fa;
+  min-height: 100vh;
+  padding: 40px;
+  transition: all 0.3s ease;
 }
 
-.collapsed~.main-content {
-    margin-left: var(--sidebar-width-collapsed);
-    width: calc(100% - var(--sidebar-width-collapsed));
+.collapsed ~ .main-content {
+  margin-left: var(--sidebar-width-collapsed);
+  width: calc(100% - var(--sidebar-width-collapsed));
 }
 
 .toggle-btn {
-    position: absolute;
-    right: -15px;
-    top: 20px;
-    background: white;
-    border-radius: 50%;
-    width: 30px;
-    height: 30px;
-    border: none;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-    z-index: 100;
-    cursor: pointer;
-    transition: transform 0.3s ease;
+  position: absolute;
+  right: -15px;
+  top: 20px;
+  background: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  cursor: pointer;
+  transition: transform 0.3s ease;
 }
 
 .collapsed .toggle-btn {
-    transform: rotate(180deg);
+  transform: rotate(180deg);
 }
 
 .collapsed .hide-on-collapse {
-    opacity: 0;
-    visibility: hidden;
+  opacity: 0;
+  visibility: hidden;
 }
 
 .collapsed .logo-text {
-    opacity: 0;
+  opacity: 0;
 }
 
 .collapsed .profile-info {
-    opacity: 0;
+  opacity: 0;
 }
 
 .collapsed .sidebar-link {
-    text-align: center;
-    padding: 1rem !important;
-    margin: 4px 8px;
+  text-align: center;
+  padding: 1rem !important;
+  margin: 4px 8px;
 }
 
 .collapsed .sidebar-link i {
-    margin: 0 !important;
+  margin: 0 !important;
 }
 
 .profile-info {
-    transition: opacity 0.2s ease;
+  transition: opacity 0.2s ease;
 }
 
 @media (max-width: 768px) {
-    .main-content {
-        margin-left: 0;
-        width: 100%;
-        padding: 20px;
-    }
-    .sidebar {
-        transform: translateX(-100%);
-    }
-    .sidebar.active {
-        transform: translateX(0);
-        width: var(--sidebar-width);
-    }
+  .main-content {
+    /* Ajuste este valor (80px ou 90px) para garantir que o título aparece */
+    margin-top: 70px !important;
+    padding: 20px !important;
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  /* Garante que o título não fique colado ao topo */
+  .main-content h2,
+  .main-content h3 {
+    margin-top: 10px;
+  }
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.active {
+    transform: translateX(0);
+    width: var(--sidebar-width);
+  }
+}
+
+/* Remove a moldura cinza, a borda e o fundo do botão mobile */
+.navbar-toggler {
+  border: none !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+
+  /* Em vez de 0, damos uma margem para ele não colar na borda */
+  padding: 10px !important;
+  margin-right: 10px; /* Empurra o ícone ligeiramente para a esquerda */
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Remove o efeito de "foco" azul ou cinza que aparece ao clicar */
+.navbar-toggler:focus,
+.navbar-toggler:active {
+  box-shadow: none !important;
+  outline: none !important;
+  border: none !important;
+}
+
+/* Se quiseres dar um toque dinâmico: um leve aumento ao clicar */
+.navbar-toggler:active {
+  transform: scale(0.9);
+  transition: transform 0.1s ease;
+}
+
+/* Garante que o ícone (as 3 linhas) seja a única coisa visível */
+.navbar-toggler-icon {
+  /* Se usares o ícone padrão do bootstrap, podes mudar a cor dele aqui se necessário */
+  filter: none;
 }
