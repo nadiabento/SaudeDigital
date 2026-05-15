@@ -584,6 +584,25 @@ function enviarPorEmail() {
   window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
 }
 
+function enviarPorWhatsApp() {
+  // 1. Vai buscar o link que está no input do modal
+  const link = document.getElementById("inputLinkPartilha").value;
+
+  // 2. Vai buscar o nome do utilizador (mesma lógica do teu e-mail)
+  const nomeUtilizador = localStorage.getItem("userName") || "Utilizador";
+
+  // 3. Cria a mensagem formatada
+  const textoMensagem = `Olá, aqui estão os meus resultados de exames do SaúdeDigital: ${link}\n\nMelhores cumprimentos, ${nomeUtilizador}`;
+
+  // 4. Codifica o texto para URL (converte espaços e símbolos)
+  const mensagemFinal = encodeURIComponent(textoMensagem);
+
+  // 5. URL da API do WhatsApp (funciona em Telemóvel e PC)
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${mensagemFinal}`;
+
+  // 6. Abre o WhatsApp numa nova aba
+  window.open(whatsappUrl, "_blank");
+}
 //--- 8. EDIÇÃO E DETALHES ---
 
 function abrirModalEditar(id, data, obs) {
