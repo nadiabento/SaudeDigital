@@ -17,48 +17,52 @@
 
   <body class="bg-light">
     <div class="d-flex">
-      <nav class="bg-white border-end vh-100 d-none d-md-block sticky-top" style="width: 280px">
-        <div class="p-4">
-          <h4 class="text-primary fw-bold">
-            <i class="bi bi-heart-pulse-fill me-2"></i>SaúdeDigital
-          </h4>
-        </div>
-        <ul class="nav flex-column px-3">
-          <li class="nav-item mb-2">
-            <a href="dashboard.html" class="nav-link text-dark p-3">
-              <i class="bi bi-house-door me-2"></i> Resumo Geral
-            </a>
-          </li>
-          <li class="nav-item mb-2">
-            <a href="consultas.html" class="nav-link text-dark p-3">
-              <i class="bi bi-calendar-event me-2"></i> Consultas
-            </a>
-          </li>
-          <li class="nav-item mb-2">
-            <a href="medicacao.html" class="nav-link text-dark p-3">
-              <i class="bi bi-capsule me-2"></i> Medicação
-            </a>
-          </li>
-          <li class="nav-item mb-2">
-            <a href="exames.html" class="nav-link active bg-primary text-white rounded-3 p-3 shadow-sm">
-              <i class="bi bi-file-earmark-medical me-2"></i> Exames
-            </a>
-          </li>
-          <li class="nav-item mb-2">
-            <a href="alergias.html" class="nav-link text-dark p-3">
-              <i class="bi bi-exclamation-triangle me-2"></i> Alergias</a
-            >
-          </li>
-          <hr />
-          <li class="nav-item">
-            <a href="index.html" class="nav-link text-danger p-3">
-              <i class="bi bi-box-arrow-left me-2"></i> Sair
-            </a>
-          </li>
-        </ul>
-      </nav>
+      <nav class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
+        <button class="toggle-btn" onclick="toggleSidebar()">
+            <i class="fas fa-chevron-left"></i>
+        </button>
 
-      <main class="flex-grow-1 p-4">
+        <div class="p-4">
+            <h4 class="logo-text fw-bold mb-0">SaúdeDigital</h4>
+            <p class="text-muted small hide-on-collapse">Dashboard</p>
+        </div>
+
+        <div class="nav flex-column">
+            <a href="#" class="sidebar-link active text-decoration-none p-3">
+                <i class="fas fa-home me-3"></i>
+                <span class="hide-on-collapse">Dashboard</span>
+            </a>
+            <a href="#" class="sidebar-link text-decoration-none p-3">
+                <i class="fas fa-chart-bar me-3"></i>
+                <span class="hide-on-collapse">Analytics</span>
+            </a>
+            <a href="#" class="sidebar-link text-decoration-none p-3">
+                <i class="fas fa-users me-3"></i>
+                <span class="hide-on-collapse">Customers</span>
+            </a>
+
+            <a href="#" class="sidebar-link text-decoration-none p-3">
+                <i class="fas fa-box me-3"></i>
+                <span class="hide-on-collapse">Products</span>
+            </a>
+            <a href="#" class="sidebar-link text-decoration-none p-3">
+                <i class="fas fa-gear me-3"></i>
+                <span class="hide-on-collapse">Settings</span>
+            </a>
+        </div>
+
+        <div class="profile-section mt-auto p-4">
+            <div class="d-flex align-items-center">
+                <img src="https://randomuser.me/api/portraits/women/70.jpg" style="height:60px" class="rounded-circle" alt="Profile">
+                <div class="ms-3 profile-info">
+                    <h6 class="text-white mb-0">Alex Morgan</h6>
+                    <small class="text-muted">Admin</small>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+      <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
           <div>
             <h2 class="fw-bold">Registo de Exames</h2>
@@ -347,6 +351,12 @@
   </div>
 </div>
 
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.querySelector('.sidebar');
+            sidebar.classList.toggle('collapsed');
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/exames.js"></script>
   </body>
