@@ -206,5 +206,208 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.log("Nenhum nome encontrado no LocalStorage.");
     }
+<<<<<<< Updated upstream
   }
 });
+=======
+});
+
+// --- CARREGAR RESUMO DO DASHBOARD ---
+async function carregarResumoDashboard() {
+    // 1. Encontrar os elementos no HTML
+    const elementoConsulta = document.getElementById('resumoConsulta');
+    const elementoMedicacao = document.getElementById('resumoMedicacao');
+    const elementoEfeitos = document.getElementById('resumoEfeitos');
+
+    // Se não estivermos na página do dashboard, a função para aqui
+    if (!elementoConsulta) return;
+
+    try {
+        // 2. Fazer o pedido ao nosso backend (vamos criar esta rota a seguir!)
+        const response = await fetch('/api/dashboard/resumo');
+        
+        if (response.ok) {
+            const dados = await response.json();
+            
+            // 3. Trocar o texto "A carregar..." pelos dados verdadeiros!
+            elementoConsulta.textContent = dados.proximaConsulta || "Sem consultas agendadas";
+            elementoMedicacao.textContent = `${dados.totalMedicamentos} Medicamentos`;
+            elementoEfeitos.textContent = `${dados.totalEfeitos} Alertas`;
+        } else {
+            console.error("Erro ao carregar o resumo do dashboard");
+        }
+    } catch (error) {
+        console.error("Erro de ligação:", error);
+    }
+}
+
+// --- CARREGAR TABELA DE MEDICAÇÃO NO DASHBOARD ---
+async function carregarTabelaDashboard() {
+    const tbody = document.getElementById('tabelaMedicacaoDashboard');
+    if (!tbody) return;
+
+    try {
+        const response = await fetch('/api/medicacao');
+        
+        if (response.ok) {
+            const dados = await response.json();
+            const medicamentos = Array.isArray(dados) ? dados : (dados.medicamentos || []);
+            
+            tbody.innerHTML = ''; // Limpa o "A carregar..."
+
+            // Filtra os ativos e pega só nos 3 primeiros
+            const ativos = medicamentos.filter(m => m.estado === 'Ativo').slice(0, 3);
+
+            if (ativos.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Nenhum medicamento ativo neste momento.</td></tr>';
+                return;
+            }
+
+            // Preenche a tabela com os teus estilos originais
+            ativos.forEach(med => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>${med.nome_medicamento || med.medicamento || med.nome || 'Desconhecido'}</strong></td>
+                    <td>${med.dosagem || '-'}</td>
+                    <td>${med.posologia || '-'}</td>
+                    <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        } else {
+            throw new Error("Erro no servidor");
+        }
+    } catch (error) {
+        console.error("Erro ao carregar a tabela:", error);
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Erro ao contactar o servidor.</td></tr>';
+    }
+}
+
+// Quando a página carregar, executa as DUAS funções do Dashboard
+document.addEventListener('DOMContentLoaded', () => {
+    carregarResumoDashboard();
+    carregarTabelaDashboard(); 
+});
+
+// --- LÓGICA DO MODAL SINAIS VITAIS ---
+document.addEventListener('DOMContentLoaded', () => {
+    const selectTipo = document.getElementById('svTipo');
+    const divValor2 = document.getElementById('divValor2');
+    const labelValor1 = document.getElementById('labelValor1');
+    const formSinal = document.getElementById('formSinalVital');
+
+    // Mudar o formulário consoante o que o utilizador escolhe
+    if (selectTipo) {
+        selectTipo.addEventListener('change', (e) => {
+            if (e.target.value === 'Pressao Arterial') {
+                divValor2.style.display = 'block';
+                labelValor1.textContent = 'VALOR SISTÓLICO (MÁXIMA)';
+            } else {
+                divValor2.style.display = 'none';
+                labelValor1.textContent = 'VALOR';
+                document.getElementById('svValor2').value = ''; // Limpa o segundo valor
+            }
+        });
+    }
+
+    // Enviar para a Base de Dados
+    if (formSinal) {
+        formSinal.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const data_registo = document.getElementById('svData').value;
+            const tipo_metrica = document.getElementById('svTipo').value;
+            const valor_primario = document.getElementById('svValor1').value;
+            const valor_secundario = document.getElementById('svValor2').value || null;
+            const msgDiv = document.getElementById('msgSinalVital');
+
+            msgDiv.innerHTML = ''; // Limpar mensagens antigas
+
+            try {
+                // Vamos criar esta rota no servidor já a seguir!
+                const response = await fetch('/api/dashboard/sinais-vitais', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ data_registo, tipo_metrica, valor_primario, valor_secundario })
+                });
+
+                if (response.ok) {
+                    msgDiv.innerHTML = '<div class="alert alert-success d-flex align-items-center"><i class="bi bi-check-circle-fill me-2"></i>Registo guardado com sucesso!</div>';
+                    // Recarrega a página após 1 segundo para vermos tudo atualizado
+                    setTimeout(() => window.location.reload(), 1000);
+                } else {
+                    msgDiv.innerHTML = '<div class="alert alert-danger">Erro ao guardar o registo.</div>';
+                }
+            } catch (error) {
+                console.error(error);
+                msgDiv.innerHTML = '<div class="alert alert-danger">Erro de ligação ao servidor.</div>';
+            }
+        });
+    }
+});
+
+// --- DESENHAR O GRÁFICO (CHART.JS) ---
+async function carregarGraficoVitals() {
+    const canvas = document.getElementById('graficoVitals');
+    if (!canvas) return;
+
+    try {
+        const response = await fetch('/api/dashboard/historico-vitals');
+        if (!response.ok) throw new Error("Erro na API");
+        
+        const dados = await response.json();
+        
+        // 1. Formatar datas para o eixo de baixo (ex: 14/05)
+        const datasX = dados.map(d => {
+            const data = new Date(d.data_registo);
+            return data.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
+        });
+
+        // 2. Separar os valores
+        const bpm = dados.map(d => d.tipo_metrica === 'Frequencia Cardiaca' ? d.valor_primario : null);
+        const glicose = dados.map(d => d.tipo_metrica === 'Glicose' ? d.valor_primario : null);
+
+        // 3. Chamar o Chart.js para pintar!
+        new Chart(canvas, {
+            type: 'line',
+            data: {
+                labels: datasX,
+                datasets: [
+                    {
+                        label: 'FC (bpm)',
+                        data: bpm,
+                        borderColor: '#0d6efd', // Azul
+                        backgroundColor: '#0d6efd',
+                        spanGaps: true, // Se não houver medição num dia, a linha continua!
+                        tension: 0.3,   // Faz a linha ficar curvada e suave
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'Glicose (mg/dL)',
+                        data: glicose,
+                        borderColor: '#dc3545', // Vermelho
+                        backgroundColor: '#dc3545',
+                        spanGaps: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { position: 'bottom' } }
+            }
+        });
+
+    } catch (error) {
+        console.error("Erro ao desenhar gráfico:", error);
+    }
+}
+// Quando a página carregar, executa TUDO!
+document.addEventListener('DOMContentLoaded', () => {
+    carregarResumoDashboard();
+    carregarTabelaDashboard(); 
+    carregarGraficoVitals(); // <-- A função do gráfico entra aqui!
+});
+>>>>>>> Stashed changes

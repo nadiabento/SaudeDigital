@@ -9,6 +9,7 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="css/style.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
 </head>
 <body class="bg-light">
 
@@ -45,8 +46,8 @@
                     <h2 id="nomeUtilizadorLogado" class="fw-bold">Olá, João Silva</h2>
                     <p class="text-muted">Aqui está o resumo da sua atividade clínica hoje.</p>
                 </div>
-                <button class="btn btn-primary shadow-sm py-2 px-4 rounded-pill">
-                    <i class="bi bi-plus-lg me-2"></i> Novo Registo
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalSinalVital">
+                    <i class="bi bi-plus-lg me-2"></i>Novo Registo
                 </button>
             </header>
 
@@ -59,7 +60,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-0">Próxima Consulta</h6>
-                                <p class="fw-bold mb-0">Cardiologia (Amanhã)</p>
+                                <p id="resumoConsulta" class="fw-bold mb-0">A carregar...</p>
                             </div>
                         </div>
                     </div>
@@ -72,7 +73,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-0">Medicação Ativa</h6>
-                                <p class="fw-bold mb-0">3 Medicamentos</p>
+                                <p id="resumoMedicacao" class="fw-bold mb-0">A carregar...</p>
                             </div>
                         </div>
                     </div>
@@ -85,7 +86,7 @@
                             </div>
                             <div>
                                 <h6 class="text-muted mb-0">Efeitos Recentes</h6>
-                                <p class="fw-bold mb-0">1 Alerta (Ligeiro)</p>
+                                <p id="resumoEfeitos" class="fw-bold mb-0">A carregar...</p>
                             </div>
                         </div>
                     </div>
@@ -93,43 +94,33 @@
             </div>
 
             <div class="row g-4">
-                <div class="col-lg-8">
-                    <div class="card border-0 shadow-sm p-4 h-100">
-                        <h5 class="fw-bold mb-4">Plano Terapêutico Ativo</h5>
-                        <div class="table-responsive">
-                            <table class="table table-hover align-middle">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Medicamento</th>
-                                        <th>Dosagem</th>
-                                        <th>Próxima Toma</th>
-                                        <th>Estado</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><strong>Atorvastatina</strong></td>
-                                        <td>20mg (1x/dia)</td>
-                                        <td>21:00</td>
-                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
-                                    </tr>
-                                    <tr>
-                                        <td><strong>Lisinopril</strong></td>
-                                        <td>10mg (2x/dia)</td>
-                                        <td>09:00</td>
-                                        <td><span class="badge bg-success-subtle text-success px-3">Ativo</span></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <button class="btn btn-outline-primary mt-auto w-100">Ver Histórico Completo</button>
-                    </div>
-                </div>
+    <div class="col-lg-8">
+        <div class="card border-0 shadow-sm p-4 h-100">
+            <h5 class="fw-bold mb-4">Plano Terapêutico Ativo</h5>
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Medicamento</th>
+                            <th>Dosagem</th>
+                            <th>Posologia</th> <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tabelaMedicacaoDashboard">
+                        <tr>
+                            <td colspan="4" class="text-center text-muted py-4">A carregar plano terapêutico...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <button class="btn btn-outline-primary mt-auto w-100" onclick="window.location.href='medicacao.html'">Ver Histórico Completo</button>
+        </div>
+    </div>
 
                 <div class="col-lg-4">
                     <div class="card border-0 shadow-sm p-4 h-100 d-flex flex-column">
-                        <h5 class="fw-bold mb-4">Monitorização de Sinais Vitais</h5>
                         
+<<<<<<< Updated upstream
                         <div style="position: relative; height:220px;">
                             <canvas id="healthChart"></canvas>
                         </div>
@@ -150,12 +141,62 @@
                             <p class="text-center small text-muted mt-2 mb-0">
                                 <i class="bi bi-info-circle me-1"></i> Exportação disponível em PDF e JSON
                             </p>
+=======
+                                <h5 class="fw-bold mb-4">Monitorização de Sinais Vitais</h5>
+                                
+                                <div style="position: relative; height: 100%; min-height: 250px;">
+                                    <canvas id="graficoVitals"></canvas>
+                                </div>
+                                
+                                <button class="btn btn-primary mt-4 w-100"><i class="bi bi-file-earmark-pdf me-2"></i>Gerir Exames e Relatórios</button>
+                            </div>
+>>>>>>> Stashed changes
                         </div>
                     </div>
                 </div>
             </div>
         </main>
     </div>
+    <div class="modal fade" id="modalSinalVital" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header bg-primary text-white border-0">
+                <h5 class="modal-title"><i class="bi bi-heart-pulse-fill me-2"></i>Registar Sinal Vital</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <form id="formSinalVital">
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Data e Hora</label>
+                        <input type="datetime-local" id="svData" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase">O que vai registar?</label>
+                        <select id="svTipo" class="form-select" required>
+                            <option value="Frequencia Cardiaca">Frequência Cardíaca (BPM)</option>
+                            <option value="Glicose">Glicose (mg/dL)</option>
+                            <option value="Pressao Arterial">Pressão Arterial</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-muted small fw-bold text-uppercase" id="labelValor1">Valor</label>
+                        <input type="number" step="0.01" id="svValor1" class="form-control" placeholder="Ex: 80" required>
+                    </div>
+                    <div class="mb-3" id="divValor2" style="display:none;">
+                        <label class="form-label text-muted small fw-bold text-uppercase">Valor Secundário (Mínima)</label>
+                        <input type="number" step="0.01" id="svValor2" class="form-control" placeholder="Ex: 120">
+                    </div>
+                    
+                    <div id="msgSinalVital"></div> <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100">Guardar Registo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.x/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
