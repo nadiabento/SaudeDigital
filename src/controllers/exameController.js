@@ -15,6 +15,7 @@ exports.listarCategorias = async (req, res) => {
 
 exports.listarTiposPorCategoria = async (req, res) => {
   try {
+    // Esta função usa o parâmetro da URL (id_categoria)
     const rows = await Exame.listarTiposPorCategoria(req.params.id_categoria);
     res.json(rows);
   } catch (error) {
@@ -24,11 +25,32 @@ exports.listarTiposPorCategoria = async (req, res) => {
 
 exports.listarHistorico = async (req, res) => {
   const utilizadorId = req.session.userId;
+
+  // 1. Verificar primeiro se o utilizador está logado
   if (!utilizadorId) return res.status(401).json({ error: "Não autorizado" });
+
   try {
-    const rows = await Exame.listarHistorico(utilizadorId);
-    res.json(rows);
+    // 2. Definir as variáveis de paginação ANTES de as usar
+    const pagina = parseInt(req.query.page) || 1;
+    const limite = 10;
+    const offset = (pagina - 1) * limite;
+
+    // 3. Chamar o Model para buscar os dados e o total
+    const rows = await Exame.listarHistoricoPaginado(
+      utilizadorId,
+      limite,
+      offset,
+    );
+    const total = await Exame.contarTotal(utilizadorId);
+
+    // 4. Enviar a resposta com o cálculo correto
+    res.json({
+      exames: rows,
+      totalPaginas: Math.ceil(total / limite),
+      paginaAtual: pagina,
+    });
   } catch (error) {
+    console.error("Erro no listarHistorico:", error);
     res.status(500).json({ error: "Erro interno ao carregar histórico." });
   }
 };

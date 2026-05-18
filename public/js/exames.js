@@ -44,11 +44,19 @@ async function carregarCategorias() {
   }
 }
 
-async function carregarHistorico() {
+async function carregarHistorico(pagina = 1) {
   try {
-    const response = await fetch("/api/exames/historico");
-    examesParaTabela = await response.json();
-    renderizarTabela();
+    const response = await fetch(`/api/exames/historico?page=${pagina}`);
+    if (!response.ok) throw new Error("Erro na rede"); // Evita processar se der erro 500
+
+    const data = await response.json();
+
+    // Como agora o servidor manda um OBJETO, tens de extrair o array .exames
+    examesParaTabela = data.exames;
+    paginaAtual = data.paginaAtual;
+
+    // Chama a renderização passando o total de páginas que veio do servidor
+    renderizarTabela(data.totalPaginas);
   } catch (error) {
     console.error("Erro histórico:", error);
   }
@@ -71,21 +79,17 @@ async function atualizarTiposExame(idCategoria) {
 
 //--- 2. RENDERIZAÇÃO E PAGINAÇÃO ---
 
-function renderizarTabela() {
+function renderizarTabela(totalPaginas) {
   const tbody = document.getElementById("tabelaExames");
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  const inicio = (paginaAtual - 1) * examesPorPagina;
-  const fim = inicio + examesPorPagina;
-  const examesPaginados = examesParaTabela.slice(inicio, fim);
-
-  examesPaginados.forEach((exame) => {
+  // O array 'examesParaTabela' agora contém apenas os 10 itens enviados pelo servidor
+  examesParaTabela.forEach((exame) => {
     let dataF = exame.data
       ? exame.data.split("T")[0].split("-").reverse().join("/")
       : "---";
 
-    // Retificação Crítica: Limpa aspas simples e duplas para não quebrar o HTML dos botões
     const obsLimpa = exame.observacoes
       ? exame.observacoes.replace(/'/g, "\\'").replace(/"/g, "&quot;")
       : "";
@@ -114,37 +118,42 @@ function renderizarTabela() {
                 </td>
             </tr>`;
   });
-  renderizarControlosPaginacao();
+
+  // Passamos o total de páginas recebido do servidor para os controlos
+  renderizarControlosPaginacao(totalPaginas);
 }
 
-function renderizarControlosPaginacao() {
-  const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
+function renderizarControlosPaginacao(totalPaginas) {
   const container = document.getElementById("paginacaoContainer");
   if (!container) return;
 
-  let html = `<nav aria-label="Navegação"><ul class="pagination pagination-sm mb-0">`;
-  html += `<li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
-                <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a>
-             </li>`;
+  let html = `<nav><ul class="pagination pagination-sm">`;
 
-  const paginasAMostrar = totalPaginas > 0 ? totalPaginas : 1;
-  for (let i = 1; i <= paginasAMostrar; i++) {
+  // Botão Anterior
+  html += `<li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
+            <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a>
+          </li>`;
+
+  // Gerar botões numéricos baseados no totalPaginas que veio do servidor
+  for (let i = 1; i <= totalPaginas; i++) {
     html += `<li class="page-item ${i === paginaAtual ? "active" : ""}">
-                    <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${i})">${i}</a>
-                 </li>`;
+              <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${i})">${i}</a>
+            </li>`;
   }
 
-  html += `<li class="page-item ${paginaAtual === totalPaginas || totalPaginas === 0 ? "disabled" : ""}">
-                <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a>
-             </li></ul></nav>`;
+  // Botão Próximo
+  html += `<li class="page-item ${paginaAtual === totalPaginas ? "disabled" : ""}">
+            <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${paginaAtual + 1})">Próximo</a>
+          </li>`;
+
+  html += `</ul></nav>`;
   container.innerHTML = html;
 }
 
 function mudarPagina(num) {
-  const totalPaginas = Math.ceil(examesParaTabela.length / examesPorPagina);
-  if (num < 1 || num > totalPaginas) return;
+  if (num < 1) return;
   paginaAtual = num;
-  renderizarTabela();
+  carregarHistorico(num); // Esta função faz o fetch com ?page=num
 }
 
 function filtrarTabela() {
@@ -575,6 +584,25 @@ function enviarPorEmail() {
   window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
 }
 
+function enviarPorWhatsApp() {
+  // 1. Vai buscar o link que está no input do modal
+  const link = document.getElementById("inputLinkPartilha").value;
+
+  // 2. Vai buscar o nome do utilizador (mesma lógica do teu e-mail)
+  const nomeUtilizador = localStorage.getItem("userName") || "Utilizador";
+
+  // 3. Cria a mensagem formatada
+  const textoMensagem = `Olá, aqui estão os meus resultados de exames do SaúdeDigital: ${link}\n\nMelhores cumprimentos, ${nomeUtilizador}`;
+
+  // 4. Codifica o texto para URL (converte espaços e símbolos)
+  const mensagemFinal = encodeURIComponent(textoMensagem);
+
+  // 5. URL da API do WhatsApp (funciona em Telemóvel e PC)
+  const whatsappUrl = `https://api.whatsapp.com/send?text=${mensagemFinal}`;
+
+  // 6. Abre o WhatsApp numa nova aba
+  window.open(whatsappUrl, "_blank");
+}
 //--- 8. EDIÇÃO E DETALHES ---
 
 function abrirModalEditar(id, data, obs) {
