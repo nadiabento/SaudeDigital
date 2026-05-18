@@ -206,11 +206,9 @@ document.addEventListener("DOMContentLoaded", () => {
     } else {
       console.log("Nenhum nome encontrado no LocalStorage.");
     }
-<<<<<<< Updated upstream
   }
 });
-=======
-});
+
 
 // --- CARREGAR RESUMO DO DASHBOARD ---
 async function carregarResumoDashboard() {
@@ -410,4 +408,3 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarTabelaDashboard(); 
     carregarGraficoVitals(); // <-- A função do gráfico entra aqui!
 });
->>>>>>> Stashed changes
