@@ -166,6 +166,12 @@ function renderizarTabela() {
         
         const corTexto = abaAtual === 'anteriores' ? 'text-muted' : 'text-dark';
 
+        // Previne erros caso a nota tenha quebras de linha ou aspas que estraguem o clique do botão
+        const notasSeguras = c.notas ? c.notas.replace(/(\r\n|\n|\r)/gm, ' ').replace(/'/g, "\\'") : '';
+        
+        // NOVIDADE: Extrair o valor numérico exato da data para não haver erros!
+        const timestampData = dataObj.getTime();
+
         tbody.innerHTML += `
             <tr class="${corTexto}">
                 <td><input type="checkbox" class="form-check-input check-item border-secondary" value="${c.id}" onclick="mostrarAcoesMassa()"></td>
@@ -173,10 +179,22 @@ function renderizarTabela() {
                 <td>${dataFormatada}</td>
                 <td>${c.medico || 'N/A'}</td>
                 <td>${c.local || 'N/A'}</td>
-                <td class="text-end">
-                    <div class="dropdown">
+                <td class="text-end" style="width:40%">
+                    <button class="btn btn-outline-success btn-sm dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false" title="Adicionar ao Calendário"><i class="bi bi-calendar-plus"></i></button>
+                    <div class="dropdown d-inline-block me-1">
+                        <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                            <li><a class="dropdown-item" href="#" onclick="adicionarAoCalendario('google', '${c.medico || 'N/A'}', '${c.especialidade || 'N/A'}', '${c.local || 'N/A'}', ${timestampData}, '${notasSeguras}'); return false;"><i class="bi bi-google text-danger me-2"></i>Google Calendar</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="adicionarAoCalendario('outlook', '${c.medico || 'N/A'}', '${c.especialidade || 'N/A'}', '${c.local || 'N/A'}', ${timestampData}, '${notasSeguras}'); return false;"><i class="bi bi-microsoft text-info me-2"></i>Outlook</a></li>
+                            <li><a class="dropdown-item" href="#" onclick="adicionarAoCalendario('yahoo', '${c.medico || 'N/A'}', '${c.especialidade || 'N/A'}', '${c.local || 'N/A'}', ${timestampData}, '${notasSeguras}'); return false;"><i class="bi bi-yahoo text-primary me-2"></i>Yahoo</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#" onclick="adicionarAoCalendario('ics', '${c.medico || 'N/A'}', '${c.especialidade || 'N/A'}', '${c.local || 'N/A'}', ${timestampData}, '${notasSeguras}'); return false;"><i class="bi bi-apple text-secondary me-2"></i>Apple / Outros</a></li>
+                        </ul>
+                    </div>
+                    
+                    <div class="dropdown d-inline-block">
                         <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-three-dots"></i>
+                            <i class="bi bi-t
+                            hree-dots"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
                             <li><a class="dropdown-item" href="#" onclick="verNotas(${c.id}); return false;"><i class="bi bi-eye text-primary me-2"></i>Ver Notas</a></li>
@@ -369,5 +387,47 @@ async function guardarEdicao() {
         }
     } catch (erro) {
         console.error('Erro ao editar:', erro);
+    }
+}
+
+// ==========================================
+// FUNÇÃO MULTI-CALENDÁRIO (WEB LINKS + ICS)
+// ==========================================
+function adicionarAoCalendario(tipo, medico, especialidade, unidade, timestamp, notas) {
+    const dataInicio = new Date(Number(timestamp));
+    const dataFim = new Date(dataInicio.getTime() + (60 * 60 * 1000)); // +1 hora de duração
+
+    const titulo = `Consulta de ${especialidade} com ${medico}`;
+    const local = unidade;
+    const detalhes = notas || 'Registo feito através do SaúdeDigital.';
+
+    if (tipo === 'google') {
+        const formatarParaGoogle = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+        const datas = `${formatarParaGoogle(dataInicio)}/${formatarParaGoogle(dataFim)}`;
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(titulo)}&dates=${datas}&details=${encodeURIComponent(detalhes)}&location=${encodeURIComponent(local)}`;
+        window.open(url, '_blank');
+    } 
+    else if (tipo === 'outlook') {
+        const url = `https://outlook.live.com/calendar/0/deeplink/compose?path=/calendar/action/compose&rru=addevent&subject=${encodeURIComponent(titulo)}&startdt=${dataInicio.toISOString()}&enddt=${dataFim.toISOString()}&body=${encodeURIComponent(detalhes)}&location=${encodeURIComponent(local)}`;
+        window.open(url, '_blank');
+    }
+    else if (tipo === 'yahoo') {
+        const formatarParaYahoo = (d) => d.toISOString().replace(/-|:|\.\d\d\d/g, "");
+        const url = `https://calendar.yahoo.com/?v=60&view=d&type=20&title=${encodeURIComponent(titulo)}&st=${formatarParaYahoo(dataInicio)}&et=${formatarParaYahoo(dataFim)}&desc=${encodeURIComponent(detalhes)}&in_loc=${encodeURIComponent(local)}`;
+        window.open(url, '_blank');
+    }
+    else if (tipo === 'ics') {
+        // Fallback obrigatório para Aplicações de Telemóvel / Apple Calendar
+        const formatarICS = (d) => d.getFullYear().toString() + (d.getMonth() + 1).toString().padStart(2, '0') + d.getDate().toString().padStart(2, '0') + 'T' + d.getHours().toString().padStart(2, '0') + d.getMinutes().toString().padStart(2, '0') + d.getSeconds().toString().padStart(2, '0');
+        
+        const conteudoICS = `BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//SaudeDigital//Consultas//PT\r\nBEGIN:VEVENT\r\nSUMMARY:${titulo}\r\nDTSTART:${formatarICS(dataInicio)}\r\nDTEND:${formatarICS(dataFim)}\r\nLOCATION:${local}\r\nDESCRIPTION:${detalhes}\r\nBEGIN:VALARM\r\nACTION:DISPLAY\r\nDESCRIPTION:Lembrete de Consulta\r\nTRIGGER:-PT24H\r\nEND:VALARM\r\nEND:VEVENT\r\nEND:VCALENDAR`;
+        
+        const blob = new Blob([conteudoICS], { type: 'text/calendar;charset=utf-8' });
+        const link = document.createElement('a');
+        link.href = window.URL.createObjectURL(blob);
+        link.setAttribute('download', `Consulta_${especialidade.replace(/\s+/g, '_')}.ics`);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
     }
 }

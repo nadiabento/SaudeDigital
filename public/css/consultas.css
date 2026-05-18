@@ -35,9 +35,12 @@ body {
 /* =========================================
    Arranjos visuais para a Tabela e Menus
    ========================================= */
-/* Impede que o menu dos 3 pontinhos fique cortado na tabela */
-.table-responsive {
-  overflow: visible !important;
+/* Aplica overflow visible APENAS em desktop. 
+   Se for no mobile, impede o scroll horizontal da tabela! */
+@media (min-width: 992px) {
+  .table-responsive {
+    overflow: visible !important;
+  }
 }
 
 .dropdown-menu {
@@ -75,4 +78,56 @@ body {
 .page-item.disabled .page-link { 
   background-color: #f8f9fa; 
   color: #ced4da; 
+}
+
+/* =========================================
+   RESPONSIVIDADE (TELEMÓVEIS E TABLETS)
+   ========================================= */
+@media (max-width: 768px) {
+  /* 1. Reduz o preenchimento principal para ganhar espaço no ecrã */
+  main.flex-grow-1 {
+    padding: 1rem !important;
+  }
+  
+  /* 2. Reduz o tamanho dos títulos para não quebrarem em várias linhas */
+  header h2 {
+    font-size: 1.5rem;
+  }
+  header p {
+    font-size: 0.9rem;
+  }
+
+  /* 3. Ajusta o tamanho do texto nos botões de "Novo Médico/Unidade" */
+  .transition-hover {
+    padding: 10px !important;
+  }
+  .transition-hover span {
+    font-size: 0.75rem;
+  }
+
+  /* 4. Garante que a tabela tem barra de scroll lateral em ecrãs finos */
+  .table-responsive {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch; /* Melhora a fluidez do scroll no iPhone */
+    border-radius: 8px;
+  }
+  
+  /* 5. Faz as abas "Próximas / Anteriores" ocuparem o ecrã todo divididas a meio */
+  #abasConsultas {
+    display: flex;
+    width: 100%;
+  }
+  #abasConsultas .nav-item {
+    flex: 1;
+  }
+  #abasConsultas .nav-link {
+    width: 100%;
+    text-align: center;
+    padding: 10px !important;
+  }
+  
+  /* 6. Espaçamento extra entre o formulário e a tabela quando ficam empilhados */
+  .col-lg-5 {
+    margin-bottom: 1.5rem;
+  }
 }
