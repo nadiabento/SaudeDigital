@@ -78,19 +78,26 @@ exports.getTodasEspecialidades = async (req, res) => {
     }
 };
 
-// Cria um médico novo e liga imediatamente esse médico ao hospital escolhido
+// MODIFICADO: Cria um médico novo e liga-o a MÚLTIPLAS unidades de saúde recebidas num Array
 exports.adicionarMedico = async (req, res) => {
-    const { nome, especialidade, unidade } = req.body;
+    // Agora desestruturamos 'unidades' (Array) em vez de 'unidade' (única)
+    const { nome, especialidade, unidades } = req.body;
     const queryMedico = 'INSERT INTO Medico (nome, id_especialidade) VALUES (?, ?)';
     const queryPonte = 'INSERT INTO Medico_Unidade (id_medico, id_unidade) VALUES (?, ?)';
 
     try {
+        // 1. Inserir o médico na tabela Medico
         const [resultado] = await db.query(queryMedico, [nome, especialidade]);
         const idMedicoInserido = resultado.insertId;
 
-        await db.query(queryPonte, [idMedicoInserido, unidade]);
+        // 2. Se existirem unidades selecionadas, percorremos o Array e ligamos cada uma ao médico
+        if (unidades && unidades.length > 0) {
+            for (const idUnidade of unidades) {
+                await db.query(queryPonte, [idMedicoInserido, idUnidade]);
+            }
+        }
 
-        res.status(201).json({ mensagem: 'Médico criado com sucesso!', id: idMedicoInserido });
+        res.status(201).json({ mensagem: 'Médico criado com sucesso com as suas unidades!', id: idMedicoInserido });
     } catch (erro) {
         console.error('Erro ao adicionar médico:', erro);
         res.status(500).json({ erro: 'Erro no servidor.' });
@@ -114,7 +121,6 @@ exports.getUnidadesDoMedico = async (req, res) => {
         res.status(500).json({ erro: 'Erro na BD' });
     }
 };
-
 // Recebe os dados do formulário e guarda a nova marcação para o utilizador atual
 exports.registarConsulta = async (req, res) => {
   const { id_unidade, id_especialidade, id_medico, data_hora, notas } = req.body;

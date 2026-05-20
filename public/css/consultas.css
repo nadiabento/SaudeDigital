@@ -1,12 +1,7 @@
 /* Fonte da página */
 body { 
   font-family: "Inter", sans-serif; 
-}
-
-/* Cor da aba ativa no menu lateral e nas abas de consultas */
-.nav-link.active { 
-  background-color: #0d6efd !important; 
-  color: white !important; 
+  overflow-x: hidden;
 }
 
 /* =========================================
@@ -35,8 +30,6 @@ body {
 /* =========================================
    Arranjos visuais para a Tabela e Menus
    ========================================= */
-/* Aplica overflow visible APENAS em desktop. 
-   Se for no mobile, impede o scroll horizontal da tabela! */
 @media (min-width: 992px) {
   .table-responsive {
     overflow: visible !important;
@@ -80,16 +73,139 @@ body {
   color: #ced4da; 
 }
 
+
+/* ===================================================
+   DESIGN EXATO DA SIDEBAR VINDOS DO EXAMES.CSS
+   =================================================== */
+:root {
+  --sidebar-width: 260px;
+  --sidebar-width-collapsed: 85px;
+}
+
+.sidebar {
+  width: var(--sidebar-width);
+  height: 100vh;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e9ecef;
+  z-index: 1050;
+  transition: all 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
+}
+
+/* Estilo estrito da Nádia para os links e tipografia */
+.sidebar-link {
+  color: #101616;
+  font-weight: 400;
+  transition: all 0.2s ease;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 12px 20px;
+  margin: 4px 12px;
+  border-radius: 8px;
+}
+
+.sidebar-link:hover {
+  color: #252f40;
+  background-color: rgba(13, 110, 253, 0.08);
+  transform: translateX(5px);
+}
+
+.sidebar-link.active {
+  background-color: #0d6efd !important;
+  color: #ffffff !important;
+  font-weight: 500;
+  box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+}
+
+/* Mecânica de colapso para os textos e botão redondo */
+.toggle-btn {
+  position: absolute;
+  right: -15px;
+  top: 20px;
+  background: white;
+  border-radius: 50%;
+  width: 30px;
+  height: 30px;
+  border: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  cursor: pointer;
+  transition: transform 0.3s ease;
+  align-items: center;
+  justify-content: center;
+  color: #6c757d;
+}
+
+.collapsed .toggle-btn {
+  transform: rotate(180deg);
+}
+
+.collapsed .hide-on-collapse {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.collapsed .logo-text,
+.collapsed .profile-info {
+  opacity: 0;
+}
+
+.collapsed .sidebar-link {
+  text-align: center;
+  padding: 1rem !important;
+  margin: 4px 8px;
+}
+
+.collapsed .sidebar-link i {
+  margin: 0 !important;
+}
+
+
+/* ===================================================
+   AS REGRAS DE MARGENS DO MAIN-CONTENT DINÂMICO
+   =================================================== */
+.main-content {
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width);
+  min-height: 100vh;
+  padding: 40px;
+  transition: all 0.3s ease;
+}
+
+.collapsed ~ .main-content {
+  margin-left: var(--sidebar-width-collapsed);
+  width: calc(100% - var(--sidebar-width-collapsed));
+}
+
+
 /* =========================================
    RESPONSIVIDADE (TELEMÓVEIS E TABLETS)
    ========================================= */
 @media (max-width: 768px) {
-  /* 1. Reduz o preenchimento principal para ganhar espaço no ecrã */
-  main.flex-grow-1 {
-    padding: 1rem !important;
+  .sidebar {
+    transform: translateX(-100%);
+  }
+  .sidebar.active {
+    transform: translateX(0);
+    width: var(--sidebar-width);
+  }
+
+  .main-content {
+    margin-top: 70px !important;
+    padding: 20px !important;
+    margin-left: 0 !important;
+    width: 100% !important;
   }
   
-  /* 2. Reduz o tamanho dos títulos para não quebrarem em várias linhas */
   header h2 {
     font-size: 1.5rem;
   }
@@ -97,7 +213,6 @@ body {
     font-size: 0.9rem;
   }
 
-  /* 3. Ajusta o tamanho do texto nos botões de "Novo Médico/Unidade" */
   .transition-hover {
     padding: 10px !important;
   }
@@ -105,14 +220,12 @@ body {
     font-size: 0.75rem;
   }
 
-  /* 4. Garante que a tabela tem barra de scroll lateral em ecrãs finos */
   .table-responsive {
     overflow-x: auto !important;
-    -webkit-overflow-scrolling: touch; /* Melhora a fluidez do scroll no iPhone */
+    -webkit-overflow-scrolling: touch; 
     border-radius: 8px;
   }
   
-  /* 5. Faz as abas "Próximas / Anteriores" ocuparem o ecrã todo divididas a meio */
   #abasConsultas {
     display: flex;
     width: 100%;
@@ -126,7 +239,6 @@ body {
     padding: 10px !important;
   }
   
-  /* 6. Espaçamento extra entre o formulário e a tabela quando ficam empilhados */
   .col-lg-5 {
     margin-bottom: 1.5rem;
   }
