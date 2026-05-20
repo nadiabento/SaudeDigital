@@ -94,3 +94,46 @@ nav.vh-100 {
   border-color: var(--primary-color);
   outline: none;
 }
+
+/* --- MENU ENCOLHIDO (COLLAPSED) --- */
+
+.sidebar.collapsed {
+    width: 80px; /* Garante que a barra tem uma largura fixa */
+    align-items: center; /* Centra tudo dentro da barra */
+}
+
+/* Redimensiona os botões do menu para ficarem quadrados perfeitos */
+.sidebar.collapsed .sidebar-link {
+    display: flex;
+    justify-content: center !important;
+    align-items: center !important;
+    padding: 0 !important; /* Removemos o padding padrão do Bootstrap */
+    margin: 0 auto 10px auto !important; /* Centra na barra e dá margem em baixo */
+    width: 48px;  /* Largura fixa do quadrado */
+    height: 48px; /* Altura fixa do quadrado */
+    border-radius: 12px; /* Cantos arredondados bonitos */
+    overflow: hidden;
+}
+
+/* Oculta o texto */
+.sidebar.collapsed .hide-on-collapse {
+    display: none !important; 
+}
+
+/* Centraliza o ícone perfeitamente dentro do quadrado */
+.sidebar.collapsed .sidebar-link i {
+    margin: 0 !important;
+    font-size: 1.3rem; /* Tamanho ajustado do ícone */
+}
+
+/* Ajusta a secção do perfil (O "PA" lá em baixo) */
+.sidebar.collapsed .profile-section {
+    padding: 20px 0 !important;
+    display: flex;
+    justify-content: center;
+    width: 100%;
+}
+
+.sidebar.collapsed .profile-info {
+    display: none !important; /* Esconde o nome "Pedro Almeida" */
+}

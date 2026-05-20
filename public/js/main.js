@@ -346,7 +346,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // --- DESENHAR O GRÁFICO (CHART.JS) ---
 async function carregarGraficoVitals() {
-    const canvas = document.getElementById('graficoVitals');
+    const canvas = document.getElementById('healthChart');
     if (!canvas) return;
 
     try {
@@ -354,6 +354,7 @@ async function carregarGraficoVitals() {
         if (!response.ok) throw new Error("Erro na API");
         
         const dados = await response.json();
+console.log("DADOS DA API:", dados); // <-- ADICIONA ESTA LINHA
         
         // 1. Formatar datas para o eixo de baixo (ex: 14/05)
         const datasX = dados.map(d => {
@@ -361,9 +362,11 @@ async function carregarGraficoVitals() {
             return data.toLocaleDateString('pt-PT', { day: '2-digit', month: '2-digit' });
         });
 
-        // 2. Separar os valores
+        // 2. Separar os valores de todas as métricas
         const bpm = dados.map(d => d.tipo_metrica === 'Frequencia Cardiaca' ? d.valor_primario : null);
         const glicose = dados.map(d => d.tipo_metrica === 'Glicose' ? d.valor_primario : null);
+        const paSistolica = dados.map(d => d.tipo_metrica === 'Pressao Sistolica' ? d.valor_primario : null);
+        const paDiastolica = dados.map(d => d.tipo_metrica === 'Pressao Diastolica' ? d.valor_primario : null);
 
         // 3. Chamar o Chart.js para pintar!
         new Chart(canvas, {
@@ -388,23 +391,46 @@ async function carregarGraficoVitals() {
                         spanGaps: true,
                         tension: 0.3,
                         pointRadius: 4
+                    },
+                    {
+                        label: 'PA Sistólica (Max)',
+                        data: paSistolica,
+                        borderColor: '#198754', // Verde Bootstrap (Success)
+                        backgroundColor: '#198754',
+                        spanGaps: true,
+                        tension: 0.3,
+                        pointRadius: 4
+                    },
+                    {
+                        label: 'PA Diastólica (Min)',
+                        data: paDiastolica,
+                        borderColor: '#20c997', // Verde claro
+                        backgroundColor: '#20c997',
+                        borderDash: [5, 5], // Faz com que a linha fique tracejada
+                        spanGaps: true,
+                        tension: 0.3,
+                        pointRadius: 4
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: { legend: { position: 'bottom' } }
+                plugins: { legend: { position: 'bottom' } } // A legenda do próprio Chart.js
             }
         });
 
     } catch (error) {
-        console.error("Erro ao desenhar gráfico:", error);
+        console.error("Erro ao carregar o gráfico:", error);
+        const container = document.getElementById('graficoContainer');
+        if (container) {
+            container.innerHTML = '<div class="alert alert-danger">Erro ao carregar o gráfico de sinais vitais.</div>';
+        }
     }
 }
 // Quando a página carregar, executa TUDO!
 document.addEventListener('DOMContentLoaded', () => {
     carregarResumoDashboard();
     carregarTabelaDashboard(); 
-    carregarGraficoVitals(); // <-- A função do gráfico entra aqui!
+    carregarGraficoVitals(); 
 });
