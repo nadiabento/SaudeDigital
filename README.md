@@ -23,7 +23,7 @@ UI/UX: Bootstrap 5, Bootstrap Icons e SweetAlert2 para notificações.
 
 ### 📂 Estrutura do Projeto
 
-```text
+````text
 ├── src/
 │   ├── config/         # Conexão com a BD
 │   ├── controllers/    # Lógica (ExameController.js)
@@ -37,7 +37,7 @@ UI/UX: Bootstrap 5, Bootstrap Icons e SweetAlert2 para notificações.
 
 ⚙️ Instalação e Configuração
 npm install
-1. Instalar dependências:
+npm install sequelize mysql2
 
 🔒 Segurança e Boas Práticas
 Separação de Preocupações: Arquitetura MVC para facilitar a manutenção.
@@ -45,3 +45,4 @@ Separação de Preocupações: Arquitetura MVC para facilitar a manutenção.
 Links Temporários: Utilização de lógica SQL (NOW() < data_expiracao) para garantir que o acesso médico é revogado automaticamente.
 
 Sanitização de Dados: Queries parametrizadas para prevenir SQL Injection.
+````

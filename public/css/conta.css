@@ -1,0 +1,97 @@
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Efeito Hover Suave nos cartões de moderação rápidos */
+.bg-light.rounded-3 {
+    transition: all 0.2s ease-in-out;
+}
+
+.container-max {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* 1. Garante que cada bloco de remoção permite que a lista flutue livremente para fora dele */
+.p-3.bg-light.rounded-3.position-relative {
+    position: relative !important;
+    overflow: visible !important; /* CRÍTICO: Impede que o card corte a lista suspensa */
+}
+
+/* 2. Estilização da lista flutuante com Scroll e limite de altura */
+.custom-autocomplete-list {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    /* Ajustamos a largura para alinhar perfeitamente com o input de texto, descontando o espaço do botão vermelho */
+    width: calc(100% - 54px) !important; 
+    
+    max-height: 180px !important; /* Limita o tamanho a cerca de 4 a 5 itens visíveis */
+    overflow-y: auto !important;  /* Ativa o Scroll vertical quando ultrapassa o limite */
+    
+    background-color: #ffffff !important; /* Força o fundo branco opaco */
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important; /* Sombra profissional para dar efeito 3D */
+    padding: 0 !important;
+    margin: 4px 0 0 0 !important;
+    z-index: 99999 !important; /* Força a ficar no topo absoluto de qualquer outro elemento visual */
+}
+
+/* 3. Itens individuais dentro da lista */
+.custom-autocomplete-list .list-group-item {
+    cursor: pointer !important;
+    border: none !important;
+    border-bottom: 1px solid #f8f9fa !important; /* Linha divisória subtil entre opções */
+    padding: 10px 14px !important;
+    font-size: 0.88rem !important;
+    color: #252f40 !important;
+    background-color: #ffffff !important;
+    transition: all 0.15s ease-in-out !important;
+}
+
+/* Remove a linha divisória no último item */
+.custom-autocomplete-list .list-group-item:last-child {
+    border-bottom: none !important;
+}
+
+/* Efeito de Destaque (Hover) */
+.custom-autocomplete-list .list-group-item:hover {
+    background-color: #f0f5ff !important; /* Mantém apenas a cor azul suave de seleção */
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    padding-left: 14px !important; /* Mantém exatamente o mesmo padding original, sem mover o texto */
+}
+
+/* 4. Customização da barra de scroll (Opcional, para ficar com aspeto moderno) */
+.custom-autocomplete-list::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-autocomplete-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 8px 8px 0;
+}
+.custom-autocomplete-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.custom-autocomplete-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* Mantém o efeito visual de sombra, mas REMOVE o transform que fazia a caixa saltar */
+.p-3.bg-light.rounded-3.position-relative:hover {
+    transform: none !important; /* Força o card a ficar completamente parado no sítio */
+    background-color: #ffffff !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+}
+
+/* Garante que os itens da lista também não fazem nenhuma micro-animação */
+.custom-autocomplete-list .list-group-item:hover {
+    background-color: #f0f5ff !important;
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    transform: none !important; /* Proteção extra contra heranças */
+    padding-left: 14px !important; /* Exatamente igual ao padding original */
+}

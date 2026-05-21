@@ -103,3 +103,39 @@ const authController = {
 };
 
 module.exports = authController;
+
+const db = require("../config/db");
+
+// Controller para processar a atualização
+exports.atualizarPerfil = async (req, res) => {
+  const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
+  const utilizadorId = req.session.userId; // Busca o ID da sessão de quem está logado
+
+  if (!utilizadorId) {
+    return res
+      .status(401)
+      .json({ error: "Sessão expirada. Inicie sessão novamente." });
+  }
+
+  // Query 100% segura usando Prepared Statements com marcadores "?"
+  const sql = `
+        UPDATE Utilizador 
+        SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
+        WHERE id = ?`;
+
+  try {
+    await db.query(sql, [
+      nome,
+      data_nascimento,
+      grupo_sanguineo,
+      peso,
+      utilizadorId,
+    ]);
+    return res.status(200).json({ message: "Perfil modificado com sucesso!" });
+  } catch (error) {
+    console.error("Erro SQL ao atualizar perfil:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro interno ao gravar na base de dados." });
+  }
+};

@@ -2,7 +2,6 @@ const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
 
-
 // Pesquisa medicamentos no catálogo conforme o utilizador escreve
 router.get("/catalogo", async (req, res) => {
   try {
@@ -38,14 +37,14 @@ router.get("/catalogo", async (req, res) => {
         nome_medicamento ASC        
       LIMIT 10
       `,
-       [
+      [
         pesquisaQualquerParte,
         pesquisaQualquerParte,
         pesquisaInicio,
         pesquisaInicio,
         pesquisaQualquerParte,
-        pesquisaQualquerParte
-      ]
+        pesquisaQualquerParte,
+      ],
     );
 
     res.json(resultados);
@@ -53,23 +52,24 @@ router.get("/catalogo", async (req, res) => {
     console.error("Erro ao pesquisar catálogo de medicamentos:", erro);
 
     res.status(500).json({
-      erro: "Erro ao pesquisar medicamentos."
+      erro: "Erro ao pesquisar medicamentos.",
     });
   }
 });
 
 router.post("/catalogo", async (req, res) => {
   try {
-    const {
-      nome_medicamento,
-      substancia_ativa,
-      dosagem,
-      forma_farmaceutica
-    } = req.body;
+    const { nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica } =
+      req.body;
 
-    if (!nome_medicamento || !substancia_ativa || !dosagem || !forma_farmaceutica) {
+    if (
+      !nome_medicamento ||
+      !substancia_ativa ||
+      !dosagem ||
+      !forma_farmaceutica
+    ) {
       return res.status(400).json({
-        erro: "Preencha todos os campos do medicamento."
+        erro: "Preencha todos os campos do medicamento.",
       });
     }
 
@@ -83,12 +83,12 @@ router.post("/catalogo", async (req, res) => {
         AND forma_farmaceutica = ?
       LIMIT 1
       `,
-      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica]
+      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica],
     );
 
     if (existente.length > 0) {
       return res.status(409).json({
-        erro: "Este medicamento já existe no catálogo."
+        erro: "Este medicamento já existe no catálogo.",
       });
     }
 
@@ -99,22 +99,21 @@ router.post("/catalogo", async (req, res) => {
       VALUES
         (?, ?, ?, ?)
       `,
-      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica]
+      [nome_medicamento, substancia_ativa, dosagem, forma_farmaceutica],
     );
 
     res.status(201).json({
       mensagem: "Medicamento adicionado ao catálogo com sucesso.",
-      id: resultado.insertId
+      id: resultado.insertId,
     });
   } catch (erro) {
     console.error("Erro ao adicionar medicamento ao catálogo:", erro);
 
     res.status(500).json({
-      erro: "Erro ao adicionar medicamento ao catálogo."
+      erro: "Erro ao adicionar medicamento ao catálogo.",
     });
   }
 });
-
 
 router.get("/", async (req, res) => {
   console.log("GET /api/medicacao foi chamado");
@@ -124,7 +123,7 @@ router.get("/", async (req, res) => {
 
     if (!idUtilizador) {
       return res.status(401).json({
-        erro: "Utilizador não autenticado."
+        erro: "Utilizador não autenticado.",
       });
     }
 
@@ -165,14 +164,14 @@ router.get("/", async (req, res) => {
       ${filtroEstado}
       ORDER BY Medicamento.data_inicio DESC
       `,
-      [idUtilizador]
+      [idUtilizador],
     );
 
     res.json(medicamentos);
   } catch (erro) {
     console.error("Erro ao obter medicação:", erro);
     res.status(500).json({
-      erro: "Erro ao obter a medicação do utilizador."
+      erro: "Erro ao obter a medicação do utilizador.",
     });
   }
 });
@@ -183,23 +182,28 @@ router.post("/", async (req, res) => {
     const idUtilizador = req.session.userId || 1;
 
     const {
-        id_catalogo_medicamento,
-        medicamento,        
-        posologia,
-        data_inicio,
-        data_fim,
-        estado
+      id_catalogo_medicamento,
+      medicamento,
+      posologia,
+      data_inicio,
+      data_fim,
+      estado,
     } = req.body;
 
-    if (!id_catalogo_medicamento || !medicamento || !posologia || !data_inicio) {
-        return res.status(400).json({
-            erro: "Selecione um medicamento, indique a posologia e a data de início."
-        });
+    if (
+      !id_catalogo_medicamento ||
+      !medicamento ||
+      !posologia ||
+      !data_inicio
+    ) {
+      return res.status(400).json({
+        erro: "Selecione um medicamento, indique a posologia e a data de início.",
+      });
     }
 
     if (data_fim && data_fim < data_inicio) {
       return res.status(400).json({
-        erro: "A data de fim não pode ser anterior à data de início."
+        erro: "A data de fim não pode ser anterior à data de início.",
       });
     }
 
@@ -216,22 +220,21 @@ router.post("/", async (req, res) => {
         posologia,
         data_inicio,
         data_fim || null,
-        estado || "Ativo"
-      ]
+        estado || "Ativo",
+      ],
     );
 
     res.status(201).json({
-      mensagem: "Medicação registada com sucesso."
+      mensagem: "Medicação registada com sucesso.",
     });
   } catch (erro) {
     console.error("Erro ao registar medicação:", erro);
 
     res.status(500).json({
-      erro: "Erro ao registar a medicação."
+      erro: "Erro ao registar a medicação.",
     });
   }
 });
-
 
 router.delete("/:id", async (req, res) => {
   try {
@@ -244,23 +247,23 @@ router.delete("/:id", async (req, res) => {
       WHERE id = ?
         AND id_utilizador = ?
       `,
-      [idMedicamento, idUtilizador]
+      [idMedicamento, idUtilizador],
     );
 
     if (resultado.affectedRows === 0) {
       return res.status(404).json({
-        erro: "Medicação não encontrada ou não pertence ao utilizador."
+        erro: "Medicação não encontrada ou não pertence ao utilizador.",
       });
     }
 
     res.json({
-      mensagem: "Medicação eliminada com sucesso."
+      mensagem: "Medicação eliminada com sucesso.",
     });
   } catch (erro) {
     console.error("Erro ao eliminar medicação:", erro);
 
     res.status(500).json({
-      erro: "Erro ao eliminar a medicação."
+      erro: "Erro ao eliminar a medicação.",
     });
   }
 });
@@ -273,13 +276,13 @@ router.put("/:id/estado", async (req, res) => {
 
     if (!idUtilizador) {
       return res.status(401).json({
-        erro: "Utilizador não autenticado."
+        erro: "Utilizador não autenticado.",
       });
     }
 
     if (!estado) {
       return res.status(400).json({
-        erro: "O estado da medicação é obrigatório."
+        erro: "O estado da medicação é obrigatório.",
       });
     }
 
@@ -287,7 +290,7 @@ router.put("/:id/estado", async (req, res) => {
 
     if (!estadosPermitidos.includes(estado)) {
       return res.status(400).json({
-        erro: "Estado inválido."
+        erro: "Estado inválido.",
       });
     }
 
@@ -298,23 +301,23 @@ router.put("/:id/estado", async (req, res) => {
       WHERE id = ?
         AND id_utilizador = ?
       `,
-      [estado, idMedicamento, idUtilizador]
+      [estado, idMedicamento, idUtilizador],
     );
 
     if (resultado.affectedRows === 0) {
       return res.status(404).json({
-        erro: "Medicação não encontrada ou não pertence ao utilizador."
+        erro: "Medicação não encontrada ou não pertence ao utilizador.",
       });
     }
 
     res.json({
-      mensagem: "Estado da medicação atualizado com sucesso."
+      mensagem: "Estado da medicação atualizado com sucesso.",
     });
   } catch (erro) {
     console.error("Erro ao atualizar estado da medicação:", erro);
 
     res.status(500).json({
-      erro: "Erro ao atualizar o estado da medicação."
+      erro: "Erro ao atualizar o estado da medicação.",
     });
   }
 });
@@ -325,21 +328,16 @@ router.post("/efeitos", async (req, res) => {
 
     if (!idUtilizador) {
       return res.status(401).json({
-        erro: "Utilizador não autenticado."
+        erro: "Utilizador não autenticado.",
       });
     }
 
-    const {
-      id_medicamento,
-      sintoma,
-      gravidade,
-      data_ocorrencia,
-      notas
-    } = req.body;
+    const { id_medicamento, sintoma, gravidade, data_ocorrencia, notas } =
+      req.body;
 
     if (!id_medicamento || !sintoma || !gravidade || !data_ocorrencia) {
       return res.status(400).json({
-        erro: "Preencha a medicação, o sintoma, a gravidade e a data."
+        erro: "Preencha a medicação, o sintoma, a gravidade e a data.",
       });
     }
 
@@ -347,7 +345,7 @@ router.post("/efeitos", async (req, res) => {
 
     if (!gravidadesPermitidas.includes(gravidade)) {
       return res.status(400).json({
-        erro: "Gravidade inválida."
+        erro: "Gravidade inválida.",
       });
     }
 
@@ -360,12 +358,12 @@ router.post("/efeitos", async (req, res) => {
         AND id_utilizador = ?
       LIMIT 1
       `,
-      [id_medicamento, idUtilizador]
+      [id_medicamento, idUtilizador],
     );
 
     if (medicacao.length === 0) {
       return res.status(404).json({
-        erro: "Medicação não encontrada ou não pertence ao utilizador."
+        erro: "Medicação não encontrada ou não pertence ao utilizador.",
       });
     }
 
@@ -376,27 +374,78 @@ router.post("/efeitos", async (req, res) => {
       VALUES
         (?, ?, ?, ?, ?)
       `,
-      [
-        id_medicamento,
-        sintoma,
-        gravidade,
-        data_ocorrencia,
-        notas || null
-      ]
+      [id_medicamento, sintoma, gravidade, data_ocorrencia, notas || null],
     );
 
     res.status(201).json({
-      mensagem: "Efeito secundário registado com sucesso."
+      mensagem: "Efeito secundário registado com sucesso.",
     });
   } catch (erro) {
     console.error("Erro ao registar efeito secundário:", erro);
 
     res.status(500).json({
-      erro: "Erro ao registar o efeito secundário."
+      erro: "Erro ao registar o efeito secundário.",
     });
   }
 });
 
+router.get("/catalogo/todos", async (req, res) => {
+  try {
+    const [resultados] = await db.query(
+      "SELECT id, nome_medicamento FROM Catalogo_Medicamentos ORDER BY nome_medicamento ASC",
+    );
+    res.json(resultados);
+  } catch (erro) {
+    res.status(500).json({ error: "Erro ao obter o catálogo completo." });
+  }
+});
 
+// Resolve o erro do efeitos-secundarios/todos
+router.get("/efeitos", async (req, res) => {
+  try {
+    // Busca o ID e o sintoma da tabela Efeito_Secundario
+    const [resultados] = await db.query(
+      "SELECT id, sintoma FROM Efeito_Secundario ORDER BY sintoma ASC",
+    );
+    res.json(resultados);
+  } catch (erro) {
+    res.status(500).json({ erro: "Erro ao obter os efeitos secundários." });
+  }
+});
+
+router.delete("/catalogo/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // 1. VERIFICAÇÃO: O medicamento está associado a alguma receita ou plano ativo?
+    // Ajusta o nome da tabela (ex: 'Medicacao', 'Prescricao' ou 'Prescricao_Medicamento')
+    // e o nome da coluna de chave estrangeira conforme a tua base de dados.
+    const [emUso] = await db.sequelize.query(
+      "SELECT id FROM Medicacao WHERE id_medicamento = ? LIMIT 1",
+      { replacements: [id], type: db.sequelize.QueryTypes.SELECT },
+    );
+
+    // Se o medicamento estiver em uso no histórico de alguém, TRAVA tudo aqui!
+    if (emUso) {
+      return res.status(400).json({
+        error:
+          "Eliminação recusada! Este medicamento está registado no plano de medicação de utilizadores e não pode ser removido do catálogo.",
+      });
+    }
+
+    // 2. Se não houver nenhuma dependência, avança para o DELETE seguro
+    await db.sequelize.query("DELETE FROM Catalogo_Medicamentos WHERE id = ?", {
+      replacements: [id],
+    });
+
+    res.json({ message: "Medicamento removido do catálogo com sucesso." });
+  } catch (error) {
+    console.error("Erro ao eliminar medicamento:", error);
+    res.status(500).json({
+      error:
+        "Eliminação recusada! Este medicamento está registado no plano de medicação de utilizadores e não pode ser removido do catálogo. ",
+    });
+  }
+});
 
 module.exports = router;

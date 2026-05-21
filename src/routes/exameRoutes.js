@@ -3,25 +3,19 @@ const router = express.Router();
 const exameController = require("../controllers/exameController");
 const multer = require("multer");
 const path = require("path");
-const fs = require("fs"); // ADICIONADO: Para verificar existência de pastas
+const fs = require("fs");
 
-// --- Configuração do Multer (Upload de PDF) ---
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     const dir = "public/uploads/";
-    // RETIFICAÇÃO: Garante que a pasta existe, senão o multer crasha o servidor
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    // Gera um nome: 1714245600000.pdf (evita nomes duplicados)
     cb(null, Date.now() + path.extname(file.originalname));
   },
 });
 
-// FILTRO DE SEGURANÇA: Aceitar apenas ficheiros PDF
 const upload = multer({
   storage: storage,
   fileFilter: (req, file, cb) => {
@@ -33,35 +27,55 @@ const upload = multer({
   },
 });
 
-// --- DEFINIÇÃO DAS ROTAS ---
-
-// GET: Listagens
+// --- ENTRADAS DE LEITURA (GET) ---
 router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
+router.get("/tipos-todos", exameController.listarTodosOsTiposAgnostico);
 router.get("/historico", exameController.listarHistorico);
-// Rota para o Médico: Serve o ficheiro HTML de partilha
-router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
-// Rota de Dados: Serve os dados JSON que preenchem a página de partilha
-router.get("/dados-partilha/:token", exameController.getDadosPartilha);
+router.get("/visualizar-partilha/:token", exameController.visualizarPartilha); // Rota que o médico clica (Abre o HTML no navegador)
+router.get("/dados-partilha/:token", exameController.getDadosPartilha); // Rota que o JavaScript da página do médico chama para puxar os exames em JSON
 
-// --- GRUPO POST: Criação e Upload ---
-// Registo de Exame: O middleware 'upload.single' processa o ficheiro antes da lógica do controller
+// --- ENTRADAS DE ESCRITA (POST) ---
 router.post(
   "/registar",
-  upload.single("relatorio"), // O nome "relatorio" deve coincidir com o 'name' no <input type="file">
+  upload.single("relatorio"),
   exameController.registarExame,
 );
-
-// POST: Criar novas Categorias e Tipos (Modais)
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
 router.post("/gerar-partilha", exameController.gerarPartilha);
 
-// --- GRUPO PUT/DELETE: Manutenção de Dados ---
-
-// Eliminação múltipla de registos selecionados na tabela
-router.delete("/eliminar-massa", exameController.eliminarMassa);
-// Edição de observações ou datas de exames existentes
+// --- ENTRADAS DE MANUTENÇÃO (PUT/DELETE) ---
 router.put("/editar/:id", exameController.editarExame);
+router.delete("/eliminar-massa", exameController.eliminarMassa);
+router.delete("/categorias/:id", async (req, res) => {
+  const { id } = req.params;
 
-module.exports = router; // O ficheiro deve terminar aqui
+  try {
+    // 1. Procura se existem tipos de exames associados a esta categoria
+    const [dependentes] = await db.sequelize.query(
+      "SELECT id FROM Tipo_Exame WHERE id_categoria = ? LIMIT 1",
+      { replacements: [id], type: db.sequelize.QueryTypes.SELECT },
+    );
+
+    // Se encontrar alguma coisa, TRAVA o delete imediatamente e envia erro 400
+    if (dependentes) {
+      return res.status(400).json({
+        error:
+          "Eliminação recusada! Esta categoria tem tipos de exames associados (ex: Raio-X, TAC) e não pode ser removida.",
+      });
+    }
+
+    // 2. Só avança se o contador for zero
+    await db.sequelize.query("DELETE FROM Categoria_Exame WHERE id = ?", {
+      replacements: [id],
+    });
+
+    res.json({ message: "Categoria eliminada com sucesso." });
+  } catch (error) {
+    res.status(500).json({ error: "Erro interno ao tentar eliminar." });
+  }
+});
+router.delete("/tipos/:id", exameController.eliminarTipoExame);
+
+module.exports = router;
