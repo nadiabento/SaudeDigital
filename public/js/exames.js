@@ -34,7 +34,7 @@ async function carregarCategorias() {
         '<option value="">Selecione uma categoria...</option>';
       categoriasGlobais.forEach((cat) => {
         const opt = document.createElement("option");
-        opt.value = cat.id;
+        opt.value = cat.id; // Garantido o alinhamento com a PK .id do Sequelize
         opt.textContent = cat.nome;
         selectModal.appendChild(opt);
       });
@@ -47,11 +47,11 @@ async function carregarCategorias() {
 async function carregarHistorico(pagina = 1) {
   try {
     const response = await fetch(`/api/exames/historico?page=${pagina}`);
-    if (!response.ok) throw new Error("Erro na rede"); // Evita processar se der erro 500
+    if (!response.ok) throw new Error("Erro na rede");
 
     const data = await response.json();
 
-    // Como agora o servidor manda um OBJETO, tens de extrair o array .exames
+    // Extração segura dos dados paginados estruturados pelo Sequelize
     examesParaTabela = data.exames;
     paginaAtual = data.paginaAtual;
 
@@ -84,11 +84,22 @@ function renderizarTabela(totalPaginas) {
   if (!tbody) return;
   tbody.innerHTML = "";
 
-  // O array 'examesParaTabela' agora contém apenas os 10 itens enviados pelo servidor
+  if (!examesParaTabela || examesParaTabela.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum exame registado no histórico.</td></tr>`;
+    renderizarControlosPaginacao(0);
+    return;
+  }
+
   examesParaTabela.forEach((exame) => {
-    let dataF = exame.data
-      ? exame.data.split("T")[0].split("-").reverse().join("/")
-      : "---";
+    // CORREÇÃO SEQUELIZE: O Sequelize devolve 'YYYY-MM-DD', tratamos de forma limpa
+    let dataF = "---";
+    if (exame.data) {
+      const partes = exame.data.split("T")[0].split("-");
+      dataF =
+        partes.length === 3
+          ? `${partes[2]}/${partes[1]}/${partes[0]}`
+          : exame.data;
+    }
 
     const obsLimpa = exame.observacoes
       ? exame.observacoes.replace(/'/g, "\\'").replace(/"/g, "&quot;")
@@ -100,7 +111,7 @@ function renderizarTabela(totalPaginas) {
                 <td><strong>${exame.nome}</strong></td>
                 <td>${dataF}</td>
                 <td>
-                    ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none">PDF</a>` : "---"}
+                    ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none"><i class="bi bi-file-pdf"></i> PDF</a>` : "---"}
                 </td>
                 <td class="text-end">
                     <div class="dropdown">
@@ -108,7 +119,7 @@ function renderizarTabela(totalPaginas) {
                             <i class="bi bi-three-dots"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replace(/'/g, "\\'")}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
                             <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -119,7 +130,6 @@ function renderizarTabela(totalPaginas) {
             </tr>`;
   });
 
-  // Passamos o total de páginas recebido do servidor para os controlos
   renderizarControlosPaginacao(totalPaginas);
 }
 
@@ -127,14 +137,19 @@ function renderizarControlosPaginacao(totalPaginas) {
   const container = document.getElementById("paginacaoContainer");
   if (!container) return;
 
-  let html = `<nav><ul class="pagination pagination-sm">`;
+  if (totalPaginas <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let html = `<nav><ul class="pagination pagination-sm m-0">`;
 
   // Botão Anterior
   html += `<li class="page-item ${paginaAtual === 1 ? "disabled" : ""}">
             <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${paginaAtual - 1})">Anterior</a>
           </li>`;
 
-  // Gerar botões numéricos baseados no totalPaginas que veio do servidor
+  // Gerar botões numéricos
   for (let i = 1; i <= totalPaginas; i++) {
     html += `<li class="page-item ${i === paginaAtual ? "active" : ""}">
               <a class="page-link" href="javascript:void(0)" onclick="mudarPagina(${i})">${i}</a>
@@ -153,7 +168,7 @@ function renderizarControlosPaginacao(totalPaginas) {
 function mudarPagina(num) {
   if (num < 1) return;
   paginaAtual = num;
-  carregarHistorico(num); // Esta função faz o fetch com ?page=num
+  carregarHistorico(num);
 }
 
 function filtrarTabela() {
@@ -175,15 +190,26 @@ function toggleTodos(master) {
 }
 
 function verificarSelecao() {
+  // Procura todas as checkboxes que estão selecionadas (com o visto)
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
   const marcados = checkboxes.length;
 
+  // Encontra a barra que contém os botões de Eliminar em Massa/Partilhar
   const barraAcoes = document.getElementById("acoesMassa");
+
   if (barraAcoes) {
-    barraAcoes.classList.toggle("d-none", marcados === 0);
-    barraAcoes.classList.toggle("d-flex", marcados > 0);
+    if (marcados > 0) {
+      // Se houver itens selecionados, GARANTE que a barra aparece
+      barraAcoes.classList.remove("d-none");
+      barraAcoes.style.display = "flex"; // Força o layout flex do Bootstrap
+    } else {
+      // Se não houver nada selecionado, esconde a barra
+      barraAcoes.classList.add("d-none");
+      barraAcoes.style.display = "none";
+    }
   }
 
+  // Bloquear ou desbloquear ações individuais (Ver Detalhes, Editar) no menu de 3 pontos
   const acoesIndividuais = document.querySelectorAll(".btn-acao-individual");
   const bloquearIndividuais = marcados > 1;
 
@@ -200,13 +226,12 @@ function verificarSelecao() {
   });
 }
 
-//--- 4. ELIMINAÇÃO (INDIVIDUAL E MASSA) ---
+//--- 4. ELIMINAÇÃO EM MASSA INTERLIGADA ---
 
 async function eliminarUm(id) {
-  // 1. Janela de confirmação inicial
   Swal.fire({
     title: "Tem a certeza?",
-    text: "Este exame será removido permanentemente do seu histórico!",
+    text: "Este exame será removido permanentemente do seu histórico clínico!",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#dc3545",
@@ -214,25 +239,21 @@ async function eliminarUm(id) {
     confirmButtonText: "Sim, eliminar",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
-    // 2. Se o utilizador confirmar a ação
     if (result.isConfirmed) {
       try {
-        // Chamada à API para eliminar na base de dados
         await executarEliminacao([id]);
-
-        // 3. ALERTA DE SUCESSO COM TEXTO DETALHADO
         Swal.fire({
           title: "Eliminado com Sucesso!",
           text: "O registo do exame e o respetivo ficheiro PDF foram removidos do sistema.",
           icon: "success",
           showConfirmButton: false,
-          timer: 2000, // Visível por 2 segundos
+          timer: 2000,
         });
       } catch (error) {
         console.error("Erro ao eliminar:", error);
         Swal.fire({
           title: "Erro!",
-          text: "Não foi possível eliminar o exame. Tente novamente mais tarde.",
+          text: "Não foi possível eliminar o exame devido a restrições de segurança.",
           icon: "error",
           confirmButtonColor: "#dc3545",
         });
@@ -242,13 +263,11 @@ async function eliminarUm(id) {
 }
 
 async function eliminarSelecionados() {
-  // 1. Captura os IDs selecionados
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
   const ids = Array.from(checkboxes).map((cb) => cb.value);
 
   if (ids.length === 0) return;
 
-  // 2. Alerta de confirmação detalhado
   Swal.fire({
     title: `Eliminar ${ids.length} exames?`,
     text: "Esta ação removerá todos os registos e ficheiros selecionados permanentemente!",
@@ -261,22 +280,19 @@ async function eliminarSelecionados() {
   }).then(async (result) => {
     if (result.isConfirmed) {
       try {
-        // Executa a eliminação no servidor
         await executarEliminacao(ids);
-
-        // 3. SUCESSO: Texto dinâmico com a quantidade eliminada
         Swal.fire({
           title: "Registos Removidos!",
           text: `Foram eliminados ${ids.length} exames com sucesso do seu histórico.`,
           icon: "success",
           showConfirmButton: false,
-          timer: 2500, // Um pouco mais de tempo para ler o número
+          timer: 2500,
         });
       } catch (error) {
         console.error("Erro ao eliminar vários:", error);
         Swal.fire({
           title: "Erro na operação",
-          text: "Ocorreu um problema ao tentar eliminar os registos selecionados.",
+          text: "Problema de integridade ao tentar eliminar os registos selecionados.",
           icon: "error",
           confirmButtonColor: "#dc3545",
         });
@@ -286,15 +302,17 @@ async function eliminarSelecionados() {
 }
 
 async function executarEliminacao(ids) {
-  try {
-    const res = await fetch("/api/exames/eliminar-massa", {
-      method: "DELETE",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ids }),
-    });
-    if (res.ok) carregarHistorico();
-  } catch (error) {
-    console.error("Erro na eliminação:", error);
+  const res = await fetch("/api/exames/eliminar-massa", {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ ids }),
+  });
+  if (res.ok) {
+    const checkMaster = document.getElementById("checkAll");
+    if (checkMaster) checkMaster.checked = false;
+    carregarHistorico(paginaAtual);
+  } else {
+    throw new Error("Erro na eliminação do servidor");
   }
 }
 
@@ -312,7 +330,7 @@ function configurarEventosInterface() {
       listaUlClasse.innerHTML = "";
       if (termo.length > 0) {
         const filtradas = categoriasGlobais.filter((c) =>
-          c.nome.toLowerCase().startsWith(termo),
+          c.nome.toLowerCase().includes(termo),
         );
         filtradas.forEach((cat) => {
           const li = document.createElement("li");
@@ -338,7 +356,7 @@ function configurarEventosInterface() {
       listaUlTipo.innerHTML = "";
       if (termo.length > 0) {
         const filtrados = tiposGlobais.filter((t) =>
-          t.nome.toLowerCase().startsWith(termo),
+          t.nome.toLowerCase().includes(termo),
         );
         filtrados.forEach((tipo) => {
           const li = document.createElement("li");
@@ -358,19 +376,29 @@ function configurarEventosInterface() {
     });
   }
 
+  // --- SUBMISSÃO DO FORMULÁRIO COM FEEDBACK DE POP-UP (SWAL) ---
   const form = document.getElementById("formExame");
   if (form) {
+    // Removemos qualquer listener duplicado clonando a intenção
+    form.removeAttribute("action");
+    form.removeAttribute("method");
+
     form.addEventListener("submit", async (e) => {
-      e.preventDefault();
+      e.preventDefault(); // Trava o refresh nativo do HTML para dar tempo ao Pop-up
+
       const dataExame = document.getElementById("dataExame").value;
       const idTipoExame = document.getElementById("idTipoSelecionado").value;
-      if (!idTipoExame)
-        return Swal.fire(
-          "Atenção",
-          "Selecione um tipo de exame válido.",
-          "warning",
-        );
 
+      if (!idTipoExame) {
+        return Swal.fire({
+          title: "Atenção",
+          text: "Por favor, selecione um tipo de exame válido a partir das sugestões.",
+          icon: "warning",
+          confirmButtonColor: "#0d6efd",
+        });
+      }
+
+      // Criar o FormData para empacotar o PDF do Multer
       const formData = new FormData();
       formData.append("data_exame", dataExame);
       formData.append(
@@ -380,30 +408,45 @@ function configurarEventosInterface() {
       formData.append("id_tipo_exame", idTipoExame);
 
       const fileInput = document.querySelector('input[name="relatorio"]');
-      if (fileInput && fileInput.files[0])
+      if (fileInput && fileInput.files[0]) {
         formData.append("relatorio", fileInput.files[0]);
+      }
 
-      const res = await fetch("/api/exames/registar", {
-        method: "POST",
-        body: formData,
-      });
-      if (res.ok) {
-        Swal.fire({
-          title: "Exame Registado!",
-          text: "O seu novo exame foi guardado com sucesso no histórico clínico.",
-          icon: "success",
-          confirmButtonColor: "#0d6efd",
-          timer: 2500,
-          showConfirmButton: false,
-        }).then(() => {
-          // Só recarrega a página DEPOIS de mostrar o alerta
-          location.reload();
+      try {
+        // Dispara o pedido AJAX assíncrono para o Sequelize
+        const res = await fetch("/api/exames/registar", {
+          method: "POST",
+          body: formData,
         });
-      } else {
-        const erro = await res.json();
+
+        if (res.ok) {
+          // INTERCEÇÃO COM POP-UP ANTES DO REFRESH
+          Swal.fire({
+            title: "Exame Registado!",
+            text: "O seu novo exame foi guardado com sucesso no histórico clínico.",
+            icon: "success",
+            confirmButtonColor: "#0d6efd",
+            allowOutsideClick: false, // Impede o utilizador de fechar sem querer
+          }).then((result) => {
+            if (result.isConfirmed || result.isDismissed) {
+              // SÓ RECARREGA QUANDO O UTILIZADOR CLICAR EM OK no Pop-up
+              location.reload();
+            }
+          });
+        } else {
+          const erro = await res.json();
+          Swal.fire({
+            title: "Erro ao registar",
+            text: erro.error || "Verifique os dados inseridos.",
+            icon: "error",
+            confirmButtonColor: "#dc3545",
+          });
+        }
+      } catch (error) {
+        console.error("Erro na submissão do exame:", error);
         Swal.fire({
-          title: "Erro ao registar",
-          text: erro.error || "Verifique os dados inseridos.",
+          title: "Erro de Conexão",
+          text: "Não foi possível comunicar com o servidor da UA.",
           icon: "error",
           confirmButtonColor: "#dc3545",
         });
@@ -418,7 +461,7 @@ function configurarEventosInterface() {
   });
 }
 
-// --- 6. MODAIS E UTILITÁRIOS (Categorias, Tipos, Ordenação) ---
+//--- 6. MODAIS E PARÂMETROS GLOBAIS ---
 
 async function adicionarClasse() {
   const nome = document.getElementById("inputNovaClasse")?.value.trim();
@@ -427,7 +470,6 @@ async function adicionarClasse() {
       title: "Campo Vazio",
       text: "Por favor, insira o nome da nova categoria.",
       icon: "info",
-      confirmButtonColor: "#0d6efd",
     });
   }
 
@@ -439,21 +481,21 @@ async function adicionarClasse() {
     });
 
     if (res.ok) {
+      // Bloqueia o ecrã com o Pop-up de Sucesso e só atualiza quando clicas em OK
       Swal.fire({
         title: "Categoria Criada!",
-        text: `A categoria "${nome}" foi adicionada com sucesso e já pode ser utilizada.`,
+        text: `A categoria "${nome}" foi adicionada com sucesso.`,
         icon: "success",
         confirmButtonColor: "#0d6efd",
-        timer: 2500,
-        showConfirmButton: false,
+        allowOutsideClick: false,
       }).then(() => {
-        location.reload();
+        location.reload(); // Recarrega SÓ DEPOIS de veres o pop-up
       });
     } else {
       Swal.fire("Erro", "Não foi possível criar a categoria.", "error");
     }
   } catch (error) {
-    console.error("Erro ao adicionar categoria:", error);
+    console.error(error);
   }
 }
 
@@ -466,7 +508,6 @@ async function adicionarTipo() {
       title: "Atenção",
       text: "Preencha o nome e selecione uma categoria.",
       icon: "warning",
-      confirmButtonColor: "#0d6efd",
     });
   }
 
@@ -474,27 +515,24 @@ async function adicionarTipo() {
     const res = await fetch("/api/exames/tipos", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      // Enviamos apenas o que o controller espera
       body: JSON.stringify({ nome: nome, id_categoria: idCat }),
     });
 
     if (res.ok) {
-      // TEXTO DE SUCESSO BONITO COMO PEDISTE
       Swal.fire({
         title: "Tipo de Exame Criado!",
-        text: `O novo tipo "${nome}" foi adicionado à categoria selecionada com sucesso.`,
+        text: `O novo tipo "${nome}" foi adicionado com sucesso.`,
         icon: "success",
         confirmButtonColor: "#0d6efd",
-        timer: 2500,
-        showConfirmButton: false,
+        allowOutsideClick: false,
       }).then(() => {
-        location.reload(); // Recarrega para atualizar as listas
+        location.reload(); // Recarrega SÓ DEPOIS de veres o pop-up
       });
     } else {
       Swal.fire("Erro", "Não foi possível guardar o novo tipo.", "error");
     }
   } catch (error) {
-    console.error("Erro ao enviar:", error);
+    console.error(error);
   }
 }
 
@@ -506,22 +544,18 @@ function ordenarTabela(coluna) {
     return (valA < valB ? -1 : 1) * fator;
   });
   direcaoOrdenacao[coluna] *= -1;
-  renderizarTabela();
+  renderizarTabela(Math.ceil(examesParaTabela.length / examesPorPagina));
 }
 
-//--- 7. PARTILHA E EMAIL ---
+//--- 7. PARTILHA EXTERNA ---
 
 async function gerarLinkPartilha(id = null) {
   let ids = [];
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
 
-  // LOGICA INTELIGENTE:
-  // Se houver exames selecionados com "visto", usamos esses (ignora o ID individual do botão)
   if (checkboxes.length > 0) {
     ids = Array.from(checkboxes).map((cb) => cb.value);
-  }
-  // Se não houver nada selecionado na checkbox, mas clicaste num individual (3 pontos)
-  else if (id) {
+  } else if (id) {
     ids = [id];
   }
 
@@ -547,7 +581,6 @@ async function gerarLinkPartilha(id = null) {
       const linkFinal = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
       document.getElementById("inputLinkPartilha").value = linkFinal;
 
-      // Se forem vários, podemos mudar o texto do modal para avisar
       const textoQuantidade =
         ids.length > 1 ? ` (${ids.length} exames selecionados)` : "";
       document.querySelector("#modalPartilha .modal-title").innerHTML =
@@ -585,24 +618,15 @@ function enviarPorEmail() {
 }
 
 function enviarPorWhatsApp() {
-  // 1. Vai buscar o link que está no input do modal
   const link = document.getElementById("inputLinkPartilha").value;
-
-  // 2. Vai buscar o nome do utilizador (mesma lógica do teu e-mail)
   const nomeUtilizador = localStorage.getItem("userName") || "Utilizador";
-
-  // 3. Cria a mensagem formatada
   const textoMensagem = `Olá, aqui estão os meus resultados de exames do SaúdeDigital: ${link}\n\nMelhores cumprimentos, ${nomeUtilizador}`;
-
-  // 4. Codifica o texto para URL (converte espaços e símbolos)
-  const mensagemFinal = encodeURIComponent(textoMensagem);
-
-  // 5. URL da API do WhatsApp (funciona em Telemóvel e PC)
-  const whatsappUrl = `https://api.whatsapp.com/send?text=${mensagemFinal}`;
-
-  // 6. Abre o WhatsApp numa nova aba
-  window.open(whatsappUrl, "_blank");
+  window.open(
+    `https://api.whatsapp.com/send?text=${encodeURIComponent(textoMensagem)}`,
+    "_blank",
+  );
 }
+
 //--- 8. EDIÇÃO E DETALHES ---
 
 function abrirModalEditar(id, data, obs) {
@@ -631,7 +655,6 @@ async function guardarEdicao() {
       title: "Alterações Guardadas!",
       text: "Os detalhes do exame foram atualizados corretamente.",
       icon: "success",
-      confirmButtonColor: "#0d6efd",
       timer: 2000,
       showConfirmButton: false,
     }).then(() => {
@@ -643,20 +666,22 @@ async function guardarEdicao() {
 function verDetalhes(id, nome, data, obs, ficheiro) {
   const selecionados = document.querySelectorAll(".exame-checkbox:checked");
 
-  // Se houver vários selecionados, ignora os argumentos individuais e mostra a lista
   if (selecionados.length > 1) {
-    mostrarDetalhesMultiplos(); // Esta é a função que injeta o conteúdo dinâmico
+    mostrarDetalhesMultiplos();
     return;
   }
 
-  // Caso contrário, mostra o layout normal de 1 único exame
   const modalCorpo = document.getElementById("corpoDetalhesDinamico");
   const tituloModal = document.getElementById("tituloModalDetalhes");
 
   tituloModal.textContent = "Detalhes do Exame";
-  const dataF = data
-    ? data.split("T")[0].split("-").reverse().join("/")
-    : "---";
+
+  let dataF = "---";
+  if (data) {
+    const partes = data.split("T")[0].split("-");
+    dataF =
+      partes.length === 3 ? `${partes[2]}/${partes[1]}/${partes[0]}` : data;
+  }
 
   modalCorpo.innerHTML = `
         <div id="layoutIndividual">
@@ -675,13 +700,10 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
             <div class="mt-3">
                 ${ficheiro ? `<a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF</a>` : '<p class="text-muted text-center italic">Sem anexo.</p>'}
             </div>
-        </div>
-    `;
+        </div>`;
 
   new bootstrap.Modal(document.getElementById("modalDetalhesExame")).show();
 }
-
-//Função para mostrar múltiplos detalhes num único visualizador
 
 function mostrarDetalhesMultiplos() {
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
@@ -692,7 +714,6 @@ function mostrarDetalhesMultiplos() {
     idsSeleccionados.includes(ex.id),
   );
 
-  // ID do novo contentor que criámos no HTML
   const modalCorpo = document.getElementById("corpoDetalhesDinamico");
   const tituloModal = document.getElementById("tituloModalDetalhes");
 
@@ -700,9 +721,14 @@ function mostrarDetalhesMultiplos() {
 
   let conteudoHtml = "";
   listaExamesParaMostrar.forEach((ex) => {
-    const dataF = ex.data
-      ? ex.data.split("T")[0].split("-").reverse().join("/")
-      : "---";
+    let dataF = "---";
+    if (ex.data) {
+      const partes = ex.data.split("T")[0].split("-");
+      dataF =
+        partes.length === 3
+          ? `${partes[2]}/${partes[1]}/${partes[0]}`
+          : ex.data;
+    }
     conteudoHtml += `
             <div class="card mb-3 border-0 bg-light rounded-3">
                 <div class="card-body">

@@ -1,200 +1,97 @@
-/* --- CONFIGURAÇÕES BASE --- */
-body {
-    background-color: #fafbfc;
-    font-family: 'Inter', system-ui, -apple-system, sans-serif;
-    -webkit-font-smoothing: antialiased;
-    color: #1e293b;
+.card {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.main-content {
-    margin-left: 260px; 
-    padding: 50px 40px;
-    min-height: 100vh;
+/* Efeito Hover Suave nos cartões de moderação rápidos */
+.bg-light.rounded-3 {
+    transition: all 0.2s ease-in-out;
 }
 
 .container-max {
-    max-width: 1140px;
+    max-width: 1200px;
     margin: 0 auto;
 }
 
-/* Esconder barra mobile fixa no ecrã de computador */
-@media (min-width: 769px) {
-    .navbar.fixed-top {
-        display: none !important;
-    }
+/* 1. Garante que cada bloco de remoção permite que a lista flutue livremente para fora dele */
+.p-3.bg-light.rounded-3.position-relative {
+    position: relative !important;
+    overflow: visible !important; /* CRÍTICO: Impede que o card corte a lista suspensa */
 }
 
-@media (max-width: 991px) {
-    .main-content {
-        margin-left: 0;
-        padding: 90px 20px 20px 20px;
-    }
+/* 2. Estilização da lista flutuante com Scroll e limite de altura */
+.custom-autocomplete-list {
+    position: absolute !important;
+    top: 100% !important;
+    left: 0 !important;
+    /* Ajustamos a largura para alinhar perfeitamente com o input de texto, descontando o espaço do botão vermelho */
+    width: calc(100% - 54px) !important; 
+    
+    max-height: 180px !important; /* Limita o tamanho a cerca de 4 a 5 itens visíveis */
+    overflow-y: auto !important;  /* Ativa o Scroll vertical quando ultrapassa o limite */
+    
+    background-color: #ffffff !important; /* Força o fundo branco opaco */
+    border: 1px solid #dee2e6 !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important; /* Sombra profissional para dar efeito 3D */
+    padding: 0 !important;
+    margin: 4px 0 0 0 !important;
+    z-index: 99999 !important; /* Força a ficar no topo absoluto de qualquer outro elemento visual */
 }
 
-/* --- ALINHAMENTO IGUAL DE PAINÉIS (Cards Simétricos) --- */
-.match-height-row {
-    display: flex;
-    flex-wrap: wrap;
+/* 3. Itens individuais dentro da lista */
+.custom-autocomplete-list .list-group-item {
+    cursor: pointer !important;
+    border: none !important;
+    border-bottom: 1px solid #f8f9fa !important; /* Linha divisória subtil entre opções */
+    padding: 10px 14px !important;
+    font-size: 0.88rem !important;
+    color: #252f40 !important;
+    background-color: #ffffff !important;
+    transition: all 0.15s ease-in-out !important;
 }
 
-.card-custom {
-    background: #ffffff;
-    border-radius: 12px;
-    padding: 30px;
-    border: 1px solid #e2e8f0;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 2px 4px -1px rgba(0, 0, 0, 0.01);
-    display: flex;
-    flex-direction: column;
+/* Remove a linha divisória no último item */
+.custom-autocomplete-list .list-group-item:last-child {
+    border-bottom: none !important;
 }
 
-.border-danger-soft {
-    border: 1px solid #fee2e2 !important;
-    background-color: #fffdfd;
+/* Efeito de Destaque (Hover) */
+.custom-autocomplete-list .list-group-item:hover {
+    background-color: #f0f5ff !important; /* Mantém apenas a cor azul suave de seleção */
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    padding-left: 14px !important; /* Mantém exatamente o mesmo padding original, sem mover o texto */
 }
 
-.card-custom-header h5 {
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: #0f172a;
+/* 4. Customização da barra de scroll (Opcional, para ficar com aspeto moderno) */
+.custom-autocomplete-list::-webkit-scrollbar {
+    width: 6px;
+}
+.custom-autocomplete-list::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 0 8px 8px 0;
+}
+.custom-autocomplete-list::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+.custom-autocomplete-list::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
 }
 
-/* --- ISOLAMENTO DE LABELS (Evita compressão de texto) --- */
-.field-block {
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: flex-start !important;
-    width: 100%;
+/* Mantém o efeito visual de sombra, mas REMOVE o transform que fazia a caixa saltar */
+.p-3.bg-light.rounded-3.position-relative:hover {
+    transform: none !important; /* Força o card a ficar completamente parado no sítio */
+    background-color: #ffffff !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-.form-label-custom {
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: #64748b;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    display: block;
-    width: 100%;
-    white-space: nowrap; /* Impede que quebrem de forma estranha */
-}
-
-/* --- INPUTS --- */
-.input-group-custom {
-    position: relative;
-    display: flex;
-    align-items: center;
-    width: 100%;
-}
-
-.input-icon {
-    position: absolute;
-    left: 14px;
-    color: #94a3b8;
-    font-size: 1rem;
-    display: flex;
-    align-items: center;
-    pointer-events: none;
-    z-index: 5;
-}
-
-.form-control-custom {
-    width: 100%;
-    padding: 10px 14px 10px 40px; 
-    border-radius: 8px;
-    border: 1px solid #cbd5e1;
-    background-color: #ffffff;
-    color: #0f172a;
-    font-size: 0.9rem;
-    outline: none;
-    transition: all 0.15s ease-in-out;
-}
-
-.form-control-custom:focus {
-    border-color: #0d6efd;
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.08);
-}
-
-.field-disabled {
-    opacity: 0.65;
-}
-.field-disabled .form-control-custom {
-    background-color: #f1f5f9;
-    border-color: #e2e8f0;
-    cursor: not-allowed;
-}
-
-.form-select-custom {
-    padding-left: 14px !important;
-    cursor: pointer;
-    appearance: none;
-    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%2394a3b8' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
-    background-repeat: no-repeat;
-    background-position: right 14px center;
-    background-size: 10px;
-}
-
-/* --- BOTÕES --- */
-.btn-custom {
-    padding: 10px 20px;
-    border-radius: 8px;
-    font-weight: 600;
-    font-size: 0.9rem;
-    border: none;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.15s ease;
-    cursor: pointer;
-}
-
-.btn-custom-primary {
-    background-color: #0d6efd;
-    color: #ffffff;
-}
-.btn-custom-primary:hover {
-    background-color: #0b5ed7;
-}
-
-.btn-custom-secondary {
-    background-color: #f1f5f9;
-    color: #334155;
-    border: 1px solid #cbd5e1;
-    min-width: 42px;
-}
-.btn-custom-secondary:hover {
-    background-color: #e2e8f0;
-}
-
-.btn-custom-danger {
-    background-color: #ef4444;
-    color: #ffffff;
-}
-.btn-custom-danger:hover {
-    background-color: #dc2626;
-}
-
-.btn-custom:active {
-    transform: scale(0.98);
-}
-
-.icon-shape {
-    width: 46px;
-    height: 46px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-.bg-primary-soft {
-    background-color: rgba(13, 110, 253, 0.06);
-}
-
-/* Remove setas padrão do input de peso */
-input[type=number]::-webkit-inner-spin-button, 
-input[type=number]::-webkit-outer-spin-button { 
-    -webkit-appearance: none; 
-    margin: 0; 
-}
-input[type=number] {
-    -moz-appearance: textfield;
+/* Garante que os itens da lista também não fazem nenhuma micro-animação */
+.custom-autocomplete-list .list-group-item:hover {
+    background-color: #f0f5ff !important;
+    color: #0d6efd !important;
+    font-weight: 600 !important;
+    transform: none !important; /* Proteção extra contra heranças */
+    padding-left: 14px !important; /* Exatamente igual ao padding original */
 }

@@ -1,186 +1,371 @@
-const Exame = require("../models/exame");
+const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
+const CategoriaExame = require("../models/CategoriaExame");
 const fs = require("fs");
 const path = require("path");
+const { Op } = require("sequelize");
 const crypto = require("crypto");
 
-// --- LISTAGENS ---
+// =========================================================================
+// --- 1. LISTAGENS E FILTROS EM CASCATA (PÁGINA INICIAL E CONTA)        ---
+// =========================================================================
+
+// Devolve todas as categorias ordenadas por nome (Preenche a primeira combobox)
 exports.listarCategorias = async (req, res) => {
   try {
-    const rows = await Exame.listarCategorias();
-    res.json(rows);
+    const categorias = await CategoriaExame.findAll({
+      order: [["nome", "ASC"]],
+    });
+    res.json(categorias);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar categorias" });
+    console.error("Erro ao listar categorias:", error);
+    res.status(500).json({ error: "Erro ao listar categorias." });
   }
 };
 
+// Devolve os subtipos filtrados pela categoria pai selecionada (Cascata dinâmica)
 exports.listarTiposPorCategoria = async (req, res) => {
   try {
-    // Esta função usa o parâmetro da URL (id_categoria)
-    const rows = await Exame.listarTiposPorCategoria(req.params.id_categoria);
-    res.json(rows);
+    const tipos = await TipoExame.findAll({
+      where: { id_categoria: req.params.id_categoria },
+      order: [["nome", "ASC"]],
+    });
+    res.json(tipos);
   } catch (error) {
-    res.status(500).json({ error: "Erro ao buscar tipos" });
+    console.error("Erro ao listar tipos por categoria:", error);
+    res.status(500).json({ error: "Erro ao listar tipos por categoria." });
   }
 };
 
-exports.listarHistorico = async (req, res) => {
-  const utilizadorId = req.session.userId;
+// Devolve todos os tipos de exames globais sem filtro de pai (Usado no conta.html)
+exports.listarTodosOsTiposAgnostico = async (req, res) => {
+  try {
+    const tipos = await TipoExame.findAll({ order: [["nome", "ASC"]] });
+    res.json(tipos);
+  } catch (error) {
+    console.error("Erro ao listar tipos globais:", error);
+    res.status(500).json({ error: "Erro ao listar tipos globais." });
+  }
+};
 
-  // 1. Verificar primeiro se o utilizador está logado
-  if (!utilizadorId) return res.status(401).json({ error: "Não autorizado" });
+// Lista o histórico de exames do utilizador logado com paginação e JOINs nativos
+exports.listarHistorico = async (req, res) => {
+  const utilizadorId = req.session.userId || 1; // ID 1 como segurança caso a sessão falhe
+  const pagina = parseInt(req.query.page) || 1;
+  const limite = 10; // Total de registos por página
+  const offset = (pagina - 1) * limite;
 
   try {
-    // 2. Definir as variáveis de paginação ANTES de as usar
-    const pagina = parseInt(req.query.page) || 1;
-    const limite = 10;
-    const offset = (pagina - 1) * limite;
+    const { rows, count } = await Exame.findAndCountAll({
+      where: { utilizador_id: utilizadorId },
+      distinct: true, // Garante a contagem real de cabeçalhos sem duplicar pelo JOIN N:N
+      order: [["data_exame", "DESC"]],
+      limit: limite,
+      offset: offset,
+      include: [
+        {
+          model: TipoExame,
+          attributes: ["nome"],
+          through: { attributes: ["resultado"] }, // Puxa o nome do PDF guardado na tabela ponte
+        },
+      ],
+    });
 
-    // 3. Chamar o Model para buscar os dados e o total
-    const rows = await Exame.listarHistoricoPaginado(
-      utilizadorId,
-      limite,
-      offset,
-    );
-    const total = await Exame.contarTotal(utilizadorId);
+    // Formata os dados para o formato exato que o teu JavaScript antigo do frontend já processava
+    const examesFormatados = rows.map((ex) => {
+      const tipo = ex.TipoExames && ex.TipoExames[0];
+      return {
+        id: ex.id,
+        data: ex.data_exame,
+        nome: tipo ? tipo.nome : "Não especificado",
+        resultado:
+          tipo && tipo.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+        observacoes: ex.observacoes || "",
+      };
+    });
 
-    // 4. Enviar a resposta com o cálculo correto
     res.json({
-      exames: rows,
-      totalPaginas: Math.ceil(total / limite),
+      exames: examesFormatados,
+      totalPaginas: Math.ceil(count / limite),
       paginaAtual: pagina,
     });
   } catch (error) {
-    console.error("Erro no listarHistorico:", error);
-    res.status(500).json({ error: "Erro interno ao carregar histórico." });
+    console.error("Erro ao carregar histórico com Sequelize:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno ao carregar o histórico clínico." });
   }
 };
 
-// --- PORTAL DO MÉDICO ---
+// =========================================================================
+// --- 2. OPERAÇÕES DE CRIAÇÃO E REGISTO (POST)                          ---
+// =========================================================================
+
+// Guarda um novo exame e associa-o ao ficheiro PDF carregado pelo Multer
+exports.registarExame = async (req, res) => {
+  const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
+  const utilizadorId = req.session.userId || 1;
+  const nomeFicheiro = req.file ? req.file.filename : null; // Captura do Multer
+
+  if (!data_exame || !id_tipo_exame) {
+    return res
+      .status(400)
+      .json({ error: "A data e o tipo de exame são obrigatórios." });
+  }
+
+  try {
+    // 1. Inserção na tabela principal (Exame)
+    const novoExame = await Exame.create({
+      data_exame,
+      local_realizacao: local_realizacao || "SaúdeDigital Clinic",
+      observacoes,
+      utilizador_id: utilizadorId,
+    });
+
+    // 2. Inserção do vínculo na tabela ponte (Exame_TipoExame) ligando o PDF
+    await ExameTipoExame.create({
+      id_exame: novoExame.id,
+      id_tipo_exame: id_tipo_exame,
+      resultado: nomeFicheiro,
+    });
+
+    res
+      .status(200)
+      .json({ message: "Exame e relatório guardados com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao registar exame:", error);
+    res.status(500).json({ error: "Erro interno ao submeter o exame." });
+  }
+};
+
+// Cria uma nova categoria de exame (Via Modal do formulário)
+exports.criarCategoria = async (req, res) => {
+  try {
+    const nova = await CategoriaExame.create({ nome: req.body.nome });
+    res.status(201).json(nova);
+  } catch (error) {
+    console.error("Erro ao criar categoria:", error);
+    res.status(500).json({ error: "Erro ao criar categoria." });
+  }
+};
+
+// Cria um novo subtipo de exame (Via Modal do formulário)
+exports.criarTipo = async (req, res) => {
+  try {
+    const novo = await TipoExame.create({
+      nome: req.body.nome,
+      id_categoria: req.body.id_categoria,
+    });
+    res.status(201).json(novo);
+  } catch (error) {
+    console.error("Erro ao criar tipo:", error);
+    res.status(500).json({ error: "Erro ao criar tipo de exame." });
+  }
+};
+
+// =========================================================================
+// --- 3. OPERAÇÕES DE EDIÇÃO E MANUTENÇÃO (PUT)                         ---
+// =========================================================================
+
+// Atualiza os dados editáveis de um exame existente
+exports.editarExame = async (req, res) => {
+  const { data_exame, observacoes } = req.body;
+  const utilizadorId = req.session.userId || 1;
+
+  try {
+    const [atualizados] = await Exame.update(
+      { data_exame, observacoes },
+      { where: { id: req.params.id, utilizador_id: utilizadorId } },
+    );
+
+    if (atualizados === 0) {
+      return res
+        .status(404)
+        .json({ error: "Exame não encontrado ou sem permissão." });
+    }
+    res.json({ message: "Exame atualizado com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao editar exame:", error);
+    res.status(500).json({ error: "Erro ao editar o registo." });
+  }
+};
+
+// =========================================================================
+// --- 4. OPERAÇÕES DE REMOÇÃO PROTEGIDA (DELETE)                        ---
+// =========================================================================
+
+// Eliminação em massa a partir dos checkboxes do histórico principal (com remoção física do PDF)
+exports.eliminarMassa = async (req, res) => {
+  const { ids } = req.body;
+  const utilizadorId = req.session.userId || 1;
+
+  if (!ids || ids.length === 0) {
+    return res.status(400).json({ error: "Nenhum registo selecionado." });
+  }
+
+  try {
+    // 1. Procurar os nomes dos ficheiros PDF associados a estes exames para apagar do disco
+    const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
+
+    vinculos.forEach((vinculo) => {
+      if (vinculo.resultado) {
+        const caminhoFicheiro = path.join(
+          __dirname,
+          "../../public/uploads/",
+          vinculo.resultado,
+        );
+        if (fs.existsSync(caminhoFicheiro)) {
+          fs.unlinkSync(caminhoFicheiro); // Elimina fisicamente o PDF do servidor para poupar espaço
+        }
+      }
+    });
+
+    // 2. Apagar da base de dados respeitando as chaves estrangeiras
+    await ExameTipoExame.destroy({ where: { id_exame: ids } });
+    await Exame.destroy({ where: { id: ids, utilizador_id: utilizadorId } });
+
+    res.json({ message: "Registos clínicos eliminados com sucesso!" });
+  } catch (error) {
+    console.error("Erro na remoção em massa:", error);
+    res.status(500).json({ error: "Erro ao processar a eliminação em massa." });
+  }
+};
+
+// Elimina uma Categoria de Exame (Proteção nativa de Chave Estrangeira do Sequelize)
+exports.eliminarCategoria = async (req, res) => {
+  try {
+    await CategoriaExame.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Categoria limpa com sucesso!" });
+  } catch (error) {
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(400).json({
+        error:
+          "Operação travada. Existem subtipos de exames ou relatórios de pacientes mapeados nesta categoria.",
+      });
+    }
+    res.status(500).json({ error: "Erro interno no servidor." });
+  }
+};
+
+// Elimina um Tipo de Exame (Proteção contra perda de histórico clínico)
+exports.eliminarTipoExame = async (req, res) => {
+  try {
+    await TipoExame.destroy({ where: { id: req.params.id } });
+    res.json({ message: "Parâmetro clínico removido." });
+  } catch (error) {
+    if (error.name === "SequelizeForeignKeyConstraintError") {
+      return res.status(400).json({
+        error:
+          "Não pode apagar este tipo de exame. Existem exames reais no histórico dos utilizadores associados a este parâmetro.",
+      });
+    }
+    res.status(500).json({ error: "Erro interno no servidor." });
+  }
+};
+
+// --- GERAR LINK DE PARTILHA COM O MÉDICO (SEQUELIZE) ---
+exports.gerarPartilha = async (req, res) => {
+  const { examesIds } = req.body;
+  const utilizadorId = req.session.userId || 1;
+
+  if (!examesIds || examesIds.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Nenhum exame selecionado para partilhar." });
+  }
+
+  try {
+    // Gera um token aleatório seguro de 32 caracteres (ex: a1b2c3d4...)
+    const token = crypto.randomBytes(16).toString("hex");
+
+    // Define a expiração para daqui a 7 dias
+    const dataExpiracao = new Date();
+    dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+
+    // Converte o array de IDs [1, 2, 3] numa string "1,2,3" para guardar na tabela Partilha
+    const stringIds = examesIds.join(",");
+
+    // Faz o INSERT na tabela Partilha usando SQL Direto via Sequelize (ou Query Interface)
+    // para manter a compatibilidade com a tua tabela de Partilhas atual
+    await Exame.sequelize.query(
+      "INSERT INTO Partilha (token, exames_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
+      { replacements: [token, stringIds, dataExpiracao, utilizadorId] },
+    );
+
+    // Devolve o token criado para o conta.js/exames.js gerar o link final
+    res.json({ token });
+  } catch (error) {
+    console.error("Erro ao gerar token de partilha:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno ao criar o link de partilha." });
+  }
+};
+
+// --- SERVIR O FICHEIRO HTML PARA O MÉDICO ---
 exports.visualizarPartilha = (req, res) => {
+  // Envia o ficheiro HTML da partilha que está na tua pasta public
+  // Ajusta o caminho ("../../public/partilha.html") se o teu HTML tiver outro nome ou pasta
   res.sendFile(path.join(__dirname, "../../public/partilha.html"));
 };
 
+// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (SEQUELIZE) ---
 exports.getDadosPartilha = async (req, res) => {
-  try {
-    const partilha = await Exame.getDadosPartilha(req.params.token);
-    if (!partilha || partilha.length === 0)
-      return res.status(404).json({ error: "Link inválido" });
-
-    const ids = partilha[0].exames_ids.split(",").map(Number);
-    const exames = await Exame.buscarExamesPorIds(ids);
-    res.json(exames);
-  } catch (error) {
-    res.status(500).json({ error: "Erro interno" });
-  }
-};
-
-// --- CRIAÇÃO ---
-exports.criarCategoria = async (req, res) => {
-  try {
-    if (!req.body.nome)
-      return res.status(400).json({ error: "O nome é obrigatório." });
-    await Exame.criarCategoria(req.body.nome);
-    res.status(201).json({ message: "Categoria criada!" });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-};
-
-exports.criarTipo = async (req, res) => {
-  try {
-    const { nome, id_categoria } = req.body;
-    if (!nome || !id_categoria)
-      return res.status(400).json({ error: "Dados incompletos." });
-    await Exame.criarTipo(nome, id_categoria);
-    res.status(201).json({ message: "Tipo de exame criado!" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao guardar." });
-  }
-};
-
-exports.registarExame = async (req, res) => {
-  const { data_exame, observacoes, id_tipo_exame, local_realizacao } = req.body;
-  const utilizadorId = req.session.userId;
-  if (!utilizadorId) return res.status(401).json({ error: "Sessão expirada." });
-
-  const hoje = new Date();
-  hoje.setHours(23, 59, 59, 999);
-  if (new Date(data_exame) > hoje)
-    return res.status(400).json({ error: "Data superior à atual." });
+  const { token } = req.params;
 
   try {
-    const nomeFicheiro = req.file ? req.file.filename : null;
-    await Exame.registarCompleto(
-      data_exame,
-      local_realizacao || "SaúdeDigital Clinic",
-      observacoes,
-      utilizadorId,
-      id_tipo_exame,
-      nomeFicheiro,
+    // 1. Procura o token na tabela Partilha usando SQL compatível com o Sequelize
+    const [partilhas] = await Exame.sequelize.query(
+      "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = ? LIMIT 1",
+      { replacements: [token] },
     );
-    res.status(200).json({ message: "Exame guardado com sucesso!" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao guardar exame." });
-  }
-};
 
-// --- MANUTENÇÃO ---
-exports.editarExame = async (req, res) => {
-  try {
-    await Exame.editar(
-      req.params.id,
-      req.body.data_exame,
-      req.body.observacoes,
-      req.session.userId,
-    );
-    res.json({ message: "Exame atualizado!" });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao atualizar." });
-  }
-};
-
-exports.eliminarMassa = async (req, res) => {
-  const { ids } = req.body;
-  const utilizadorId = req.session.userId;
-  if (!utilizadorId || !ids)
-    return res.status(401).json({ error: "Erro na eliminação." });
-
-  try {
-    const ficheiros = await Exame.buscarFicheiros(ids);
-    const resultado = await Exame.eliminarMassa(ids, utilizadorId);
-
-    if (resultado.affectedRows > 0) {
-      ficheiros.forEach((f) => {
-        if (f.resultado) {
-          const caminho = path.join(
-            __dirname,
-            "../../public/uploads/",
-            f.resultado,
-          );
-          if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
-        }
-      });
+    if (partilhas.length === 0) {
+      return res
+        .status(404)
+        .json({ error: "Link de partilha inválido ou inexistente." });
     }
-    res.json({ message: "Eliminado!", quantidade: resultado.affectedRows });
+
+    const partilha = partilhas[0];
+
+    // 2. Verifica se o link já expirou (passou os 7 dias)
+    if (new Date(partilha.data_expiracao) < new Date()) {
+      return res
+        .status(410)
+        .json({ error: "Este link de partilha já expirou." });
+    }
+
+    // 3. Converte a string "1,2,3" de volta num array de números [1, 2, 3]
+    const ids = partilha.exames_ids.split(",").map((id) => parseInt(id));
+
+    // 4. Procura os exames reais e inclui os nomes dos tipos de exame (JOIN)
+    const exames = await Exame.findAll({
+      where: { id: ids },
+      include: [
+        {
+          model: TipoExame,
+          attributes: ["nome"],
+          through: { attributes: ["resultado"] },
+        },
+      ],
+    });
+
+    // 5. Formata os dados para o ecrã do médico ler corretamente
+    const examesFormatados = exames.map((ex) => {
+      const tipo = ex.TipoExames && ex.TipoExames[0];
+      return {
+        nome: tipo ? tipo.nome : "Exame Clínico",
+        data: ex.data_exame,
+        observacoes: ex.observacoes || "Sem observações registadas.",
+        resultado:
+          tipo && tipo.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+      };
+    });
+
+    res.json(examesFormatados);
   } catch (error) {
-    res.status(500).json({ error: "Erro interno." });
-  }
-};
-
-exports.gerarPartilha = async (req, res) => {
-  const { examesIds } = req.body;
-  const userId = req.session.userId;
-  if (!userId || !examesIds)
-    return res.status(401).json({ error: "Erro na partilha." });
-
-  const token = crypto.randomBytes(16).toString("hex");
-  const expiracao = new Date();
-  expiracao.setHours(expiracao.getHours() + 48);
-
-  try {
-    await Exame.salvarPartilha(token, examesIds.join(","), expiracao, userId);
-    res.json({ token: token });
-  } catch (error) {
-    res.status(500).json({ error: "Erro ao gerar link." });
+    console.error("Erro ao carregar dados da partilha:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno ao carregar os dados clínicos." });
   }
 };
