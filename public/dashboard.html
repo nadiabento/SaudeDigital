@@ -161,16 +161,22 @@
                         </div>
 
                         <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-                        <span class="badge bg-primary-subtle text-primary border border-primary-subtle p-2">
-                            <i class="bi bi-heart-pulse me-1"></i> FC (bpm)
-                        </span>
-                        <span class="badge bg-danger-subtle text-danger border border-danger-subtle p-2">
-                            <i class="bi bi-droplet me-1"></i> Glicose (mg/dL)
-                        </span>
-                        <span class="badge bg-success-subtle text-success border border-success-subtle p-2">
-                            <i class="bi bi-activity me-1"></i> PA (mmHg)
-                        </span>
-                    </div>
+                            <span id="btnFC" class="badge bg-primary text-white border border-primary p-2" style="cursor: pointer;">
+                                <i class="bi bi-heart-pulse me-1"></i> FC (bpm)
+                            </span>
+                            <span id="btnGlicose" class="badge bg-danger-subtle text-danger border border-danger-subtle p-2" style="cursor: pointer;">
+                                <i class="bi bi-droplet me-1"></i> Glicose (mg/dL)
+                            </span>
+                            <span id="btnPA" class="badge bg-success-subtle text-success border border-success-subtle p-2" style="cursor: pointer;">
+                                <i class="bi bi-activity me-1"></i> PA (mmHg)
+                            </span>
+                            <span id="btnPeso" class="badge bg-warning-subtle text-warning border border-warning-subtle p-2" style="cursor: pointer;">
+                                <i class="bi bi-scale me-1"></i> Peso (kg)
+                            </span>
+                            <span id="btnColesterol" class="badge bg-info-subtle text-info border border-info-subtle p-2" style="cursor: pointer;">
+                                <i class="bi bi-layer-backward me-1"></i> Colesterol (mg/dL)
+                            </span>
+                        </div>
                         
                         <div class="mt-auto pt-4">
                             <button class="btn btn-primary w-100 py-3 shadow-sm fw-bold" onclick="location.href='exames.html'">
@@ -205,6 +211,8 @@
                             <option value="Frequencia Cardiaca">Frequência Cardíaca (BPM)</option>
                             <option value="Glicose">Glicose (mg/dL)</option>
                             <option value="Pressao Arterial">Pressão Arterial</option>
+                            <option value="Peso">Peso (kg)</option>
+                            <option value="Colesterol">Colesterol (mg/dL)</option>
                         </select>
                     </div>
                     <div class="mb-3">

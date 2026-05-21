@@ -102,18 +102,18 @@ app.post("/api/dashboard/sinais-vitais", async (req, res) => {
     }
 });
 
-// --- ROTA PARA OS GRÁFICOS (SINAIS VITAIS) ---
+// --- ROTA PARA OS GRÁFICOS  ---
 app.get("/api/dashboard/historico-vitals", async (req, res) => {
     try {
         const userId = req.session.userId;
         if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
-        // Vamos buscar as medições ordenadas da mais antiga para a mais recente
+        // Adicionados 'Peso' e 'Colesterol' no filtro SQL
         const [registos] = await db.execute(
-            `SELECT tipo_metrica, valor_primario, data_registo 
+            `SELECT tipo_metrica, valor_primario, valor_secundario, data_registo 
              FROM Sinal_Vital 
-             WHERE id_utilizador = ? AND tipo_metrica IN ('Frequencia Cardiaca', 'Glicose')
-             ORDER BY data_registo ASC LIMIT 30`,
+             WHERE id_utilizador = ? AND tipo_metrica IN ('Frequencia Cardiaca', 'Glicose', 'Pressao Arterial', 'Peso', 'Colesterol')
+             ORDER BY data_registo ASC LIMIT 50`,
             [userId]
         );
 
@@ -123,6 +123,7 @@ app.get("/api/dashboard/historico-vitals", async (req, res) => {
         res.status(500).json({ erro: "Erro ao carregar gráficos" });
     }
 });
+
 // INICIALIZAÇÃO E TESTE DA DB 
 db.getConnection()
   .then((connection) => {
