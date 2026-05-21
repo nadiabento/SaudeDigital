@@ -413,4 +413,39 @@ router.get("/efeitos", async (req, res) => {
   }
 });
 
+router.delete("/catalogo/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // 1. VERIFICAÇÃO: O medicamento está associado a alguma receita ou plano ativo?
+    // Ajusta o nome da tabela (ex: 'Medicacao', 'Prescricao' ou 'Prescricao_Medicamento')
+    // e o nome da coluna de chave estrangeira conforme a tua base de dados.
+    const [emUso] = await db.sequelize.query(
+      "SELECT id FROM Medicacao WHERE id_medicamento = ? LIMIT 1",
+      { replacements: [id], type: db.sequelize.QueryTypes.SELECT },
+    );
+
+    // Se o medicamento estiver em uso no histórico de alguém, TRAVA tudo aqui!
+    if (emUso) {
+      return res.status(400).json({
+        error:
+          "Eliminação recusada! Este medicamento está registado no plano de medicação de utilizadores e não pode ser removido do catálogo.",
+      });
+    }
+
+    // 2. Se não houver nenhuma dependência, avança para o DELETE seguro
+    await db.sequelize.query("DELETE FROM Catalogo_Medicamentos WHERE id = ?", {
+      replacements: [id],
+    });
+
+    res.json({ message: "Medicamento removido do catálogo com sucesso." });
+  } catch (error) {
+    console.error("Erro ao eliminar medicamento:", error);
+    res.status(500).json({
+      error:
+        "Eliminação recusada! Este medicamento está registado no plano de medicação de utilizadores e não pode ser removido do catálogo. ",
+    });
+  }
+});
+
 module.exports = router;

@@ -40,6 +40,38 @@ router.get("/medicos", async (req, res) => {
     }
   }
 });
+router.get("/medicos/:id", async (req, res) => {
+  /* ... */
+}); // o teu get existente
+
+router.delete("/medicos/:id", async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    // 1. Procura se o médico já tem alguma consulta marcada no sistema
+    const [consultasDoMedico] = await db.sequelize.query(
+      "SELECT id FROM Consulta WHERE id_medico = ? LIMIT 1",
+      { replacements: [id], type: db.sequelize.QueryTypes.SELECT },
+    );
+
+    // Se houver histórico de consultas, bloqueia o botão da conta
+    if (consultasDoMedico) {
+      return res.status(400).json({
+        error:
+          "Aviso de Segurança: Este médico tem consultas associadas no histórico clínico e não pode ser removido.",
+      });
+    }
+
+    // 2. Se o médico estiver livre, apaga com segurança
+    await db.sequelize.query("DELETE FROM Medico WHERE id_medico = ?", {
+      replacements: [id],
+    });
+
+    res.json({ message: "Médico removido com sucesso." });
+  } catch (error) {
+    res.status(500).json({ error: "Erro interno ao remover médico." });
+  }
+});
 
 // POST (Criação)
 router.post("/", consultaController.registarConsulta);
