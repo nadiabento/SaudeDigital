@@ -55,6 +55,10 @@
           <i class="bi bi-exclamation-triangle me-3"></i>
           <span class="hide-on-collapse">Alergias</span>
         </a>
+        <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-heart-pulse me-3"></i>
+          <span class="hide-on-collapse">Sinais Vitais</span>
+        </a>
 
         <hr class="text-white opacity-25 mx-3">
 
@@ -161,21 +165,21 @@
                         </div>
 
                         <div class="mt-4 d-flex flex-wrap justify-content-center gap-2">
-                            <span id="btnFC" class="badge bg-primary text-white border border-primary p-2" style="cursor: pointer;">
+                            <button id="btnFC" type="button" class="badge bg-primary text-white border border-primary p-2" style="cursor: pointer;">
                                 <i class="bi bi-heart-pulse me-1"></i> FC (bpm)
-                            </span>
-                            <span id="btnGlicose" class="badge bg-danger-subtle text-danger border border-danger-subtle p-2" style="cursor: pointer;">
+                            </button>
+                            <button id="btnGlicose" type="button" class="badge bg-danger text-white border border-danger p-2" style="cursor: pointer;">
                                 <i class="bi bi-droplet me-1"></i> Glicose (mg/dL)
-                            </span>
-                            <span id="btnPA" class="badge bg-success-subtle text-success border border-success-subtle p-2" style="cursor: pointer;">
+                            </button>
+                            <button id="btnPA" type="button" class="badge bg-success text-white border border-success p-2" style="cursor: pointer;">
                                 <i class="bi bi-activity me-1"></i> PA (mmHg)
-                            </span>
-                            <span id="btnPeso" class="badge bg-warning-subtle text-warning border border-warning-subtle p-2" style="cursor: pointer;">
+                            </button>
+                            <button id="btnPeso" type="button" class="badge bg-warning text-dark border border-warning p-2" style="cursor: pointer;">
                                 <i class="bi bi-scale me-1"></i> Peso (kg)
-                            </span>
-                            <span id="btnColesterol" class="badge bg-info-subtle text-info border border-info-subtle p-2" style="cursor: pointer;">
+                            </button>
+                            <button id="btnColesterol" type="button" class="badge bg-info text-dark border border-info p-2" style="cursor: pointer;">
                                 <i class="bi bi-layer-backward me-1"></i> Colesterol (mg/dL)
-                            </span>
+                            </button>
                         </div>
                         
                         <div class="mt-auto pt-4">
@@ -201,6 +205,7 @@
             </div>
             <div class="modal-body p-4">
                 <form id="formSinalVital">
+                    <input type="hidden" id="svId"> 
                     <div class="mb-3">
                         <label class="form-label text-muted small fw-bold text-uppercase">Data e Hora</label>
                         <input type="datetime-local" id="svData" class="form-control" required>
@@ -246,8 +251,7 @@
       }
     }
 </script>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.x/dist/js/bootstrap.bundle.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>

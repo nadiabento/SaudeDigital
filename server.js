@@ -1,6 +1,6 @@
 const express = require("express");
 const session = require("express-session");
-const path = require("path"); // Mover para o topo junto dos restantes módulos
+const path = require("path");
 const db = require("./src/config/db");
 const exameRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes");
@@ -16,7 +16,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
-// Configuração da pasta pública de uploads para ficheiros anexados (ex: PDFs de exames)
+// Configuração da pasta pública de uploads
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // Configuração de Sessão de Utilizador
@@ -25,7 +25,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "chave_de_reserva_segura",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Definir como true se usares HTTPS em produção
+    cookie: { secure: false },
   }),
 );
 
@@ -37,16 +37,11 @@ app.use("/api/consultas", consultaRoutes);
 
 // --- ROTA DIRETA DO DASHBOARD (RESUMO) ---
 app.get("/api/dashboard/resumo", async (req, res) => {
-  console.log("ALERTA: O Safari acabou de pedir o resumo do Dashboard!");
-
   try {
     const userId = req.session.userId;
-    if (!userId) {
-      console.log("Aviso: Tentativa de ver dashboard sem login.");
-      return res.status(401).json({ erro: "Não autenticado" });
-    }
+    if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
-    // 1. Procurar a PRÓXIMA consulta agendada
+    // 1. Procurar a PRÓXIMA consulta
     const [consultas] = await db.execute(
       "SELECT data_hora FROM Consulta WHERE id_utilizador = ? AND data_hora >= NOW() ORDER BY data_hora ASC LIMIT 1",
       [userId],
@@ -55,13 +50,7 @@ app.get("/api/dashboard/resumo", async (req, res) => {
     let proximaConsulta = "Sem consultas";
     if (consultas.length > 0) {
       const data = new Date(consultas[0].data_hora);
-      proximaConsulta =
-        data.toLocaleDateString("pt-PT") +
-        " às " +
-        data.toLocaleTimeString("pt-PT", {
-          hour: "2-digit",
-          minute: "2-digit",
-        });
+      proximaConsulta = data.toLocaleDateString("pt-PT") + " às " + data.toLocaleTimeString("pt-PT", { hour: "2-digit", minute: "2-digit" });
     }
 
     // 2. Contar os Medicamentos ATIVOS
@@ -71,17 +60,15 @@ app.get("/api/dashboard/resumo", async (req, res) => {
     );
     const totalMedicamentos = medicamentos[0].total;
 
-    // 3. Contar os Efeitos Secundários registados associados aos medicamentos do utilizador
+    // 3. Contar os Efeitos Secundários
     const [efeitos] = await db.execute(
-      `SELECT COUNT(*) as total 
-             FROM Efeito_Secundario e 
+      `SELECT COUNT(*) as total FROM Efeito_Secundario e 
              JOIN Medicamento m ON e.id_medicamento = m.id 
              WHERE m.id_utilizador = ?`,
       [userId],
     );
     const totalEfeitos = efeitos[0].total;
 
-    console.log("Sucesso: A enviar dados para o frontend!");
     res.status(200).json({ proximaConsulta, totalMedicamentos, totalEfeitos });
   } catch (error) {
     console.error("Erro no Dashboard:", error);
@@ -93,21 +80,16 @@ app.get("/api/dashboard/resumo", async (req, res) => {
 app.post("/api/dashboard/sinais-vitais", async (req, res) => {
   try {
     const userId = req.session.userId;
-    const { data_registo, tipo_metrica, valor_primario, valor_secundario } =
-      req.body;
+    const { data_registo, tipo_metrica, valor_primario, valor_secundario } = req.body;
 
     if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
-    // Inserção na base de dados utilizando Prepared Statements para evitar SQL Injection
     await db.execute(
       `INSERT INTO Sinal_Vital (id_utilizador, tipo_metrica, valor_primario, valor_secundario, data_registo) 
              VALUES (?, ?, ?, ?, ?)`,
       [userId, tipo_metrica, valor_primario, valor_secundario, data_registo],
     );
 
-    console.log(
-      `Sucesso: ${tipo_metrica} registado para o utilizador ${userId}`,
-    );
     res.status(201).json({ mensagem: "Registo guardado!" });
   } catch (error) {
     console.error("Erro ao guardar sinal vital:", error);
@@ -115,23 +97,20 @@ app.post("/api/dashboard/sinais-vitais", async (req, res) => {
   }
 });
 
-// --- ROTA PARA OS GRÁFICOS  ---
+// --- ROTA PARA OS GRÁFICOS (Histórico) ---
 app.get("/api/dashboard/historico-vitals", async (req, res) => {
   try {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
-
-        // Adicionados 'Peso' e 'Colesterol' no filtro SQL
-        const [registos] = await db.execute(
-            `SELECT tipo_metrica, valor_primario, valor_secundario, data_registo 
-             FROM Sinal_Vital 
-             WHERE id_utilizador = ? AND tipo_metrica IN ('Frequencia Cardiaca', 'Glicose', 'Pressao Arterial', 'Peso', 'Colesterol')
-             ORDER BY data_registo ASC LIMIT 50`,
-            [userId]
-        );
-
-
+    const [registos] = await db.execute(
+        `SELECT tipo_metrica, valor_primario, valor_secundario, data_registo 
+         FROM Sinal_Vital 
+         WHERE id_utilizador = ? 
+         AND tipo_metrica IN ('Frequencia Cardiaca', 'Glicose', 'Pressao Arterial', 'Peso', 'Colesterol')
+         ORDER BY data_registo ASC LIMIT 50`,
+        [userId]
+    );
 
     res.status(200).json(registos);
   } catch (error) {
@@ -140,15 +119,47 @@ app.get("/api/dashboard/historico-vitals", async (req, res) => {
   }
 });
 
+// --- ROTA CRUD PARA SINAIS VITAIS (CRUD COMPLETO) ---
+// Ler todos os registos para a tabela
+app.get('/api/vitals', async (req, res) => {
+    try {
+        if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
+        const [results] = await db.execute("SELECT * FROM Sinal_Vital WHERE id_utilizador = ? ORDER BY data_registo DESC", [req.session.userId]);
+        res.json(results);
+    } catch (err) { res.status(500).send("Erro ao buscar"); }
+});
+
+// Apagar registo
+app.delete('/api/vitals/:id', async (req, res) => {
+    try {
+        if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
+        await db.execute("DELETE FROM Sinal_Vital WHERE id = ? AND id_utilizador = ?", [req.params.id, req.session.userId]);
+        res.send("Apagado com sucesso");
+    } catch (err) { res.status(500).send("Erro ao apagar"); }
+});
+
+// Criar ou Atualizar
+app.post('/api/vitals', async (req, res) => {
+    try {
+        if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
+        const { id, data, tipo, valor1, valor2 } = req.body;
+        if (id) {
+            await db.execute("UPDATE Sinal_Vital SET data_registo=?, tipo_metrica=?, valor_primario=?, valor_secundario=? WHERE id=? AND id_utilizador=?", [data, tipo, valor1, valor2, id, req.session.userId]);
+            res.send("Atualizado");
+        } else {
+            await db.execute("INSERT INTO Sinal_Vital (id_utilizador, data_registo, tipo_metrica, valor_primario, valor_secundario) VALUES (?, ?, ?, ?, ?)", [req.session.userId, data, tipo, valor1, valor2]);
+            res.send("Criado");
+        }
+    } catch (err) { res.status(500).send("Erro na operação"); }
+});
+
 // INICIALIZAÇÃO E TESTE DA DB 
 db.getConnection()
   .then((connection) => {
     console.log("SUCESSO: Ligação à Base de Dados estabelecida!");
-    connection.release(); // Liberta a conexão de volta para o Pool de conexões
-
+    connection.release();
     app.listen(PORT, () => {
       console.log(`Servidor a correr em http://localhost:${PORT}`);
-      console.log(`API Dashboard está ATIVA em: /api/dashboard/resumo`);
     });
   })
   .catch((erro) => {
