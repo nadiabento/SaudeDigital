@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,69 +8,70 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
-    
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/exames.css" />
 </head>
-<body class="bg-light">
-  <!-- Botão Hamburguer para Mobile -->
-  <nav class="navbar navbar-light bg-light border-bottom d-md-none fixed-top shadow-sm">
-    <div class="container-fluid">
-      <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
-      <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
-        <span class="navbar-toggler-icon"></span>
-      </button>
-    </div>
-  </nav>
 
- 
+<body class="bg-light">
+    <!-- Botão Hamburguer para Mobile -->
+    <nav class="navbar navbar-light bg-light border-bottom d-md-none fixed-top shadow-sm">
+        <div class="container-fluid">
+            <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
+            <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+        </div>
+    </nav>
+
+
     <!-- Sidebar -->
     <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
-      <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
-        <i class="bi bi-chevron-left"></i>
-      </button>
+        <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
+            <i class="bi bi-chevron-left"></i>
+        </button>
 
-      <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
-        <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
+        <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
+            <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
 
-        <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
-      </div>
+            <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
+        </div>
 
-      <div class="nav flex-column px-2">
-        <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-house-door me-3"></i>
-          <span class="hide-on-collapse">Resumo Geral</span>
-        </a>
-        <a href="consultas.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-calendar-event me-3"></i>
-          <span class="hide-on-collapse">Consultas</span>
-        </a>
-        <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-capsule me-3"></i>
-          <span class="hide-on-collapse">Medicação</span>
-        </a>
-        <a href="exames.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-file-earmark-medical me-3"></i>
-          <span class="hide-on-collapse">Exames</span>
-        </a>
-        <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-exclamation-triangle me-3"></i>
-          <span class="hide-on-collapse">Alergias</span>
-        </a>
-        <a href="sinais-vitais.html" class="sidebar-link active text-decoration-none p-3">
-          <i class="bi bi-heart-pulse me-3"></i>
-          <span class="hide-on-collapse">Sinais Vitais</span>
-        </a>
+        <div class="nav flex-column px-2">
+            <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-house-door me-3"></i>
+                <span class="hide-on-collapse">Resumo Geral</span>
+            </a>
+            <a href="consultas.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-calendar-event me-3"></i>
+                <span class="hide-on-collapse">Consultas</span>
+            </a>
+            <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-capsule me-3"></i>
+                <span class="hide-on-collapse">Medicação</span>
+            </a>
+            <a href="exames.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-file-earmark-medical me-3"></i>
+                <span class="hide-on-collapse">Exames</span>
+            </a>
+            <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-exclamation-triangle me-3"></i>
+                <span class="hide-on-collapse">Alergias</span>
+            </a>
+            <a href="sinais-vitais.html" class="sidebar-link active text-decoration-none p-3">
+                <i class="bi bi-heart-pulse me-3"></i>
+                <span class="hide-on-collapse">Sinais Vitais</span>
+            </a>
 
-        <hr class="text-white opacity-25 mx-3">
+            <hr class="text-white opacity-25 mx-3">
 
-        <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
-          <i class="bi bi-box-arrow-left me-3"></i>
-          <span class="hide-on-collapse">Sair</span>
-        </a>
-      </div>
+            <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
+                <i class="bi bi-box-arrow-left me-3"></i>
+                <span class="hide-on-collapse">Sair</span>
+            </a>
+        </div>
 
-     <div class="profile-section mt-auto w-100">
+        <div class="profile-section mt-auto w-100">
             <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
 
                 <div class="profile-img-container flex-shrink-0">
@@ -90,98 +92,125 @@
 
     <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
-        <div>
-          <h2 class="fw-bold">Registo de Sinais Vitais</h2>
-          <p class="text-muted">
-            Aqui pode registar e acompanhar os seus sinais vitais ao longo do tempo, para uma melhor gestão da sua saúde.
-          </p>
-        </div>
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalSinalVital">
-                <i class="bi bi-plus-lg me-2"></i>Novo Registo
-            </button>
+            <div>
+                <h2 class="fw-bold">Registo de Sinais Vitais</h2>
+                <p class="text-muted">
+                    Aqui pode registar e acompanhar os seus sinais vitais ao longo do tempo, para uma melhor gestão da
+                    sua saúde.
+                </p>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-outline-secondary rounded-pill px-4" onclick="exportarPDF()">
+                    <i class="bi bi-file-earmark-pdf me-2"></i>Exportar PDF
+                </button>
+
+                <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal"
+                    data-bs-target="#modalSinalVital">
+                    <i class="bi bi-plus-lg me-2"></i>Novo Registo
+                </button>
+            </div>
         </header>
 
-       <div class="input-group mb-3">
-    <span class="input-group-text bg-light border-0">
-        <i class="bi bi-search"></i>
-    </span>
-    <input type="text" id="inputSearchSinais" class="form-control bg-light border-0"
-        placeholder="Pesquisar por métrica (ex: Peso, Glicose) ou data..." onkeyup="filtrarTabela()" />
-</div>
+        <div class="input-group mb-3">
+            <span class="input-group-text bg-light border-0">
+                <i class="bi bi-search"></i>
+            </span>
+            <input type="text" id="inputSearchSinais" class="form-control bg-light border-0"
+                placeholder="Pesquisar por métrica (ex: Peso, Glicose) ou data..." onkeyup="filtrarTabela()" />
+        </div>
 
-<div class="table-responsive">
-    <table class="table table-hover align-middle">
-        <thead class="table-light">
-            <tr>
-                <th onclick="ordenarTabela('data')" style="cursor: pointer; width: 25%;">
-                    Data <i id="setaData" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
-                </th>
-                <th onclick="ordenarTabela('metrica')" style="cursor: pointer; width: 35%;">
-                    Métrica <i id="setaMetrica" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
-                </th>
-                <th onclick="ordenarTabela('valor')" style="cursor: pointer; width: 25%;">
-                    Valor <i id="setaValor" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
-                </th>
-                <th class="text-end" style="width: 15%;">Ações</th>
-            </tr>
-        </thead>
-        <tbody id="tabelaSinaisVitais">
-            </tbody>
-    </table>
-</div>
+        <div class="table-responsive">
+            <table class="table table-hover align-middle">
+                <thead class="table-light">
+                    <tr>
+                        <th onclick="ordenarTabela('data')" style="cursor: pointer; width: 25%;">
+                            Data <i id="setaData" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                        </th>
+                        <th onclick="ordenarTabela('metrica')" style="cursor: pointer; width: 35%;">
+                            Métrica <i id="setaMetrica" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                        </th>
+                        <th onclick="ordenarTabela('valor')" style="cursor: pointer; width: 25%;">
+                            Valor <i id="setaValor" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                        </th>
+                        <th class="text-end" style="width: 15%;">Ações</th>
+                    </tr>
+                </thead>
+                <tbody id="tabelaSinaisVitais">
+                </tbody>
+            </table>
+        </div>
 
-<nav aria-label="Navegação da tabela" class="mt-3 d-flex justify-content-center">
-    <ul class="pagination mb-0" id="paginacaoSinais">
-        </ul>
-</nav>
+        <nav aria-label="Navegação da tabela" class="mt-3 d-flex justify-content-center">
+            <ul class="pagination mb-0" id="paginacaoSinais">
+            </ul>
+        </nav>
     </main>
-  </div>  
+    </div>
 
-  <div class="modal fade" id="modalSinalVital" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-primary text-white border-0">
-                <h5 class="modal-title"><i class="bi bi-heart-pulse-fill me-2"></i>Registar Sinal Vital</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="formSinalVital">
-                    <input type="hidden" id="svId"> 
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Data e Hora</label>
-                        <input type="datetime-local" id="svData" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase">O que vai registar?</label>
-                        <select id="svTipo" class="form-select" required>
-                            <option value="Frequencia Cardiaca">Frequência Cardíaca (BPM)</option>
-                            <option value="Glicose">Glicose (mg/dL)</option>
-                            <option value="Pressao Arterial">Pressão Arterial</option>
-                            <option value="Peso">Peso (kg)</option>
-                            <option value="Colesterol">Colesterol (mg/dL)</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label text-muted small fw-bold text-uppercase" id="labelValor1">Valor</label>
-                        <input type="number" step="0.01" id="svValor1" class="form-control" placeholder="Ex: 80" required>
-                    </div>
-                    <div class="mb-3" id="divValor2" style="display:none;">
-                        <label class="form-label text-muted small fw-bold text-uppercase">Valor Secundário (Mínima)</label>
-                        <input type="number" step="0.01" id="svValor2" class="form-control" placeholder="Ex: 120">
-                    </div>
-                    <div id="msgSinalVital"></div> 
-                    <div class="mt-4">
-                        <button type="submit" class="btn btn-primary w-100">Guardar Registo</button>
-                    </div>
-                </form>
+    <div class="modal fade" id="modalSinalVital" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-primary text-white border-0">
+                    <h5 class="modal-title"><i class="bi bi-heart-pulse-fill me-2"></i>Registar Sinal Vital</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="formSinalVital">
+                        <input type="hidden" id="svId">
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Data e Hora</label>
+                            <input type="datetime-local" id="svData" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase">O que vai
+                                registar?</label>
+                            <select id="svTipo" class="form-select" required>
+                                <option value="Frequencia Cardiaca">Frequência Cardíaca (BPM)</option>
+                                <option value="Glicose">Glicose (mg/dL)</option>
+                                <option value="Pressao Arterial">Pressão Arterial</option>
+                                <option value="Peso">Peso (kg)</option>
+                                <option value="Colesterol">Colesterol (mg/dL)</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label text-muted small fw-bold text-uppercase"
+                                id="labelValor1">Valor</label>
+                            <input type="number" step="0.01" id="svValor1" class="form-control" placeholder="Ex: 80"
+                                required>
+                        </div>
+                        <div class="mb-3" id="divValor2" style="display:none;">
+                            <label class="form-label text-muted small fw-bold text-uppercase">Valor Secundário
+                                (Mínima)</label>
+                            <input type="number" step="0.01" id="svValor2" class="form-control" placeholder="Ex: 120">
+                        </div>
+                        <div id="msgSinalVital"></div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary w-100">Guardar Registo</button>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
+    <div class="toast-container position-fixed bottom-0 end-0 p-3" style="z-index: 1055;">
+    <div id="toastExportacao" class="toast align-items-center text-white bg-success border-0 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+      <div class="d-flex">
+        <div class="toast-body fw-medium">
+          <i class="bi bi-check-circle-fill me-2"></i> PDF transferido com sucesso! Verifique no seu dispositivo.
+        </div>
+        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Fechar"></button>
+      </div>
+    </div>
   </div>
 
-  
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="js/main.js"></script>
-  <script src="js/sinais-vitais.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/sinais-vitais.js"></script>
 </body>
+
 </html>
