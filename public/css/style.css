@@ -135,5 +135,123 @@ nav.vh-100 {
 }
 
 .sidebar.collapsed .profile-info {
-    display: none !important; /* Esconde o nome "Pedro Almeida" */
+    display: none !important;
+}
+
+/* 1. Previne scroll horizontal acidental */
+body {
+    overflow-x: hidden; 
+}
+
+/* 2. Comportamento da Barra Lateral */
+.sidebar {
+    width: 280px !important;
+    height: 100vh;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    transition: width 0.3s ease-in-out;
+    z-index: 1000;
+}
+
+.sidebar.collapsed {
+    width: 80px !important;
+}
+
+/* 3. Comportamento do Conteúdo Principal */
+.main-content {
+    /* O conteúdo fica encostado à direita, e a margem protege a sidebar! */
+    margin-left: 280px !important;
+    padding: 2rem;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease-in-out; 
+}
+
+/* 4. A magia quando o menu encolhe */
+.sidebar.collapsed ~ .main-content {
+    margin-left: 80px !important; 
+}
+
+/* --- ESTILOS DA PAGINAÇÃO MODERNA --- */
+
+/* 1. Separa os botões uns dos outros */
+.pagination {
+    gap: 8px; 
+}
+
+/* 2. Estilo base (Cores, bordas e fonte) */
+.page-item .page-link {
+    font-size: 0.85rem; 
+    font-weight: 500;
+    color: #6c757d;
+    border: 1px solid var(--border-color, #dee2e6);
+    transition: all 0.2s ease-in-out;
+    margin-left: 0 !important; /* Remove a cola padrão do Bootstrap */
+}
+
+/* 3. A MAGIA DOS CÍRCULOS (Apenas para os números) */
+/* Aplica-se a todos exceto ao primeiro (Anterior) e ao último (Próximo) */
+.page-item:not(:first-child):not(:last-child) .page-link {
+    width: 32px;            /* Largura exata */
+    height: 32px;           /* Altura igual à largura = Quadrado */
+    padding: 0;             /* Removemos o padding causador das ovais */
+    border-radius: 50% !important; /* Corta o quadrado num CÍRCULO perfeito */
+    display: flex;          /* Usado para centrar o número no meio do círculo */
+    align-items: center; 
+    justify-content: center;
+}
+
+/* 4. Os botões Anterior/Próximo mantêm-se em formato "Pílula" */
+.page-item:first-child .page-link,
+.page-item:last-child .page-link {
+    border-radius: 50px !important;
+    padding: 5px 14px;
+}
+
+/* 5. Estilo do botão ATIVO (a página onde estamos) */
+.page-item.active .page-link {
+    background-color: var(--primary-color, #0d6efd);
+    border-color: var(--primary-color, #0d6efd);
+    color: white !important;
+    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* 6. Efeito ao passar o rato (Hover) */
+.page-item:not(.active):not(.disabled) .page-link:hover {
+    background-color: var(--primary-light, #e7f0ff);
+    color: var(--primary-color, #0d6efd);
+    border-color: #cddfff;
+}
+
+/* 7. Botões desativados */
+.page-item.disabled .page-link {
+    background-color: transparent;
+    color: #adb5bd;
+    border-color: transparent;
+}
+
+/* --- ESTILO DO PERFIL (MENU ABERTO) --- */
+.profile-link {
+    background-color: #f8f9fa; /* Fundo cinzento suave, sem bordas! */
+    transition: background-color 0.2s ease;
+}
+
+.profile-link:hover {
+    background-color: #e9ecef; /* Fica ligeiramente mais escuro ao passar o rato */
+}
+
+/* --- ALINHAMENTO E CORES DO PERFIL (MENU FECHADO) --- */
+.sidebar.collapsed .profile-link {
+    justify-content: center !important; 
+    padding-left: 0 !important;         
+    padding-right: 0 !important;
+    background-color: transparent !important; /* Magia: Fica com o fundo totalmente branco! */
+}
+
+.sidebar.collapsed .profile-img-container {
+    margin: 0 !important; 
+}
+
+.sidebar.collapsed .profile-info {
+    display: none !important; 
 }

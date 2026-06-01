@@ -22,7 +22,7 @@
     </div>
   </nav>
 
-  <div class="d-flex">
+ 
     <!-- Sidebar -->
     <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
       <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
@@ -69,35 +69,29 @@
         </a>
       </div>
 
-     <div class="profile-section mt-auto p-4">
-                <div class="d-flex align-items-center">
+     <div class="profile-section mt-auto w-100">
+            <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
 
-                    <a href="conta.html" class="d-flex align-items-center text-decoration-none p-3 mt-auto"
-                        style="border-top: 1px solid #e9ecef; background: transparent !important; box-shadow: none !important;">
-
-                        <div class="profile-img-container flex-shrink-0">
-                            <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff"
-                                id="userAvatar" class="rounded-circle"
-                                style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;"
-                                alt="Perfil">
-                        </div>
-
-                        <div class="ms-3 profile-info hide-on-collapse">
-                            <h6 id="userName"
-                                style="color: #252f40; font-weight: 700; margin-bottom: 2px; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: inline-block;">
-                                A carregar...</h6>
-                            <small class="text-muted" style="font-size: 0.85rem; display: block;">A Minha Conta</small>
-                        </div>
+                <div class="profile-img-container flex-shrink-0">
+                    <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
+                        class="rounded-circle"
+                        style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
                 </div>
-                </a>
-            </div>
-    </div>
+
+                <div class="ms-3 profile-info hide-on-collapse">
+                    <h6 id="userName" class="mb-1"
+                        style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                        A carregar...</h6>
+                    <small class="text-muted" style="font-size: 0.85rem;">A Minha Conta</small>
+                </div>
+            </a>
+        </div>
     </nav>
 
-    <main class="main-content w-100">
+    <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
         <div>
-          <h2 class="fw-bold">Registo de Exames</h2>
+          <h2 class="fw-bold">Registo de Sinais Vitais</h2>
           <p class="text-muted">
             Aqui pode registar e acompanhar os seus sinais vitais ao longo do tempo, para uma melhor gestão da sua saúde.
           </p>
@@ -107,27 +101,39 @@
             </button>
         </header>
 
-        <div class="table-responsive">
-                <table class="table table-hover align-middle">
-                  <thead class="table-light">
-                    <tr>
-                      <th>Data</th>
-                            <th>Métrica</th>
-                            <th>Valor</th>
-                            <th class="text-center">Ações</th>
-                    </tr>
-                 </thead>
-                    <tbody id="tabelaSinaisVitais">
-                        </tbody>
-                </table>
-                    <tr>
-                      <td colspan="7" class="text-center text-muted py-4">
-                        A carregar sinais vitais...
-                      </td>
-                    </tr>
-                  </tbody>
-                
-              </div>
+       <div class="input-group mb-3">
+    <span class="input-group-text bg-light border-0">
+        <i class="bi bi-search"></i>
+    </span>
+    <input type="text" id="inputSearchSinais" class="form-control bg-light border-0"
+        placeholder="Pesquisar por métrica (ex: Peso, Glicose) ou data..." onkeyup="filtrarTabela()" />
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th onclick="ordenarTabela('data')" style="cursor: pointer; width: 25%;">
+                    Data <i id="setaData" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                </th>
+                <th onclick="ordenarTabela('metrica')" style="cursor: pointer; width: 35%;">
+                    Métrica <i id="setaMetrica" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                </th>
+                <th onclick="ordenarTabela('valor')" style="cursor: pointer; width: 25%;">
+                    Valor <i id="setaValor" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                </th>
+                <th class="text-end" style="width: 15%;">Ações</th>
+            </tr>
+        </thead>
+        <tbody id="tabelaSinaisVitais">
+            </tbody>
+    </table>
+</div>
+
+<nav aria-label="Navegação da tabela" class="mt-3 d-flex justify-content-center">
+    <ul class="pagination mb-0" id="paginacaoSinais">
+        </ul>
+</nav>
     </main>
   </div>  
 
@@ -187,5 +193,6 @@
   </script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="js/main.js"></script>
+  <script src="js/sinais-vitais.js"></script>
 </body>
 </html>

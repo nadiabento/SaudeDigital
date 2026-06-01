@@ -24,82 +24,78 @@
         </div>
     </nav>
 
-    <div class="d-flex">
-        <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
-            <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
-                <i class="bi bi-chevron-left"></i>
-            </button>
 
-            <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
-                <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
+    <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
+        <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
+            <i class="bi bi-chevron-left"></i>
+        </button>
 
-                <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
-            </div>
+        <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
+            <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
 
-            <div class="nav flex-column px-2">
-                <a href="dashboard.html" class="sidebar-link active text-decoration-none p-3">
-                    <i class="bi bi-house-door me-3"></i>
-                    <span class="hide-on-collapse">Resumo Geral</span>
-                </a>
-                <a href="consultas.html" class="sidebar-link text-decoration-none p-3">
-                    <i class="bi bi-calendar-event me-3"></i>
-                    <span class="hide-on-collapse">Consultas</span>
-                </a>
-                <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
-                    <i class="bi bi-capsule me-3"></i>
-                    <span class="hide-on-collapse">Medicação</span>
-                </a>
-                <a href="exames.html" class="sidebar-link text-decoration-none p-3">
-                    <i class="bi bi-file-earmark-medical me-3"></i>
-                    <span class="hide-on-collapse">Exames</span>
-                </a>
-                <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
-                    <i class="bi bi-exclamation-triangle me-3"></i>
-                    <span class="hide-on-collapse">Alergias</span>
-                </a>
-                <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
-                    <i class="bi bi-heart-pulse me-3"></i>
-                    <span class="hide-on-collapse">Sinais Vitais</span>
-                </a>
+            <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
+        </div>
 
-                <hr class="text-white opacity-25 mx-3">
+        <div class="nav flex-column px-2">
+            <a href="dashboard.html" class="sidebar-link active text-decoration-none p-3">
+                <i class="bi bi-house-door me-3"></i>
+                <span class="hide-on-collapse">Resumo Geral</span>
+            </a>
+            <a href="consultas.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-calendar-event me-3"></i>
+                <span class="hide-on-collapse">Consultas</span>
+            </a>
+            <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-capsule me-3"></i>
+                <span class="hide-on-collapse">Medicação</span>
+            </a>
+            <a href="exames.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-file-earmark-medical me-3"></i>
+                <span class="hide-on-collapse">Exames</span>
+            </a>
+            <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-exclamation-triangle me-3"></i>
+                <span class="hide-on-collapse">Alergias</span>
+            </a>
+            <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
+                <i class="bi bi-heart-pulse me-3"></i>
+                <span class="hide-on-collapse">Sinais Vitais</span>
+            </a>
 
-                <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
-                    <i class="bi bi-box-arrow-left me-3"></i>
-                    <span class="hide-on-collapse">Sair</span>
-                </a>
-            </div>
+            <hr class="text-white opacity-25 mx-3">
 
-            <div class="profile-section mt-auto p-4">
-                <div class="d-flex align-items-center">
+            <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
+                <i class="bi bi-box-arrow-left me-3"></i>
+                <span class="hide-on-collapse">Sair</span>
+            </a>
+        </div>
 
-                    <a href="conta.html" class="d-flex align-items-center text-decoration-none p-3 mt-auto"
-                        style="border-top: 1px solid #e9ecef; background: transparent !important; box-shadow: none !important;">
+        <div class="profile-section mt-auto w-100">
+            <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
 
-                        <div class="profile-img-container flex-shrink-0">
-                            <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff"
-                                id="userAvatar" class="rounded-circle"
-                                style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;"
-                                alt="Perfil">
-                        </div>
-
-                        <div class="ms-3 profile-info hide-on-collapse">
-                            <h6 id="userName"
-                                style="color: #252f40; font-weight: 700; margin-bottom: 2px; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: inline-block;">
-                                A carregar...</h6>
-                            <small class="text-muted" style="font-size: 0.85rem; display: block;">A Minha Conta</small>
-                        </div>
+                <div class="profile-img-container flex-shrink-0">
+                    <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
+                        class="rounded-circle"
+                        style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
                 </div>
-                </a>
-            </div>
-    </div>
+
+                <div class="ms-3 profile-info hide-on-collapse">
+                    <h6 id="userName" class="mb-1"
+                        style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                        A carregar...</h6>
+                    <small class="text-muted" style="font-size: 0.85rem;">A Minha Conta</small>
+                </div>
+            </a>
+        </div>
     </nav>
 
-    <main class="main-content w-100">
+    <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#modalSinalVital">
-                <right><i class="bi bi-plus-lg me-2"></i>Novo Registo</right>
-            </button>
+            <div>
+                <h2 class="fw-bold">Bem-vindo!</h2>
+                <p class="text-muted">
+                    Acesso rápido ao resumo da sua saúde, com os próximos passos para uma melhor gestão do seu
+                    bem-estar.
         </header>
 
         <div class="row g-4 mb-5">
@@ -204,13 +200,12 @@
                     </div>
 
                     <div class="mt-auto pt-4">
-                        <button class="btn btn-primary w-100 py-3 shadow-sm fw-bold"
-                            onclick="location.href='exames.html'">
-                            <i class="bi bi-file-earmark-pdf-fill me-2"></i> Gerir Exames e Relatórios
+
+
+                        <button class="btn btn-outline-primary mt-auto w-100" data-bs-toggle="modal"
+                            data-bs-target="#modalSinalVital">
+                            <i class="bi bi-plus-lg me-2"></i>Novo Registo
                         </button>
-                        <p class="text-center small text-muted mt-2 mb-0">
-                            <i class="bi bi-info-circle me-1"></i> Exportação disponível em PDF e JSON
-                        </p>
                     </div>
 
                 </div>

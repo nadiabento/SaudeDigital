@@ -19,12 +19,12 @@
         <div class="container-fluid">
             <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
             <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+        <span class="navbar-toggler-icon"></span>
+      </button>
         </div>
     </nav>
 
-  <div class="d-flex">
+  
     <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
       <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
         <i class="bi bi-chevron-left"></i>
@@ -70,32 +70,26 @@
         </a>
       </div>
 
-      <div class="profile-section mt-auto p-4">
-                <div class="d-flex align-items-center">
+      <div class="profile-section mt-auto w-100">
+            <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
 
-                    <a href="conta.html" class="d-flex align-items-center text-decoration-none p-3 mt-auto"
-                        style="border-top: 1px solid #e9ecef; background: transparent !important; box-shadow: none !important;">
-
-                        <div class="profile-img-container flex-shrink-0">
-                            <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff"
-                                id="userAvatar" class="rounded-circle"
-                                style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;"
-                                alt="Perfil">
-                        </div>
-
-                        <div class="ms-3 profile-info hide-on-collapse">
-                            <h6 id="userName"
-                                style="color: #252f40; font-weight: 700; margin-bottom: 2px; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px; display: inline-block;">
-                                A carregar...</h6>
-                            <small class="text-muted" style="font-size: 0.85rem; display: block;">A Minha Conta</small>
-                        </div>
+                <div class="profile-img-container flex-shrink-0">
+                    <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
+                        class="rounded-circle"
+                        style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
                 </div>
-                </a>
-            </div>
-    </div>
+
+                <div class="ms-3 profile-info hide-on-collapse">
+                    <h6 id="userName" class="mb-1"
+                        style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+                        A carregar...</h6>
+                    <small class="text-muted" style="font-size: 0.85rem;">A Minha Conta</small>
+                </div>
+            </a>
+        </div>
     </nav>
 
-      <main class="main-content w-100">
+      <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
           <div>
             <h2 class="fw-bold">Registo de Consultas</h2>
