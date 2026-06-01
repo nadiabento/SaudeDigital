@@ -5,78 +5,88 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Consultas | SaúdeDigital</title>
     
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet" />
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     
     <link rel="stylesheet" href="css/style.css" />
     <link rel="stylesheet" href="css/consultas.css" />
+    <link rel="stylesheet" href="css/exames.css" />
   </head>
   <body class="bg-light">
+  <nav class="navbar navbar-light bg-light border-bottom d-md-none fixed-top shadow-sm">
+    <div class="container-fluid">
+      <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
+      <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+    </div>
+  </nav>
 
-    <nav class="navbar navbar-light bg-light border-bottom d-md-none fixed-top shadow-sm">
-      <div class="container-fluid">
-        <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
-        <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
-          <span class="navbar-toggler-icon"></span>
-        </button>
+  <div class="d-flex">
+    <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
+      <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
+        <i class="bi bi-chevron-left"></i>
+      </button>
+
+      <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
+        <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
+
+        <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
+      </div>
+
+      <div class="nav flex-column px-2">
+        <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-house-door me-3"></i>
+          <span class="hide-on-collapse">Resumo Geral</span>
+        </a>
+        <a href="consultas.html" class="sidebar-link active text-decoration-none p-3">
+          <i class="bi bi-calendar-event me-3"></i>
+          <span class="hide-on-collapse">Consultas</span>
+        </a>
+        <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-capsule me-3"></i>
+          <span class="hide-on-collapse">Medicação</span>
+        </a>
+        <a href="exames.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-file-earmark-medical me-3"></i>
+          <span class="hide-on-collapse">Exames</span>
+        </a>
+        <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-exclamation-triangle me-3"></i>
+          <span class="hide-on-collapse">Alergias</span>
+        </a>
+        <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
+          <i class="bi bi-heart-pulse me-3"></i>
+          <span class="hide-on-collapse">Sinais Vitais</span>
+        </a>
+
+        <hr class="text-white opacity-25 mx-3">
+
+        <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
+          <i class="bi bi-box-arrow-left me-3"></i>
+          <span class="hide-on-collapse">Sair</span>
+        </a>
+      </div>
+
+      <div class="profile-section mt-auto p-4">
+        <div class="d-flex align-items-center">
+
+          <a href="conta.html" class="d-flex align-items-center text-decoration-none p-3 mt-auto" style="border-top: 1px solid #e9ecef; background: transparent !important; box-shadow: none !important;">
+        
+            <div class="profile-img-container flex-shrink-0">
+              <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar" class="rounded-circle" style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
+            </div>
+            
+            <div class="ms-3 profile-info hide-on-collapse">
+              <h6 id="userName" style="color: #252f40; font-weight: 700; margin-bottom: 2px; font-size: 1rem; white-space: nowrap;">A carregar...</h6>
+              <small class="text-muted" style="font-size: 0.85rem; display: block;">A Minha Conta</small>
+            </div>
+
+          </a>
+        </div>
       </div>
     </nav>
-
-    <div class="d-flex">
-      <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
-        <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
-          <i class="bi bi-chevron-left"></i>
-        </button>
-
-        <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
-          <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
-          <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
-        </div>
-
-        <div class="nav flex-column px-2">
-          <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
-            <i class="bi bi-house-door me-3"></i>
-            <span class="hide-on-collapse">Resumo Geral</span>
-          </a>
-          <a href="consultas.html" class="sidebar-link active text-decoration-none p-3">
-            <i class="bi bi-calendar-event me-3"></i>
-            <span class="hide-on-collapse">Consultas</span>
-          </a>
-          <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
-            <i class="bi bi-capsule me-3"></i>
-            <span class="hide-on-collapse">Medicação</span>
-          </a>
-          <a href="exames.html" class="sidebar-link text-decoration-none p-3">
-            <i class="bi bi-file-earmark-medical me-3"></i>
-            <span class="hide-on-collapse">Exames</span>
-          </a>
-          <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
-            <i class="bi bi-exclamation-triangle me-3"></i>
-            <span class="hide-on-collapse">Alergias</span>
-          </a>
-
-          <hr class="text-white opacity-25 mx-3">
-
-          <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
-            <i class="bi bi-box-arrow-left me-3"></i>
-            <span class="hide-on-collapse">Sair</span>
-          </a>
-        </div>
-
-        <div class="profile-section mt-auto p-4">
-          <div class="d-flex align-items-center">
-            <div class="profile-img-container">
-              <img src="" id="userAvatar" class="rounded-circle" style="width:45px; height:45px;" alt="Perfil">
-            </div>
-
-            <div class="ms-3 profile-info">
-              <h6 id="userName" style="color: #252f40; font-weight: 700; margin-bottom: 0;">A carregar...</h6>
-              <small class="text-muted">Utilizador</small>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       <main class="main-content w-100">
         <header class="d-flex justify-content-between align-items-center mb-5">
