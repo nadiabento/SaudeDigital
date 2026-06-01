@@ -296,3 +296,38 @@ document.addEventListener('DOMContentLoaded', () => {
     carregarTabelaSinaisVitais(); 
     
 });
+
+// 1. Função que abre/fecha o menu e guarda a escolha na memória
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    
+    if (window.innerWidth <= 768) {
+        // Comportamento em telemóveis
+        sidebar.classList.toggle('active');
+        sidebar.classList.remove('collapsed');
+    } else {
+        // Comportamento em computadores (Desktop)
+        sidebar.classList.toggle('collapsed');
+        sidebar.classList.remove('active');
+        
+        // A MAGIA: Guarda a escolha no localStorage do navegador
+        if (sidebar.classList.contains('collapsed')) {
+            localStorage.setItem('estadoMenu', 'fechado');
+        } else {
+            localStorage.setItem('estadoMenu', 'aberto');
+        }
+    }
+}
+
+// 2. Quando QUALQUER página carregar, verifica a memória e aplica
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebar = document.querySelector('.sidebar');
+    if (!sidebar) return; // Se a página não tiver menu, não faz nada
+
+    const estadoGuardado = localStorage.getItem('estadoMenu');
+
+    // Se a memória disser "fechado" e estivermos num ecrã de computador, fecha-o logo!
+    if (estadoGuardado === 'fechado' && window.innerWidth > 768) {
+        sidebar.classList.add('collapsed');
+    }
+});
