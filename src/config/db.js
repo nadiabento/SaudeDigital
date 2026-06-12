@@ -2,28 +2,37 @@ const mysql = require("mysql2/promise");
 const { Sequelize } = require("sequelize");
 require("dotenv").config();
 
-// 1. LIGAÇÃO TRADICIONAL (Ajustada para DB_PASS e DB_PORT do teu .env)
+// 1. LIGAÇÃO TRADICIONAL POOL (Com SSL para o Aiven)
 const pool = mysql.createPool({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
-  password: process.env.DB_PASS, // Sincronizado com o teu .env
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
-  port: parseInt(process.env.DB_PORT) || 3306, // Garante que usa a porta 3306 da UA
+  port: parseInt(process.env.DB_PORT) || 23614,
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0,
+  ssl: {
+    rejectUnauthorized: false, // Obrigatório para o Aiven Cloud
+  },
 });
 
-// 2. INSTÂNCIA DO SEQUELIZE (Corrigida com os mapeamentos exatos e parâmetros explícitos)
+// 2. INSTÂNCIA DO SEQUELIZE (Com SSL para o Aiven)
 const sequelize = new Sequelize(
-  process.env.DB_NAME, // Nome da BD
-  process.env.DB_USER, // Utilizador
-  process.env.DB_PASS, // Sincronizado para ler a tua password (E&dDa6aQCWH5s5zJ)
+  process.env.DB_NAME,
+  process.env.DB_USER,
+  process.env.DB_PASSWORD,
   {
     host: process.env.DB_HOST,
-    port: parseInt(process.env.DB_PORT) || 3306,
+    port: parseInt(process.env.DB_PORT) || 23614,
     dialect: "mysql",
-    logging: false, // Mantém os logs de SQL limpos no terminal
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false, // Obrigatório para o Aiven Cloud
+      },
+    },
     pool: {
       max: 10,
       min: 0,
@@ -38,11 +47,11 @@ sequelize
   .authenticate()
   .then(() =>
     console.log(
-      "✔ Sequelize: Conexão com o servidor da UA estabelecida com sucesso!",
+      "✔ Sequelize: Conexão com o servidor do Aiven estabelecida com sucesso!",
     ),
   )
   .catch((err) => {
-    console.error("❌ Sequelize: Erro crítico de credenciais na UA:");
+    console.error("❌ Sequelize: Erro crítico de credenciais no Aiven:");
     console.error(err.message);
   });
 
