@@ -199,7 +199,7 @@ async function processarRemocaoPorId(chaveId, urlBase, nomeEntidade) {
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-            window.location.reload(); // Recarrega a página após a animação terminar
+            globalThis.location.reload(); // Recarrega a página após a animação terminar
           });
         } else {
           // Tratar os avisos de integridade (Se houver coisas associadas àquele ID)

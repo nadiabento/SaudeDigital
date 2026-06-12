@@ -1,9 +1,9 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
-const fs = require("fs");
-const path = require("path");
+const fs = require("node:fs");
+const path = require("node:path");
 const { Op } = require("sequelize");
-const crypto = require("crypto");
+const crypto = require("node:crypto");
 
 // =========================================================================
 // --- 1. LISTAGENS E FILTROS EM CASCATA (PÁGINA INICIAL E CONTA)        ---
@@ -50,7 +50,7 @@ exports.listarTodosOsTiposAgnostico = async (req, res) => {
 // Lista o histórico de exames do utilizador logado com paginação e JOINs nativos
 exports.listarHistorico = async (req, res) => {
   const utilizadorId = req.session.userId || 1; // ID 1 como segurança caso a sessão falhe
-  const pagina = parseInt(req.query.page) || 1;
+  const pagina = Number.parseInt(req.query.page) || 1;
   const limite = 10; // Total de registos por página
   const offset = (pagina - 1) * limite;
 
@@ -72,13 +72,12 @@ exports.listarHistorico = async (req, res) => {
 
     // Formata os dados para o formato exato que o teu JavaScript antigo do frontend já processava
     const examesFormatados = rows.map((ex) => {
-      const tipo = ex.TipoExames && ex.TipoExames[0];
+      const tipo = ex.TipoExames?.[0];
       return {
         id: ex.id,
         data: ex.data_exame,
         nome: tipo ? tipo.nome : "Não especificado",
-        resultado:
-          tipo && tipo.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+        resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
         observacoes: ex.observacoes || "",
       };
     });
@@ -335,7 +334,7 @@ exports.getDadosPartilha = async (req, res) => {
     }
 
     // 3. Converte a string "1,2,3" de volta num array de números [1, 2, 3]
-    const ids = partilha.exames_ids.split(",").map((id) => parseInt(id));
+    const ids = partilha.exames_ids.split(",").map((id) => Number.parseInt(id));
 
     // 4. Procura os exames reais e inclui os nomes dos tipos de exame (JOIN)
     const exames = await Exame.findAll({
@@ -351,13 +350,12 @@ exports.getDadosPartilha = async (req, res) => {
 
     // 5. Formata os dados para o ecrã do médico ler corretamente
     const examesFormatados = exames.map((ex) => {
-      const tipo = ex.TipoExames && ex.TipoExames[0];
+      const tipo = ex.TipoExames?.[0];
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
         observacoes: ex.observacoes || "Sem observações registadas.",
-        resultado:
-          tipo && tipo.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+        resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
       };
     });
 

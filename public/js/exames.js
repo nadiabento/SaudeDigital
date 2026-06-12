@@ -102,7 +102,9 @@ function renderizarTabela(totalPaginas) {
     }
 
     const obsLimpa = exame.observacoes
-      ? exame.observacoes.replace(/'/g, "\\'").replace(/"/g, "&quot;")
+      ? exame.observacoes
+          .replaceAll("'", String.raw`\'`)
+          .replaceAll('"', "&quot;")
       : "";
 
     tbody.innerHTML += `
@@ -119,7 +121,7 @@ function renderizarTabela(totalPaginas) {
                             <i class="bi bi-three-dots"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replace(/'/g, "\\'")}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
                             <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
                             <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                             <li><hr class="dropdown-divider"></li>
@@ -408,7 +410,7 @@ function configurarEventosInterface() {
       formData.append("id_tipo_exame", idTipoExame);
 
       const fileInput = document.querySelector('input[name="relatorio"]');
-      if (fileInput && fileInput.files[0]) {
+      if (fileInput?.files[0]) {
         formData.append("relatorio", fileInput.files[0]);
       }
 
@@ -578,7 +580,7 @@ async function gerarLinkPartilha(id = null) {
     const dados = await res.json();
 
     if (res.ok) {
-      const linkFinal = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
+      const linkFinal = `${globalThis.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
       document.getElementById("inputLinkPartilha").value = linkFinal;
 
       const textoQuantidade =
@@ -614,7 +616,7 @@ function enviarPorEmail() {
   const corpo = encodeURIComponent(
     `Olá,\n\nPartilho o link para os meus exames:\n${link}\n\nMelhores cumprimentos,\n${nomeUtilizador}`,
   );
-  window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
+  globalThis.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
 }
 
 function enviarPorWhatsApp() {
@@ -707,11 +709,11 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
 
 function mostrarDetalhesMultiplos() {
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
-  const idsSeleccionados = Array.from(checkboxes).map((cb) =>
-    parseInt(cb.value),
+  const idsSeleccionados = new Set(
+    Array.from(checkboxes).map((cb) => Number.parseInt(cb.value)),
   );
   const listaExamesParaMostrar = examesParaTabela.filter((ex) =>
-    idsSeleccionados.includes(ex.id),
+    idsSeleccionados.has(ex.id),
   );
 
   const modalCorpo = document.getElementById("corpoDetalhesDinamico");
