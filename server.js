@@ -6,6 +6,8 @@ const examenRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const medRoutes = require("./src/routes/medRoutes");
 const consultaRoutes = require("./src/routes/consultaRoutes");
+const sinalVitalRoutes = require("./src/routes/sinalVitalRoutes");
+
 require("dotenv").config();
 
 const app = express();
@@ -34,6 +36,7 @@ app.use("/api/exames", examenRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/medicacao", medRoutes);
 app.use("/api/consultas", consultaRoutes);
+app.use("/api/sinais-vitais", sinalVitalRoutes);
 
 // --- ROTA DIRETA DO DASHBOARD (RESUMO) ---
 app.get("/api/dashboard/resumo", async (req, res) => {
