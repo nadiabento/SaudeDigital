@@ -2,8 +2,9 @@ const express = require("express");
 const router = express.Router();
 const exameController = require("../controllers/exameController");
 const multer = require("multer");
-const path = require("path");
-const fs = require("fs");
+const path = require("node:path");
+const fs = require("node:fs");
+const sequelize = require("../config/db"); // CORREÇÃO: Importação necessária para as queries diretas
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -18,10 +19,12 @@ const storage = multer.diskStorage({
 
 const upload = multer({
   storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // CORREÇÃO: Limite de 5MB para evitar ataques DoS
   fileFilter: (req, file, cb) => {
     if (path.extname(file.originalname).toLowerCase() === ".pdf") {
       cb(null, true);
     } else {
+      // CORREÇÃO: Passar o erro estruturado para o Express gerir sem mandar a app abaixo
       cb(new Error("Apenas são permitidos ficheiros PDF!"), false);
     }
   },
@@ -32,15 +35,24 @@ router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/tipos-todos", exameController.listarTodosOsTiposAgnostico);
 router.get("/historico", exameController.listarHistorico);
-router.get("/visualizar-partilha/:token", exameController.visualizarPartilha); // Rota que o médico clica (Abre o HTML no navegador)
-router.get("/dados-partilha/:token", exameController.getDadosPartilha); // Rota que o JavaScript da página do médico chama para puxar os exames em JSON
+router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
+router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
 // --- ENTRADAS DE ESCRITA (POST) ---
 router.post(
   "/registar",
-  upload.single("relatorio"),
+  (req, res, next) => {
+    // CORREÇÃO: Intercetor de erros do Multer para responder com HTTP 400 limpo
+    upload.single("relatorio")(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
+    });
+  },
   exameController.registarExame,
 );
+
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
 router.post("/gerar-partilha", exameController.gerarPartilha);
@@ -48,17 +60,16 @@ router.post("/gerar-partilha", exameController.gerarPartilha);
 // --- ENTRADAS DE MANUTENÇÃO (PUT/DELETE) ---
 router.put("/editar/:id", exameController.editarExame);
 router.delete("/eliminar-massa", exameController.eliminarMassa);
+
 router.delete("/categorias/:id", async (req, res) => {
   const { id } = req.params;
-
   try {
-    // 1. Procura se existem tipos de exames associados a esta categoria
-    const [dependentes] = await db.sequelize.query(
+    // CORREÇÃO: Utiliza a instância correta 'sequelize' importada no topo
+    const [dependentes] = await sequelize.query(
       "SELECT id FROM Tipo_Exame WHERE id_categoria = ? LIMIT 1",
-      { replacements: [id], type: db.sequelize.QueryTypes.SELECT },
+      { replacements: [id], type: sequelize.QueryTypes.SELECT },
     );
 
-    // Se encontrar alguma coisa, TRAVA o delete imediatamente e envia erro 400
     if (dependentes) {
       return res.status(400).json({
         error:
@@ -66,16 +77,17 @@ router.delete("/categorias/:id", async (req, res) => {
       });
     }
 
-    // 2. Só avança se o contador for zero
-    await db.sequelize.query("DELETE FROM Categoria_Exame WHERE id = ?", {
+    await sequelize.query("DELETE FROM Categoria_Exame WHERE id = ?", {
       replacements: [id],
     });
 
     res.json({ message: "Categoria eliminada com sucesso." });
   } catch (error) {
+    console.error("Erro ao eliminar categoria nas rotas:", error);
     res.status(500).json({ error: "Erro interno ao tentar eliminar." });
   }
 });
+
 router.delete("/tipos/:id", exameController.eliminarTipoExame);
 
 module.exports = router;

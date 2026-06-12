@@ -1,6 +1,6 @@
 const express = require("express");
 const session = require("express-session");
-const path = require("path");
+const path = require("node:path");
 const db = require("./src/config/db");
 const examenRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes");
@@ -190,6 +190,6 @@ db.getConnection()
       console.log(`Servidor a correr em http://localhost:${PORT}`);
     });
   })
-  .catch((erro) => {
-    console.error("ERRO de BD:", erro.message);
+  .catch((error_) => {
+    console.error("ERRO de BD:", error_.message);
   });

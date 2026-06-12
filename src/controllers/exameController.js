@@ -1,5 +1,6 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
+const sequelize = require("../config/db"); // Importação da ligação para gerir transações
 const fs = require("node:fs");
 const path = require("node:path");
 const { Op } = require("sequelize");
@@ -103,7 +104,7 @@ exports.listarHistorico = async (req, res) => {
 exports.registarExame = async (req, res) => {
   const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
   const utilizadorId = req.session.userId || 1;
-  const nomeFicheiro = req.file ? req.file.filename : null; // Captura do Multer
+  const nomeFicheiro = req.file ? req.file.filename : null;
 
   if (!data_exame || !id_tipo_exame) {
     return res
@@ -111,27 +112,52 @@ exports.registarExame = async (req, res) => {
       .json({ error: "A data e o tipo de exame são obrigatórios." });
   }
 
-  try {
-    // 1. Inserção na tabela principal (Exame)
-    const novoExame = await Exame.create({
-      data_exame,
-      local_realizacao: local_realizacao || "SaúdeDigital Clinic",
-      observacoes,
-      utilizador_id: utilizadorId,
-    });
+  // Inicializa a transação do Sequelize
+  const t = await sequelize.transaction();
 
-    // 2. Inserção do vínculo na tabela ponte (Exame_TipoExame) ligando o PDF
-    await ExameTipoExame.create({
-      id_exame: novoExame.id,
-      id_tipo_exame: id_tipo_exame,
-      resultado: nomeFicheiro,
-    });
+  try {
+    // 1. Inserção na tabela principal dentro da transação
+    const novoExame = await Exame.create(
+      {
+        data_exame,
+        local_realizacao: local_realizacao || "SaúdeDigital Clinic",
+        observacoes,
+        utilizador_id: utilizadorId,
+      },
+      { transaction: t },
+    );
+
+    // 2. Inserção na tabela ponte dentro da mesma transação
+    await ExameTipoExame.create(
+      {
+        id_exame: novoExame.id,
+        id_tipo_exame: id_tipo_exame,
+        resultado: nomeFicheiro,
+      },
+      { transaction: t },
+    );
+
+    // Se as duas correrem bem, guarda definitivamente na BD
+    await t.commit();
 
     res
       .status(200)
       .json({ message: "Exame e relatório guardados com sucesso!" });
   } catch (error) {
-    console.error("Erro ao registar exame:", error);
+    // Se qualquer uma falhar, desfaz as alterações e não deixa lixo na BD
+    await t.rollback();
+    console.error("Erro ao registar exame (Transaction Rollback):", error);
+
+    // Apaga o ficheiro do disco se a BD falhou
+    if (nomeFicheiro) {
+      const caminhoFicheiro = path.join(
+        __dirname,
+        "../../public/uploads/",
+        nomeFicheiro,
+      );
+      if (fs.existsSync(caminhoFicheiro)) fs.unlinkSync(caminhoFicheiro);
+    }
+
     res.status(500).json({ error: "Erro interno ao submeter o exame." });
   }
 };
