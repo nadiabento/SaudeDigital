@@ -1,6 +1,10 @@
 const express = require("express");
 const session = require("express-session");
 const path = require("node:path");
+
+// 1. IMPORTAÇÃO CORRETA E INICIALIZAÇÃO DA CLASSE DO MYSQLSTORE
+const MySQLStore = require("express-mysql-session")(session);
+
 const db = require("./src/config/db");
 const examenRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes");
@@ -13,6 +17,19 @@ require("dotenv").config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// --- CONFIGURAÇÃO SEGURA DAS CREDENCIAIS DA SESSÃO ---
+const dbOptions = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  port: process.env.DB_PORT || 3306,
+  ssl: { rejectUnauthorized: false }, // Requisito obrigatório de SSL para o Aiven
+};
+
+// 2. AGORA JÁ PODES USAR O "new" PORQUE A CLASSE FOI DEVIDAMENTE INICIALIZADA ACIMA
+const sessionStore = new MySQLStore(dbOptions);
+
 // --- MIDDLEWARES ---
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -21,27 +38,19 @@ app.use(express.static("public"));
 // Configuração da pasta pública de uploads
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
-const sessionStore = new MySQLStore(dbOptions);
-const MySQLStore = require("express-mysql-session")(session);
-const dbOptions = {
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
-  ssl: { rejectUnauthorized: false }, // Requisito SSL do Aiven
-};
-
-// Configuração de Sessão de Utilizador
+// Configuração de Sessão de Utilizador Persistente na BD
 app.use(
   session({
     key: "saudedigital_sid",
     secret: process.env.SESSION_SECRET || "chave_de_reserva_segura",
-    store: sessionStore, // As sessões passam a estar guardadas na BD e não na RAM
+    store: sessionStore, // Guarda na BD e não na RAM
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Mudar para true se usares HTTPS no Render
+    cookie: { secure: false }, // Se o Render usar HTTPS de ponta a ponta podes ligar para true mais tarde
   }),
 );
+
+// [Resto do teu código das rotas app.get e app.post mantém-se exatamente igual...]
 
 // --- ROTAS DA API ---
 app.use("/api/exames", examenRoutes);
