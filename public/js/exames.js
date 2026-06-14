@@ -117,10 +117,10 @@ function renderizarTabela(totalPaginas) {
             <td>
                 ${
                   exame.resultado
-                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-danger bg-opacity-10 text-danger fw-bold border-0 py-1 px-2 small">
-                       <i class="bi bi-file-pdf"></i> PDF
-                     </a>`
-                    : '<span class="text-muted">---</span>'
+                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
+                        <i class="bi bi-file-pdf text-white"></i> PDF
+                      </a>`
+                    : '<span class="text-muted small fw-semibold">Sem anexo</span>'
                 }
             </td>
             <td class="text-end">
