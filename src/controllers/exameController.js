@@ -228,7 +228,7 @@ exports.eliminarMassa = async (req, res) => {
   }
 
   try {
-    // 1. Procurar os nomes dos ficheiros PDF associados a estes exames para apagar do disco
+    // 1. Procurar os nomes dos ficheiros PDF associados a estes exames
     const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
 
     vinculos.forEach((vinculo) => {
@@ -238,8 +238,19 @@ exports.eliminarMassa = async (req, res) => {
           "../../public/uploads/",
           vinculo.resultado,
         );
-        if (fs.existsSync(caminhoFicheiro)) {
-          fs.unlinkSync(caminhoFicheiro); // Elimina fisicamente o PDF do servidor para poupar espaço
+
+        // CORREÇÃO: Envolver a remoção física num bloco try/catch secundário
+        // Impede que um ficheiro bloqueado ou em falta deite o servidor abaixo
+        try {
+          if (fs.existsSync(caminhoFicheiro)) {
+            fs.unlinkSync(caminhoFicheiro);
+          }
+        } catch (fileError) {
+          console.error(
+            `Aviso: Não foi possível apagar o ficheiro ${vinculo.resultado}:`,
+            fileError,
+          );
+          // O fluxo continua sem crashar a aplicação
         }
       }
     });

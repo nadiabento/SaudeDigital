@@ -21,13 +21,25 @@ app.use(express.static("public"));
 // Configuração da pasta pública de uploads
 app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
+const sessionStore = new MySQLStore(dbOptions);
+const MySQLStore = require("express-mysql-session")(session);
+const dbOptions = {
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASS,
+  database: process.env.DB_NAME,
+  ssl: { rejectUnauthorized: false }, // Requisito SSL do Aiven
+};
+
 // Configuração de Sessão de Utilizador
 app.use(
   session({
+    key: "saudedigital_sid",
     secret: process.env.SESSION_SECRET || "chave_de_reserva_segura",
+    store: sessionStore, // As sessões passam a estar guardadas na BD e não na RAM
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false },
+    cookie: { secure: false }, // Mudar para true se usares HTTPS no Render
   }),
 );
 
