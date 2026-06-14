@@ -1,8 +1,8 @@
+/* --- ESTILOS COMPONENTES EXISTENTES --- */
 .card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* Efeito Hover Suave nos cartões de moderação rápidos */
 .bg-light.rounded-3 {
     transition: all 0.2s ease-in-out;
 }
@@ -12,37 +12,34 @@
     margin: 0 auto;
 }
 
-/* 1. Garante que cada bloco de remoção permite que a lista flutue livremente para fora dele */
 .p-3.bg-light.rounded-3.position-relative {
     position: relative !important;
-    overflow: visible !important; /* CRÍTICO: Impede que o card corte a lista suspensa */
+    overflow: visible !important; /* Impede que o card corte a lista suspensa */
 }
 
-/* 2. Estilização da lista flutuante com Scroll e limite de altura */
+/* Estilização da lista flutuante com Scroll e limite de altura */
 .custom-autocomplete-list {
     position: absolute !important;
     top: 100% !important;
-    left: 0 !important;
-    /* Ajustamos a largura para alinhar perfeitamente com o input de texto, descontando o espaço do botão vermelho */
-    width: calc(100% - 54px) !important; 
+    left: 16px !important; /* Alinha perfeitamente com o início do input de texto */
+    width: calc(100% - 86px) !important; /* Desconta o padding esquerdo/direito + o botão vermelho */
     
-    max-height: 180px !important; /* Limita o tamanho a cerca de 4 a 5 itens visíveis */
-    overflow-y: auto !important;  /* Ativa o Scroll vertical quando ultrapassa o limite */
+    max-height: 180px !important;
+    overflow-y: auto !important;
     
-    background-color: #ffffff !important; /* Força o fundo branco opaco */
+    background-color: #ffffff !important;
     border: 1px solid #dee2e6 !important;
     border-radius: 8px !important;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important; /* Sombra profissional para dar efeito 3D */
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1) !important;
     padding: 0 !important;
     margin: 4px 0 0 0 !important;
-    z-index: 99999 !important; /* Força a ficar no topo absoluto de qualquer outro elemento visual */
+    z-index: 99999 !important;
 }
 
-/* 3. Itens individuais dentro da lista */
 .custom-autocomplete-list .list-group-item {
     cursor: pointer !important;
     border: none !important;
-    border-bottom: 1px solid #f8f9fa !important; /* Linha divisória subtil entre opções */
+    border-bottom: 1px solid #f8f9fa !important;
     padding: 10px 14px !important;
     font-size: 0.88rem !important;
     color: #252f40 !important;
@@ -50,20 +47,19 @@
     transition: all 0.15s ease-in-out !important;
 }
 
-/* Remove a linha divisória no último item */
 .custom-autocomplete-list .list-group-item:last-child {
     border-bottom: none !important;
 }
 
-/* Efeito de Destaque (Hover) */
 .custom-autocomplete-list .list-group-item:hover {
-    background-color: #f0f5ff !important; /* Mantém apenas a cor azul suave de seleção */
+    background-color: #f0f5ff !important;
     color: #0d6efd !important;
     font-weight: 600 !important;
-    padding-left: 14px !important; /* Mantém exatamente o mesmo padding original, sem mover o texto */
+    padding-left: 14px !important;
+    transform: none !important;
 }
 
-/* 4. Customização da barra de scroll (Opcional, para ficar com aspeto moderno) */
+/* Customização da barra de scroll */
 .custom-autocomplete-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -79,19 +75,32 @@
     background: #94a3b8;
 }
 
-/* Mantém o efeito visual de sombra, mas REMOVE o transform que fazia a caixa saltar */
 .p-3.bg-light.rounded-3.position-relative:hover {
-    transform: none !important; /* Força o card a ficar completamente parado no sítio */
+    transform: none !important;
     background-color: #ffffff !important;
     border-color: #0d6efd !important;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* Garante que os itens da lista também não fazem nenhuma micro-animação */
-.custom-autocomplete-list .list-group-item:hover {
-    background-color: #f0f5ff !important;
-    color: #0d6efd !important;
-    font-weight: 600 !important;
-    transform: none !important; /* Proteção extra contra heranças */
-    padding-left: 14px !important; /* Exatamente igual ao padding original */
+/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
+@media (max-width: 576px) {
+    .main-content {
+        padding-left: 5px !important;
+        padding-right: 5px !important;
+    }
+    
+    /* Reajuste do cálculo do autocomplete para a largura do telemóvel */
+    .custom-autocomplete-list {
+        left: 16px !important;
+        width: calc(100% - 82px) !important; /* Alinhamento dinâmico na largura mobile */
+    }
+
+    .form-control, .form-select {
+        font-size: 0.9rem !important;
+        padding: 10px !important;
+    }
+    
+    .btn {
+        font-size: 0.95rem !important;
+    }
 }

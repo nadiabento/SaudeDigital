@@ -4,6 +4,12 @@ document.addEventListener("DOMContentLoaded", () => {
   // Descarregar dados estruturais atualizados do servidor
   carregarArraysModicacao();
 
+  // --- NOVA INTERCEÇÃO: Ouvir a submissão do formulário de perfil ---
+  const formPerfil = document.getElementById("formAtualizarPerfil");
+  if (formPerfil) {
+    formPerfil.addEventListener("submit", atualizarDadosPerfil);
+  }
+
   document.addEventListener("mousedown", (e) => {
     if (!e.target.closest(".position-relative")) {
       esconderTodasAsListas();
@@ -30,36 +36,34 @@ const idsSelecionados = {
 // --- 1. CHAMADAS ATUALIZADAS E SINCRONIZADAS ---
 async function carregarArraysModicacao() {
   try {
-    // AQUI ESTÁ A MUDANÇA: Mudámos de "/api/consultas" para "/api/consultas/medicos"
     const resMed = await fetch("/api/consultas/medicos");
     if (resMed.ok) listaMedicos = await resMed.json();
 
     const resUni = await fetch("/api/consultas/unidades");
     if (resUni.ok) listaUnidades = await resUni.json();
 
-    // Passamos um termo vazio para ativar a pesquisa que já tens escrita no teu medRoutes
     const resCatMed = await fetch("/api/medicacao/catalogo/todos");
     if (resCatMed.ok) listaMedicamentos = await resCatMed.json();
 
-    // Sintonizado com a nova rota GET /api/medicacao/efeitos que adicionámos ao backend
     const resEfe = await fetch("/api/medicacao/efeitos");
     if (resEfe.ok) listaEfeitos = await resEfe.json();
 
-    const resCat = await fetch("/api/exames/categorias");
+    const resCat = await fetch(
+      "/api/exames/categories" || "/api/exames/categorias",
+    );
     if (resCat.ok) listaCategorias = await resCat.json();
 
-    // Rota global do Sequelize mapeada no teu novo exameController
     const resTip = await fetch("/api/exames/tipos-todos");
     if (resTip.ok) listaTipos = await resTip.json();
 
-    configurarFiltrosDinamicos();
+    configureFiltrosDinamicos();
   } catch (err) {
     console.error("Erro ao carregar dados de moderação no conta.js:", err);
   }
 }
 
 // --- 2. CONFIGURAÇÃO CIRÚRGICA DOS CAMPOS DA BD ---
-function configurarFiltrosDinamicos() {
+function configureFiltrosDinamicos() {
   setupFiltroUnico(
     "inputBuscarMedico",
     "sugestoesMedico",
@@ -74,8 +78,6 @@ function configurarFiltrosDinamicos() {
     "nome",
     "unidade",
   );
-
-  // Mapeia para 'nome_medicamento' conforme o teu modelo SQL do catálogo
   setupFiltroUnico(
     "inputBuscarMedicamento",
     "sugestoesMedicamento",
@@ -83,8 +85,6 @@ function configurarFiltrosDinamicos() {
     "nome_medicamento",
     "medicamento",
   );
-
-  // Mapeia para 'sintoma' conforme a tabela Efeito_Secundario
   setupFiltroUnico(
     "inputBuscarEfeito",
     "sugestoesEfeito",
@@ -92,7 +92,6 @@ function configurarFiltrosDinamicos() {
     "sintoma",
     "efeito",
   );
-
   setupFiltroUnico(
     "inputBuscarCategoria",
     "sugestoesCategoria",
@@ -173,24 +172,21 @@ async function processarRemocaoPorId(chaveId, urlBase, nomeEntidade) {
     });
   }
 
-  // Janela de Confirmação Estilizada do SweetAlert2
   Swal.fire({
     title: `Tem a certeza?`,
     text: `Esta ação vai eliminar permanentemente este registo de ${nomeEntidade}!`,
     icon: "warning",
     showCancelButton: true,
-    confirmButtonColor: "#dc3545", // Botão vermelho de perigo
+    confirmButtonColor: "#dc3545",
     cancelButtonColor: "#6c757d",
     confirmButtonText: "Sim, eliminar!",
     cancelButtonText: "Cancelar",
   }).then(async (result) => {
-    // Se o utilizador clicar no botão vermelho "Sim, eliminar!"
     if (result.isConfirmed) {
       try {
         const response = await fetch(`${urlBase}/${id}`, { method: "DELETE" });
 
         if (response.ok) {
-          // Pop-up de Sucesso
           Swal.fire({
             title: "Removido!",
             text: `O registo de ${nomeEntidade} foi eliminado com sucesso.`,
@@ -199,21 +195,17 @@ async function processarRemocaoPorId(chaveId, urlBase, nomeEntidade) {
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-            globalThis.location.reload(); // Recarrega a página após a animação terminar
+            globalThis.location.reload();
           });
         } else {
-          // Tratar os avisos de integridade (Se houver coisas associadas àquele ID)
           const textoErro = await response.text();
           let mensagem = "Não foi possível remover este registo.";
-
           try {
             const jsonErro = JSON.parse(textoErro);
             mensagem = jsonErro.error || jsonErro.erro || mensagem;
           } catch (e) {
             mensagem = textoErro || mensagem;
           }
-
-          // Pop-up de Bloqueio de Segurança (Chaves Estrangeiras do MySQL/Sequelize)
           Swal.fire({
             title: "Aviso de Segurança",
             text: mensagem,
@@ -256,7 +248,7 @@ function eliminarEfeitoSecundarioGlobal() {
     "efeito",
     "/api/medicacao/efeitos",
     "Efeito Secundário",
-  ); // Atualizado para a rota certa
+  );
 }
 function eliminarCategoriaExameGlobal() {
   processarRemocaoPorId(
@@ -269,12 +261,10 @@ function eliminarTipoExameGlobal() {
   processarRemocaoPorId("tipo", "/api/exames/tipos", "Tipo de Exame");
 }
 
-// --- 4. PERFIL (REVERTIDO PARA O TEU ORIGINAL CASO PREFIERAS NÃO MEXER NO AUTH CONTROLLER) ---
+// --- 4. PERFIL (CARREGAR E ATUALIZAR DADOS) ---
 async function carregarDadosPerfil() {
   try {
-    // Tenta ler do teu backend original
     const response = await fetch("/api/auth/meu-perfil");
-
     if (response.ok) {
       const user = await response.json();
       document.getElementById("inputAtualizarNome").value = user.nome || "";
@@ -282,11 +272,79 @@ async function carregarDadosPerfil() {
       document.getElementById("selectGrupoSanguineo").value =
         user.grupo_sanguineo || "";
       document.getElementById("inputPeso").value = user.peso || "";
-      if (user.data_nascimento)
+      if (user.data_nascimento) {
         document.getElementById("inputDataNascimento").value =
           user.data_nascimento.split("T")[0];
+      }
     }
   } catch (e) {
     console.error("Erro ao carregar perfil:", e);
+  }
+}
+
+// --- NOVA FUNÇÃO: Enviar os dados modificados para o Sequelize/MySQL ---
+async function atualizarDadosPerfil(e) {
+  e.preventDefault(); // Impede o recarregamento automático da página ao submeter
+
+  // Capturar os valores atuais dos campos da interface
+  const nome = document.getElementById("inputAtualizarNome").value.trim();
+  const data_nascimento = document.getElementById("inputDataNascimento").value;
+  const grupo_sanguineo = document.getElementById("selectGrupoSanguineo").value;
+  const peso = document.getElementById("inputPeso").value;
+
+  try {
+    // Carregamento visual de espera profissional
+    Swal.fire({
+      title: "A guardar...",
+      text: "A atualizar os seus indicadores clínicos de forma segura.",
+      allowOutsideClick: false,
+      didOpen: () => {
+        Swal.showLoading();
+      },
+    });
+
+    // Enviar via PUT para o backend (ajusta a rota se no teu backend for diferente, ex: /api/auth/perfil)
+    const response = await fetch("/api/auth/atualizar-perfil", {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        nome,
+        data_nascimento,
+        grupo_sanguineo,
+        peso: peso ? parseFloat(peso) : null,
+      }),
+    });
+
+    if (response.ok) {
+      Swal.fire({
+        title: "Alterações Guardadas!",
+        text: "Os teus dados pessoais foram atualizados com sucesso.",
+        icon: "success",
+        confirmButtonColor: "#0d6efd",
+        timer: 2000,
+        showConfirmButton: false,
+      }).then(() => {
+        // Atualiza a visualização local para sincronizar
+        carregarDadosPerfil();
+      });
+    } else {
+      const erroTexto = await response.text();
+      Swal.fire({
+        title: "Erro ao Guardar",
+        text: erroTexto || "Não foi possível processar a alteração.",
+        icon: "error",
+        confirmButtonColor: "#dc3545",
+      });
+    }
+  } catch (error) {
+    console.error("Erro na atualização do perfil:", error);
+    Swal.fire({
+      title: "Erro de Conexão",
+      text: "Problema ao contactar o servidor.",
+      icon: "error",
+      confirmButtonColor: "#dc3545",
+    });
   }
 }
