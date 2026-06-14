@@ -11,23 +11,28 @@ body {
 
 /* --- ESTILOS DA SIDEBAR --- */
 .sidebar {
-  width: var(--sidebar-width);
-  height: 100vh;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  border-right: 1px solid #e9ecef;
-  z-index: 1050;
-  transition: all 0.3s ease;
+    width: var(--sidebar-width);
+    height: 100vh; /* Fallback */
+    height: 100dvh; /* CORREÇÃO: Força o tamanho real dinâmico no telemóvel */
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #ffffff;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #e9ecef;
+    z-index: 1050;
+    transition: all 0.3s ease;
 }
 
 /* Estado Encolhido no PC */
 .sidebar.collapsed {
   width: var(--sidebar-width-collapsed);
 }
+
+.table th, .table td {
+        padding: 8px 4px !important;
+    }
 
 .sidebar-link {
   color: #101616;
@@ -189,5 +194,12 @@ body {
 }
 
 .table-responsive {
-  overflow: visible !important;
+    overflow-x: auto !important;
+    width: 100%;
+}
+
+#tabelaExames td {
+    white-space: normal !important; /* Permite que o texto mude de linha */
+    word-break: break-word;        /* Quebra palavras longas se necessário */
+    font-size: 0.9rem;             /* Ajuste ligeiro para ecrãs pequenos */
 }

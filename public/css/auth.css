@@ -36,15 +36,13 @@ body {
 
 /* --- COLUNA DIREITA: Cartão Glassmorphism (Vidro Fosco) --- */
 .glass-login-card {
-    background: rgba(255, 255, 255, 0.45);
-    backdrop-filter: blur(20px) saturate(180%);
-    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    background: rgba(255, 255, 255, 0.75) !important;
+    backdrop-filter: blur(20px) saturate(190%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(190%) !important;
     border-radius: 32px;
-    border: 1px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.6) !important;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05) !important;
     padding: 3.5rem 2.5rem;
-    animation: cardFadeIn 0.6s ease-out;
-    width: 100%;
 }
 
 /* Customização dos Inputs para combinar com o Vidro */
@@ -110,10 +108,15 @@ body {
     }
     
     .glass-login-card {
-        padding: 2rem 1.5rem; /* Diminui o espaçamento interno no telemóvel para dar mais espaço */
-        border-radius: 24px;   /* Arredondamento ligeiramente menor em ecrãs pequenos */
-        margin-top: 1.5rem !important;
-        margin-bottom: 1.5rem !important;
+        padding: 2.5rem 1.75rem !important;
+        margin: 1rem;
+        background: rgba(255, 255, 255, 0.85) !important; /* Um pouco mais opaco para leitura no telemóvel */
+    }
+    
+    .icon-box-logo-neon {
+        width: 65px;
+        height: 65px;
+        background-color: rgba(59, 90, 250, 0.12) !important;
     }
     
     .display-4, .display-5 {
