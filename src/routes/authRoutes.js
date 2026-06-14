@@ -12,14 +12,15 @@ router.post("/registo", authController.registar);
 // Rota para o Login
 router.post("/login", authController.login);
 
-
 router.get("/meu-perfil", async (req, res) => {
   try {
-    const userId = req.session.userId; 
+    const userId = req.session.userId;
 
     // Bloqueia quem não fez login!
     if (!userId) {
-      return res.status(401).json({ error: "Acesso Negado. Faça login primeiro." });
+      return res
+        .status(401)
+        .json({ error: "Acesso Negado. Faça login primeiro." });
     }
 
     const linhas = await db.sequelize.query(
@@ -38,9 +39,13 @@ router.get("/meu-perfil", async (req, res) => {
     res.json(utilizador);
   } catch (error) {
     console.error("Erro ao carregar perfil:", error);
-    res.status(500).json({ error: "Erro interno no servidor ao carregar o perfil." });
+    res
+      .status(500)
+      .json({ error: "Erro interno no servidor ao carregar o perfil." });
   }
 });
+
+router.put("/perfil", authController.atualizarPerfil);
 
 // Esta linha é a mais importante para o erro desaparecer:
 module.exports = router;
