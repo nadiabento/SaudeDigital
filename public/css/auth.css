@@ -1,0 +1,102 @@
+/* --- CONFIGURAÇÕES GERAIS --- */
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: #f8fafc;
+    color: #2d3748;
+    overflow-x: hidden;
+}
+
+/* --- COLUNA ESQUERDA: Gradiente Dinâmico com Efeito de Ondas --- */
+.bg-gradient-custom {
+    background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%);
+    position: relative;
+    overflow: hidden;
+}
+
+.bg-gradient-custom::after {
+    content: "";
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    top: -50%;
+    left: -50%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    animation: waveAnimation 25s infinite linear;
+    opacity: 0.8;
+}
+
+.max-w-400 {
+    max-width: 400px;
+    position: relative;
+    z-index: 2;
+}
+
+/* --- COLUNA DIREITA: Cartão Glassmorphism (Vidro Fosco) --- */
+.glass-login-card {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border-radius: 32px;
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.06);
+    padding: 3.5rem 2.5rem;
+    animation: cardFadeIn 0.6s ease-out;
+}
+
+/* Customização dos Inputs para combinar com o Vidro */
+.glass-login-card .form-control {
+    border: 1px solid #e2e8f0;
+    transition: all 0.2s ease;
+}
+
+.glass-login-card .form-control:focus {
+    border-color: #3b5afa;
+    box-shadow: 0 0 0 3px rgba(59, 90, 250, 0.15);
+    background-color: #ffffff;
+}
+
+/* Logótipo Animado */
+.icon-box-logo-neon {
+    background-color: rgba(59, 90, 250, 0.1);
+    color: #3b5afa;
+    width: 75px;
+    height: 75px;
+    border-radius: 22px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1.25rem;
+    box-shadow: 0 0 15px rgba(59, 90, 250, 0.1);
+    animation: pulseLogo 3s infinite ease-in-out;
+}
+
+/* Botão Principal */
+.btn-primary-index {
+    background-color: #3b5afa;
+    border: none;
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary-index:hover {
+    background-color: #2563eb;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(59, 90, 250, 0.25);
+}
+
+/* --- KEYFRAMES --- */
+@keyframes waveAnimation {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(15px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pulseLogo {
+    0% { transform: scale(1); opacity: 0.95; }
+    50% { transform: scale(1.03); opacity: 1; }
+    100% { transform: scale(1); opacity: 0.95; }
+}
