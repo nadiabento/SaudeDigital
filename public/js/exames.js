@@ -91,10 +91,12 @@ function renderizarTabela(totalPaginas) {
   }
 
   examesParaTabela.forEach((exame) => {
-    // CORREÇÃO SEQUELIZE: O Sequelize devolve 'YYYY-MM-DD', tratamos de forma limpa
+    // CORREÇÃO SEQUELIZE: Tratamento limpo de strings YYYY-MM-DD
     let dataF = "---";
     if (exame.data) {
-      const partes = exame.data.split("T")[0].split("-");
+      const partes = examen.data
+        ? examen.data.split("T")[0].split("-")
+        : exame.data.split("T")[0].split("-");
       dataF =
         partes.length === 3
           ? `${partes[2]}/${partes[1]}/${partes[0]}`
@@ -107,29 +109,38 @@ function renderizarTabela(totalPaginas) {
           .replaceAll('"', "&quot;")
       : "";
 
+    // HTML alinhado estruturalmente com o modelo de consultas
     tbody.innerHTML += `
-            <tr>
-                <td><input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()"></td>
-                <td><strong>${exame.nome}</strong></td>
-                <td>${dataF}</td>
-                <td>
-                    ${exame.resultado ? `<a href="/uploads/${exame.resultado}" target="_blank" class="badge bg-danger-subtle text-danger text-decoration-none"><i class="bi bi-file-pdf"></i> PDF</a>` : "---"}
-                </td>
-                <td class="text-end">
-                    <div class="dropdown">
-                        <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
-                            <i class="bi bi-three-dots"></i>
-                        </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                            <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                            <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
-                        </ul>
-                    </div>
-                </td>
-            </tr>`;
+        <tr>
+            <td>
+                <input type="checkbox" class="form-check-input examen-checkbox exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
+            </td>
+            <td><strong>${exame.nome}</strong></td>
+            <td style="white-space: nowrap;">${dataF}</td>
+            <td>
+                ${
+                  exame.resultado
+                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-danger bg-opacity-10 text-danger fw-bold border-0 py-1 px-2 small">
+                       <i class="bi bi-file-pdf"></i> PDF
+                     </a>`
+                    : '<span class="text-muted">---</span>'
+                }
+            </td>
+            <td class="text-end">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>`;
   });
 
   renderizarControlosPaginacao(totalPaginas);
