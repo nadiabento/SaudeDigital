@@ -127,26 +127,38 @@ body {
 
 /* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 768px) {
-    /* 1. Força as células a terem menos espaço nas laterais para a tabela caber */
-    .table th, .table td {
-        padding: 12px 6px !important;
-        font-size: 0.85rem !important; /* Letra ligeiramente menor para caber tudo */
+    
+    /* Corrige o transbordo e remove a margem do computador */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding: 20px 15px !important;
+        margin-top: 70px !important;
     }
 
-    /* 2. Garante que os nomes dos exames não se partem letra a letra */
+    /* Proteção para as tabelas respirarem na horizontal sem esticar a página */
+    .table-responsive {
+        overflow-x: auto !important;
+        width: 100%;
+    }
+
+    /* Ajuste específico para as células da tabela de exames no telemóvel */
+    .table th, .table td {
+        padding: 12px 6px !important;
+        font-size: 0.85rem !important;
+    }
+
     #tabelaExames td:nth-child(2) {
         font-weight: 700;
         color: #252f40;
-        min-width: 110px; /* Dá espaço mínimo para o nome respirar */
+        min-width: 110px;
     }
 
-    /* 3. Ajusta a coluna da Data para não quebrar o ano para baixo */
     #tabelaExames td:nth-child(3) {
-        white-space: nowrap !important; /* Impede que a data quebre em 3 linhas */
-        color: #4a5568;
+        white-space: nowrap !important;
     }
 
-    /* 4. Encolhe o botão do PDF para ele ficar pequeno e discreto como o texto das consultas */
     #tabelaExames .btn-danger {
         padding: 4px 8px !important;
         font-size: 0.75rem !important;

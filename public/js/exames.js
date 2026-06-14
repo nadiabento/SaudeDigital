@@ -91,12 +91,10 @@ function renderizarTabela(totalPaginas) {
   }
 
   examesParaTabela.forEach((exame) => {
-    // CORREÇÃO SEQUELIZE: Tratamento limpo de strings YYYY-MM-DD
+    // CORREÇÃO: Variável alterada de 'examen.data' para 'exame.data'
     let dataF = "---";
     if (exame.data) {
-      const partes = examen.data
-        ? examen.data.split("T")[0].split("-")
-        : exame.data.split("T")[0].split("-");
+      const partes = exame.data.split("T")[0].split("-");
       dataF =
         partes.length === 3
           ? `${partes[2]}/${partes[1]}/${partes[0]}`
@@ -109,11 +107,10 @@ function renderizarTabela(totalPaginas) {
           .replaceAll('"', "&quot;")
       : "";
 
-    // HTML alinhado estruturalmente com o modelo de consultas
     tbody.innerHTML += `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input examen-checkbox exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
+                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
             </td>
             <td><strong>${exame.nome}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
