@@ -1,141 +1,4 @@
-/* Estilo para o grupo de botões de atalho rápido */
-.card-atalhos {
-  border-radius: 12px;
-  background-color: transparent; /* Permite que o fundo do card controle a cor */
-}
-
-/* Botão de Atalho (Nova Categoria / Novo Tipo) */
-.btn-atalho {
-  background-color: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #f0f0f0 !important;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column; /* Ícone em cima, texto em baixo */
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  width: 100%;
-  cursor: pointer;
-}
-
-/* Efeito de elevação (Float) ao passar o rato */
-.btn-atalho:hover {
-  background-color: #f8fbff;
-  border-color: var(--primary-color) !important;
-  transform: translateY(-3px); /* Move o botão 3px para cima */
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
-}
-
-/* Transição suave para o ícone dentro do botão */
-.btn-atalho i {
-  transition: transform 0.3s ease;
-}
-
-/* O ícone cresce ligeiramente no hover */
-.btn-atalho:hover i {
-  transform: scale(1.1);
-}
-
-/* Texto abaixo do ícone */
-.btn-atalho span {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: 8px;
-  color: var(--text-dark);
-}
-
-/* Estilo para a lista de sugestões (Autocomplete) */
-datalist {
-  border-radius: 10px;
-}
-
-/* Melhora o aspeto do campo de entrada */
-#classeExameInput,
-#tipoExameInput {
-  border: 1px solid #eee !important;
-  background-color: #f8f9fa;
-  transition: all 0.2s ease-in-out;
-  font-weight: 500;
-}
-
-#classeExameInput:focus {
-  background-color: #fff;
-  border-color: #0d6efd !important;
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
-}
-
-/* Lista de sugestões personalizada */
-.custom-autocomplete-list {
-  position: absolute;
-  top: 100%;
-  left: 0;
-  right: 0;
-  z-index: 1000;
-  max-height: 200px;
-  overflow-y: auto;
-  border: 1px solid #eee;
-  border-top: none;
-  background: white;
-  display: none; /* Escondida por padrão */
-  padding: 0;
-}
-
-/* Itens da lista */
-.custom-autocomplete-list .list-group-item {
-  cursor: pointer;
-  border: none;
-  padding: 12px 15px;
-  font-size: 0.9rem;
-  transition: background 0.2s;
-}
-
-/* Efeito ao passar o rato ou selecionar */
-.custom-autocomplete-list .list-group-item:hover {
-  background-color: #e7f0ff;
-  color: #0d6efd;
-  font-weight: 600;
-}
-/* Permite que o dropdown transborde para fora da div responsiva */
-.table-responsive {
-  overflow: visible !important;
-}
-
-/* Garante que o menu de ações fique sempre por cima de tudo */
-.dropdown-menu {
-  position: absolute;
-  z-index: 9999;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-.pagination {
-  border-radius: 12px;
-  overflow: hidden;
-}
-
-.page-link {
-  padding: 10px 18px;
-  color: #0d6efd;
-  border: 1px solid #dee2e6;
-  transition: all 0.2s ease;
-}
-
-.page-item.active .page-link {
-  background-color: #0d6efd;
-  border-color: #0d6efd;
-  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
-}
-
-.page-link:hover {
-  background-color: #f8f9fa;
-  color: #0046af;
-}
-
-.page-item.disabled .page-link {
-  background-color: #f8f9fa;
-  color: #ced4da;
-}
-
+/* --- VARIÁVEIS E ESTRUTURA GLOBAL --- */
 :root {
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 85px;
@@ -146,27 +9,29 @@ body {
   background-color: #f8f9fa;
 }
 
+/* --- ESTILOS DA SIDEBAR --- */
 .sidebar {
   width: var(--sidebar-width);
-  height: 100vh; /* Altura total da janela */
+  height: 100vh;
   position: fixed;
   top: 0;
   left: 0;
   background: #ffffff;
   display: flex;
-  flex-direction: column; /* Alinha os itens em coluna */
+  flex-direction: column;
   border-right: 1px solid #e9ecef;
   z-index: 1050;
   transition: all 0.3s ease;
 }
 
+/* Estado Encolhido no PC */
 .sidebar.collapsed {
   width: var(--sidebar-width-collapsed);
 }
 
 .sidebar-link {
-  color: #101616; /* Cinza médio (atual) */
-  font-weight: 400; /* Letra mais grossa/forte */
+  color: #101616;
+  font-weight: 400;
   transition: all 0.2s ease;
   text-decoration: none;
   display: flex;
@@ -177,14 +42,14 @@ body {
 }
 
 .sidebar-link:hover {
-  color: #252f40; /* Cinza quase preto (mais escuro) */
-  background-color: rgba(13, 110, 253, 0.08); /* Fundo azul bem clarinho */
+  color: #252f40;
+  background-color: rgba(13, 110, 253, 0.08);
   transform: translateX(5px);
 }
 
 .sidebar-link.active {
-  background-color: #0d6efd !important; /* Azul forte */
-  color: #ffffff !important; /* Letras brancas para contraste */
+  background-color: #0d6efd !important;
+  color: #ffffff !important;
   font-weight: 500;
   box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
 }
@@ -196,39 +61,28 @@ body {
   transition: opacity 0.3s ease;
 }
 
-.notification-badge {
-  background: #ff6b6b;
-  padding: 2px 6px;
-  border-radius: 6px;
-  font-size: 0.7rem;
-}
-
 .profile-section {
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(
-    193,
-    192,
-    192,
-    0.15
-  ); /* Um pouco mais escuro que a sidebar */
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(193, 192, 192, 0.15);
 }
 
+/* --- CONTEÚDO PRINCIPAL (ADAPTATIVO) --- */
 .main-content {
-  /* Usa calc para garantir que preencha o resto da tela */
   width: calc(100% - var(--sidebar-width));
   margin-left: var(--sidebar-width);
-
   background-color: #f8f9fa;
   min-height: 100vh;
   padding: 40px;
   transition: all 0.3s ease;
 }
 
-.collapsed ~ .main-content {
+/* Se a sidebar estiver colapsada, o conteúdo estica */
+.sidebar.collapsed ~ .main-content {
   margin-left: var(--sidebar-width-collapsed);
   width: calc(100% - var(--sidebar-width-collapsed));
 }
 
+/* Botão de encolher (Chevron) */
 .toggle-btn {
   position: absolute;
   right: -15px;
@@ -244,92 +98,96 @@ body {
   transition: transform 0.3s ease;
 }
 
-.collapsed .toggle-btn {
+.sidebar.collapsed .toggle-btn {
   transform: rotate(180deg);
 }
 
-.collapsed .hide-on-collapse {
+/* Esconder elementos de texto no colapso */
+.sidebar.collapsed .hide-on-collapse,
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .profile-info {
   opacity: 0;
   visibility: hidden;
 }
 
-.collapsed .logo-text {
-  opacity: 0;
-}
-
-.collapsed .profile-info {
-  opacity: 0;
-}
-
-.collapsed .sidebar-link {
+.sidebar.collapsed .sidebar-link {
   text-align: center;
   padding: 1rem !important;
   margin: 4px 8px;
 }
 
-.collapsed .sidebar-link i {
+.sidebar.collapsed .sidebar-link i {
   margin: 0 !important;
 }
 
-.profile-info {
-  transition: opacity 0.2s ease;
-}
-
+/* --- RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 768px) {
   .main-content {
-    /* Ajuste este valor (80px ou 90px) para garantir que o título aparece */
     margin-top: 70px !important;
     padding: 20px !important;
     margin-left: 0 !important;
     width: 100% !important;
   }
-
-  /* Garante que o título não fique colado ao topo */
-  .main-content h2,
-  .main-content h3 {
-    margin-top: 10px;
-  }
+  
   .sidebar {
-    transform: translateX(-100%);
+    transform: translateX(-100%); /* Esconde para fora do ecrã à esquerda */
   }
+  
   .sidebar.active {
-    transform: translateX(0);
+    transform: translateX(0); /* Desliza para dentro do ecrã */
     width: var(--sidebar-width);
   }
+  
+  .navbar-toggler {
+    border: none !important;
+    background-color: transparent !important;
+    box-shadow: none !important;
+    padding: 10px !important;
+  }
 }
 
-/* Remove a moldura cinza, a borda e o fundo do botão mobile */
-.navbar-toggler {
-  border: none !important;
-  background-color: transparent !important;
-  box-shadow: none !important;
-  outline: none !important;
+/* --- OUTROS COMPONENTES (ATALHOS E AUTOCOMPLETE) --- */
+.card-atalhos {
+  border-radius: 12px;
+  background-color: transparent;
+}
 
-  /* Em vez de 0, damos uma margem para ele não colar na borda */
-  padding: 10px !important;
-  margin-right: 10px; /* Empurra o ícone ligeiramente para a esquerda */
-
+.btn-atalho {
+  background-color: #ffffff;
+  border-radius: 10px;
+  border: 1px solid #f0f0f0 !important;
+  transition: all 0.3s ease;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  padding: 1.5rem;
+  width: 100%;
+  cursor: pointer;
 }
 
-/* Remove o efeito de "foco" azul ou cinza que aparece ao clicar */
-.navbar-toggler:focus,
-.navbar-toggler:active {
-  box-shadow: none !important;
-  outline: none !important;
-  border: none !important;
+.btn-atalho:hover {
+  background-color: #f8fbff;
+  border-color: #0d6efd !important;
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
 }
 
-/* Se quiseres dar um toque dinâmico: um leve aumento ao clicar */
-.navbar-toggler:active {
-  transform: scale(0.9);
-  transition: transform 0.1s ease;
+.btn-atalho i {
+  transition: transform 0.3s ease;
 }
 
-/* Garante que o ícone (as 3 linhas) seja a única coisa visível */
-.navbar-toggler-icon {
-  /* Se usares o ícone padrão do bootstrap, podes mudar a cor dele aqui se necessário */
-  filter: none;
+.btn-atalho:hover i {
+  transform: scale(1.1);
+}
+
+.btn-atalho span {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-top: 8px;
+  color: #2d3748;
+}
+
+.table-responsive {
+  overflow: visible !important;
 }
