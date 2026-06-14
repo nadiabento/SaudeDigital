@@ -1,6 +1,7 @@
 // src/controllers/authController.js
 const bcrypt = require("bcrypt");
 const User = require("../models/User");
+const db = require("../config/db"); // Importado corretamente cá para cima
 
 const authController = {
   // 1. Função de Registo
@@ -62,7 +63,7 @@ const authController = {
           .json({ erro: "E-mail ou palavra-passe incorretos." });
       }
 
-      // --- RECORDAÇÃO: Guardamos o ID na sessão usando o nome 'userId' ---
+      // Guardamos o ID na sessão usando o nome 'userId'
       req.session.userId = utilizador.id;
 
       // Forçamos a gravação da sessão para garantir que o ID está lá no redirecionamento
@@ -88,7 +89,7 @@ const authController = {
     }
   },
 
-  // 3. Função de Logout (Adicionada para completar o sistema)
+  // 3. Função de Logout
   logout: (req, res) => {
     req.session.destroy((err) => {
       if (err) {
@@ -100,42 +101,41 @@ const authController = {
       res.status(200).json({ mensagem: "Sessão encerrada." });
     });
   },
-};
 
-module.exports = authController;
+  // 4. CORREÇÃO: Função de Atualização integrada de forma correta no objeto!
+  atualizarPerfil: async (req, res) => {
+    const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
+    const utilizadorId = req.session.userId;
 
-const db = require("../config/db");
+    if (!utilizadorId) {
+      return res
+        .status(401)
+        .json({ error: "Sessão expirada. Inicie sessão novamente." });
+    }
 
-// Controller para processar a atualização
-exports.atualizarPerfil = async (req, res) => {
-  const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
-  const utilizadorId = req.session.userId; // Busca o ID da sessão de quem está logado
-
-  if (!utilizadorId) {
-    return res
-      .status(401)
-      .json({ error: "Sessão expirada. Inicie sessão novamente." });
-  }
-
-  // Query 100% segura usando Prepared Statements com marcadores "?"
-  const sql = `
+    const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
         WHERE id = ?`;
 
-  try {
-    await db.query(sql, [
-      nome,
-      data_nascimento,
-      grupo_sanguineo,
-      peso,
-      utilizadorId,
-    ]);
-    return res.status(200).json({ message: "Perfil modificado com sucesso!" });
-  } catch (error) {
-    console.error("Erro SQL ao atualizar perfil:", error);
-    return res
-      .status(500)
-      .json({ error: "Erro interno ao gravar na base de dados." });
-  }
+    try {
+      await db.query(sql, [
+        nome,
+        data_nascimento,
+        grupo_sanguineo,
+        peso,
+        utilizadorId,
+      ]);
+      return res
+        .status(200)
+        .json({ message: "Perfil modificado com sucesso!" });
+    } catch (error) {
+      console.error("Erro SQL ao atualizar perfil:", error);
+      return res
+        .status(500)
+        .json({ error: "Erro interno ao gravar na base de dados." });
+    }
+  },
 };
+
+module.exports = authController;

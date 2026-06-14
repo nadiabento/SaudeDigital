@@ -48,9 +48,7 @@ async function carregarArraysModicacao() {
     const resEfe = await fetch("/api/medicacao/efeitos");
     if (resEfe.ok) listaEfeitos = await resEfe.json();
 
-    const resCat = await fetch(
-      "/api/exames/categories" || "/api/exames/categorias",
-    );
+    const resCat = await fetch("/api/exames/categorias");
     if (resCat.ok) listaCategorias = await resCat.json();
 
     const resTip = await fetch("/api/exames/tipos-todos");
