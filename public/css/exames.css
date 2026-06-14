@@ -1,38 +1,38 @@
-/* --- VARIÁVEIS E ESTRUTURA GLOBAL --- */
+/* --- 1. VARIÁVEIS E CONFIGURAÇÃO GLOBAL --- */
 :root {
   --sidebar-width: 260px;
-  --sidebar-width-collapsed: 85px;
+  --sidebar-width-collapsed: 80px;
+  --primary-color: #0d6efd;
+  --primary-light: #e7f0ff;
+  --text-dark: #333;
+  --border-color: #dee2e6;
+  --bg-light: #f8f9fa;
 }
 
-body {
-  overflow-x: hidden;
-  background-color: #f8f9fa;
+html, body {
+  overflow-x: hidden !important; /* Proteção total contra scroll lateral */
+  width: 100%;
+  max-width: 100vw;
+  font-family: "Inter", sans-serif;
+  color: var(--text-dark);
+  background-color: var(--bg-light);
 }
 
-/* --- ESTILOS DA SIDEBAR --- */
+/* --- 2. SIDEBAR (COMPUTADOR - PADRÃO ABERTO) --- */
 .sidebar {
-    width: var(--sidebar-width);
-    height: 100vh; /* Fallback */
-    height: 100dvh; /* CORREÇÃO: Força o tamanho real dinâmico no telemóvel */
-    position: fixed;
-    top: 0;
-    left: 0;
-    background: #ffffff;
-    display: flex;
-    flex-direction: column;
-    border-right: 1px solid #e9ecef;
-    z-index: 1050;
-    transition: all 0.3s ease;
+  width: var(--sidebar-width) !important;
+  height: 100vh;
+  height: 100dvh;
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid #e9ecef;
+  z-index: 1050;
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
-
-/* Estado Encolhido no PC */
-.sidebar.collapsed {
-  width: var(--sidebar-width-collapsed);
-}
-
-.table th, .table td {
-        padding: 8px 4px !important;
-    }
 
 .sidebar-link {
   color: #101616;
@@ -47,13 +47,13 @@ body {
 }
 
 .sidebar-link:hover {
-  color: #252f40;
-  background-color: rgba(13, 110, 253, 0.08);
+  color: var(--primary-color);
+  background-color: var(--primary-light);
   transform: translateX(5px);
 }
 
 .sidebar-link.active {
-  background-color: #0d6efd !important;
+  background-color: var(--primary-color) !important;
   color: #ffffff !important;
   font-weight: 500;
   box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
@@ -71,23 +71,25 @@ body {
   background: rgba(193, 192, 192, 0.15);
 }
 
-/* --- CONTEÚDO PRINCIPAL (ADAPTATIVO) --- */
-.main-content {
-  width: calc(100% - var(--sidebar-width));
-  margin-left: var(--sidebar-width);
+.profile-link {
   background-color: #f8f9fa;
+  transition: background-color 0.2s ease;
+}
+
+.profile-link:hover {
+  background-color: #e9ecef;
+}
+
+/* --- 3. CONTEÚDO PRINCIPAL (COMPUTADOR) --- */
+.main-content {
+  margin-left: var(--sidebar-width) !important;
+  padding: 2rem;
   min-height: 100vh;
-  padding: 40px;
-  transition: all 0.3s ease;
+  background-color: var(--bg-light);
+  transition: margin-left 0.3s ease-in-out; 
 }
 
-/* Se a sidebar estiver colapsada, o conteúdo estica */
-.sidebar.collapsed ~ .main-content {
-  margin-left: var(--sidebar-width-collapsed);
-  width: calc(100% - var(--sidebar-width-collapsed));
-}
-
-/* Botão de encolher (Chevron) */
+/* Chevron de encolher */
 .toggle-btn {
   position: absolute;
   right: -15px;
@@ -103,70 +105,81 @@ body {
   transition: transform 0.3s ease;
 }
 
+/* --- 4. ESTADO ENCOLHIDO (PC - COLLAPSED) --- */
+.sidebar.collapsed {
+  width: var(--sidebar-width-collapsed) !important;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--sidebar-width-collapsed) !important; 
+}
+
 .sidebar.collapsed .toggle-btn {
   transform: rotate(180deg);
 }
 
-/* Esconder elementos de texto no colapso */
 .sidebar.collapsed .hide-on-collapse,
 .sidebar.collapsed .logo-text,
 .sidebar.collapsed .profile-info {
-  opacity: 0;
-  visibility: hidden;
+  display: none !important;
 }
 
 .sidebar.collapsed .sidebar-link {
-  text-align: center;
-  padding: 1rem !important;
-  margin: 4px 8px;
+  justify-content: center !important;
+  padding: 0 !important;
+  margin: 0 auto 10px auto !important;
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
 }
 
 .sidebar.collapsed .sidebar-link i {
   margin: 0 !important;
+  font-size: 1.3rem;
 }
 
-/* --- RESPONSIVIDADE (MOBILE) --- */
-@media (max-width: 768px) {
-    
-    /* Corrige o transbordo e remove a margem do computador */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        max-width: 100vw !important;
-        padding: 20px 15px !important;
-        margin-top: 70px !important;
-    }
-
-    /* Proteção para as tabelas respirarem na horizontal sem esticar a página */
-    .table-responsive {
-        overflow-x: auto !important;
-        width: 100%;
-    }
-
-    /* Ajuste específico para as células da tabela de exames no telemóvel */
-    .table th, .table td {
-        padding: 12px 6px !important;
-        font-size: 0.85rem !important;
-    }
-
-    #tabelaExames td:nth-child(2) {
-        font-weight: 700;
-        color: #252f40;
-        min-width: 110px;
-    }
-
-    #tabelaExames td:nth-child(3) {
-        white-space: nowrap !important;
-    }
-
-    #tabelaExames .btn-danger {
-        padding: 4px 8px !important;
-        font-size: 0.75rem !important;
-        border-radius: 6px !important;
-    }
+.sidebar.collapsed .profile-link {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  background-color: transparent !important;
 }
 
-/* --- OUTROS COMPONENTES (ATALHOS E AUTOCOMPLETE) --- */
+/* --- 5. COMPONENTES DE UI GENÉRICOS --- */
+.card {
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table thead th {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6c757d;
+}
+
+#tabelaExames td {
+  white-space: normal !important;
+  word-break: break-word;
+  font-size: 0.95rem;
+}
+
+.upload-box {
+  border: 2px dashed var(--border-color);
+  background-color: var(--bg-light);
+  padding: 20px;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  text-align: center;
+}
+
+.upload-box:hover {
+  border-color: var(--primary-color);
+  background-color: #fff;
+  cursor: pointer;
+}
+
 .card-atalhos {
   border-radius: 12px;
   background-color: transparent;
@@ -183,22 +196,13 @@ body {
   justify-content: center;
   padding: 1.5rem;
   width: 100%;
-  cursor: pointer;
 }
 
 .btn-atalho:hover {
   background-color: #f8fbff;
-  border-color: #0d6efd !important;
+  border-color: var(--primary-color) !important;
   transform: translateY(-3px);
   box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
-}
-
-.btn-atalho i {
-  transition: transform 0.3s ease;
-}
-
-.btn-atalho:hover i {
-  transform: scale(1.1);
 }
 
 .btn-atalho span {
@@ -208,13 +212,86 @@ body {
   color: #2d3748;
 }
 
-.table-responsive {
-    overflow-x: auto !important;
-    width: 100%;
+/* --- 6. PAGINAÇÃO EM CÍRCULOS --- */
+.pagination {
+  gap: 8px; 
 }
 
-#tabelaExames td {
-    white-space: normal !important; /* Permite que o texto mude de linha */
-    word-break: break-word;        /* Quebra palavras longas se necessário */
-    font-size: 0.9rem;             /* Ajuste ligeiro para ecrãs pequenos */
+.page-item .page-link {
+  font-size: 0.85rem; 
+  font-weight: 500;
+  color: #6c757d;
+  border: 1px solid var(--border-color);
+  transition: all 0.2s ease-in-out;
+}
+
+.page-item:not(:first-child):not(:last-child) .page-link {
+  width: 32px; 
+  height: 32px;
+  padding: 0;
+  border-radius: 50% !important;
+  display: flex;
+  align-items: center; 
+  justify-content: center;
+}
+
+.page-item:first-child .page-link,
+.page-item:last-child .page-link {
+  border-radius: 50px !important;
+  padding: 5px 14px;
+}
+
+.page-item.active .page-link {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  color: white !important;
+  box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
+}
+
+/* --- 7. RESPONSIVIDADE CRÍTICA (MOBILE) --- */
+@media (max-width: 768px) {
+  .sidebar {
+    transform: translateX(-100%) !important; /* Esconde para fora */
+    position: fixed !important;
+    z-index: 1060 !important;
+    width: var(--sidebar-width) !important;
+  }
+
+  .sidebar.active {
+    transform: translateX(0) !important; /* Desliza para dentro */
+  }
+
+  .main-content {
+    margin-left: 0 !important; /* Ocupa a largura toda */
+    width: 100% !important;
+    max-width: 100vw !important;
+    padding: 20px 15px !important;
+    margin-top: 70px !important;
+  }
+
+  .table th, .table td {
+    padding: 12px 6px !important;
+    font-size: 0.85rem !important;
+  }
+
+  #tabelaExames td:nth-child(2) {
+    font-weight: 700;
+    color: #252f40;
+    min-width: 110px;
+  }
+
+  #tabelaExames td:nth-child(3) {
+    white-space: nowrap !important;
+  }
+
+  #tabelaExames .btn-danger {
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    border-radius: 6px !important;
+  }
+
+  .table-responsive {
+    overflow-x: auto !important;
+    width: 100%;
+  }
 }
