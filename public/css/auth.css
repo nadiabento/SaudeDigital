@@ -123,3 +123,40 @@ body {
         font-size: 2.5rem; /* Evita que os títulos fiquem gigantes e quebrem linhas estranhas */
     }
 }
+
+/* --- APLICAR O EFEITO DE ONDAS E GRADIENTE APENAS NO TELEMÓVEL --- */
+@media (max-width: 991px) {
+    /* 1. Força a coluna do formulário a ter o gradiente azul de fundo */
+    .col-lg-5 {
+        background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
+        position: relative;
+        overflow: hidden;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+    }
+
+    /* 2. Injeta as ondas animadas transparentes por trás do cartão no telemóvel */
+    .col-lg-5::after {
+        content: "";
+        position: absolute;
+        width: 300%;
+        height: 300%;
+        top: -100%;
+        left: -100%;
+        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.06" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') !important;
+        background-size: cover;
+        animation: waveAnimation 30s infinite linear;
+        z-index: 1;
+    }
+
+    /* 3. Garante que o cartão de vidro fica por cima das ondas e ganha contraste */
+    .glass-login-card {
+        position: relative;
+        z-index: 2;
+        background: rgba(255, 255, 255, 0.88) !important; /* Ligeiramente mais opaco para leitura no telemóvel */
+        backdrop-filter: blur(20px) saturate(180%) !important;
+        -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
+    }
+}
