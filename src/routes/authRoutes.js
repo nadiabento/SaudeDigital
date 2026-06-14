@@ -45,7 +45,6 @@ router.get("/meu-perfil", async (req, res) => {
   }
 });
 
-router.put("/perfil", authController.atualizarPerfil);
+router.put("/atualizar-perfil", authController.atualizarPerfil);
 
-// Esta linha é a mais importante para o erro desaparecer:
 module.exports = router;

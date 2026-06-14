@@ -186,14 +186,14 @@ async function processarRemocaoPorId(chaveId, urlBase, nomeEntidade) {
 
         if (response.ok) {
           Swal.fire({
-            title: "Removido!",
-            text: `O registo de ${nomeEntidade} foi eliminado com sucesso.`,
+            title: "Alterações Guardadas!",
+            text: "Os teus dados pessoais foram atualizados com sucesso.",
             icon: "success",
             confirmButtonColor: "#0d6efd",
             timer: 2000,
             showConfirmButton: false,
           }).then(() => {
-            globalThis.location.reload();
+            carregarDadosPerfil();
           });
         } else {
           const textoErro = await response.text();
@@ -302,7 +302,7 @@ async function atualizarDadosPerfil(e) {
     });
 
     // Enviar via PUT para o backend (ajusta a rota se no teu backend for diferente, ex: /api/auth/perfil)
-    const response = await fetch("/api/auth/atualizar-perfil", {
+    const response = await fetch("api/auth/atualizar-perfil", {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
