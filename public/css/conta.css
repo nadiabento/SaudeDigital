@@ -104,3 +104,25 @@
         font-size: 0.95rem !important;
     }
 }
+
+/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
+@media (max-width: 991px) {
+    /* CORREÇÃO CRÍTICA: Remove a margem do computador e força o conteúdo a ocupar o ecrã todo */
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        padding-left: 15px !important;
+        padding-right: 15px !important;
+    }
+
+    /* Garante que o cabeçalho não quebra de forma estranha */
+    .page-header h2 {
+        font-size: 1.75rem !important;
+    }
+    
+    /* Reajuste do autocomplete para não quebrar a largura mobile */
+    .custom-autocomplete-list {
+        left: 16px !important;
+        width: calc(100% - 82px) !important;
+    }
+}
