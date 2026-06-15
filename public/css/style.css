@@ -1,132 +1,132 @@
-/* Definição de variáveis globais para facilitar mudanças de cor rápidas */
+/* ==========================================================================
+   --- VARIÁVEIS E CONFIGURAÇÃO DE CORES ---
+   ========================================================================== */
 :root {
-  --primary-color: #0d6efd;
-  --primary-light: #e7f0ff;
-  --text-dark: #333;
-  --border-color: #dee2e6;
-  --bg-light: #f8f9fa;
+    --primary-color: #0d6efd;
+    --primary-light: #e7f0ff;
+    --text-dark: #252f40;
+    --border-color: #dee2e6;
+    --bg-light: #f8f9fa;
+    --sidebar-width: 280px;
+    --sidebar-width-collapsed: 80px;
+}
+
+/* ==========================================================================
+   --- 1. FUNDO ANIMADO GLOBAL (GRADIENTE + ONDAS) ---
+   ========================================================================== */
+html, body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh; 
+    height: auto !important; 
+    font-family: 'Inter', sans-serif;
+    background-color: #2563eb; 
+    overflow-x: hidden; 
 }
 
 body {
-  font-family: "Inter", sans-serif;
-  color: var(--text-dark);
-  background-color: var(--bg-light);
+    background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
+    position: relative;
+    overflow-y: scroll !important; /* Estabiliza o ecrã prevenindo trepidações */
+    color: var(--text-dark);
 }
 
-/* --- SIDEBAR (NAVEGAÇÃO LATERAL) --- */
-nav.vh-100 {
-  min-width: 280px;
-  background-color: #ffffff;
+body::after {
+    content: "";
+    position: fixed;
+    width: 300%;
+    height: 300%;
+    top: -100%;
+    left: -100%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') !important;
+    background-size: cover;
+    animation: waveAnimationGlobal 35s infinite linear;
+    z-index: 0;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   --- 2. CONTEÚDO PRINCIPAL EM VIDRO (GLASSMORPHISM) ---
+   ========================================================================== */
+.main-content {
+    margin-left: var(--sidebar-width) !important;
+    padding: 40px !important;
+    min-height: 100vh;
+    transition: margin-left 0.3s ease-in-out;
+    position: relative;
+    z-index: 1;
+    display: block !important;
+    
+    /* Camada Glassmorphism unificada para o painel */
+    background: rgba(255, 255, 255, 0.45) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+}
+
+.sidebar.collapsed ~ .main-content {
+    margin-left: var(--sidebar-width-collapsed) !important; 
+}
+
+/* ==========================================================================
+   --- 3. ESTRUTURA DA SIDEBAR COMPACTA ---
+   ========================================================================== */
+.sidebar {
+    width: var(--sidebar-width) !important;
+    height: 100vh;
+    position: fixed !important;
+    top: 0;
+    left: 0;
+    background-color: #ffffff;
+    transition: width 0.3s ease-in-out;
+    z-index: 1000;
+    border-right: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.sidebar.collapsed {
+    width: var(--sidebar-width-collapsed) !important;
 }
 
 .nav-link {
-  transition: all 0.2s ease; /* Transição suave para hover */
-  border-radius: 8px;
-  margin-bottom: 5px;
-  color: var(--text-dark);
+    transition: all 0.2s ease;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    color: var(--text-dark);
 }
 
-/* Estado ao passar o rato nos links da sidebar */
 .nav-link:hover {
-  background-color: var(--primary-light);
-  color: var(--primary-color) !important;
+    background-color: var(--primary-light);
+    color: var(--primary-color) !important;
 }
 
-/* Estado ativo (página atual) */
 .nav-link.active {
-  background-color: var(--primary-color) !important;
-  color: white !important;
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2); /* Sombra suave azul */
+    background-color: var(--primary-color) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.2);
 }
 
-/* --- CAIXA DE UPLOAD (DASHED BOX) --- */
-.upload-box {
-  border: 2px dashed var(--border-color); /* Borda tracejada */
-  background-color: var(--bg-light);
-  padding: 20px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  text-align: center;
+/* Estado Encolhido da Sidebar */
+.sidebar.collapsed .hide-on-collapse,
+.sidebar.collapsed .profile-info {
+    display: none !important; 
 }
 
-/* Efeito visual ao arrastar ficheiros ou passar o rato */
-.upload-box:hover {
-  border-color: var(--primary-color);
-  background-color: #fff;
-  cursor: pointer;
-}
-
-/* --- COMPONENTES DE UI (CARDS E TABELAS) --- */
-.card {
-  border-radius: 16px; /* Cantos mais arredondados para aspeto moderno */
-  border: none;
-  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-}
-
-/* Estilização do cabeçalho das tabelas */
-.table thead th {
-  font-size: 0.75rem;
-  text-transform: uppercase; /* Cabeçalhos em maiúsculas */
-  letter-spacing: 0.05em;
-  border-top: none;
-  color: #6c757d;
-}
-
-/* Badges (Etiquetas) mais robustas */
-.badge {
-  font-weight: 600;
-  padding: 8px 12px;
-  border-radius: 6px;
-}
-
-/* --- FORMULÁRIOS --- */
-.form-control,
-.form-select {
-  border-radius: 10px;
-  padding: 0.75rem; /* Mais espaçamento interno */
-  border: 1px solid var(--border-color);
-}
-
-/* Efeito ao clicar nos inputs */
-.form-control:focus,
-.form-select:focus {
-  box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15); /* Brilho azul suave */
-  border-color: var(--primary-color);
-  outline: none;
-}
-
-/* --- MENU ENCOLHIDO (COLLAPSED) --- */
-
-.sidebar.collapsed {
-    width: 80px; /* Garante que a barra tem uma largura fixa */
-    align-items: center; /* Centra tudo dentro da barra */
-}
-
-/* Redimensiona os botões do menu para ficarem quadrados perfeitos */
 .sidebar.collapsed .sidebar-link {
     display: flex;
     justify-content: center !important;
     align-items: center !important;
-    padding: 0 !important; /* Removemos o padding padrão do Bootstrap */
-    margin: 0 auto 10px auto !important; /* Centra na barra e dá margem em baixo */
-    width: 48px;  /* Largura fixa do quadrado */
-    height: 48px; /* Altura fixa do quadrado */
-    border-radius: 12px; /* Cantos arredondados bonitos */
+    padding: 0 !important;
+    margin: 0 auto 10px auto !important;
+    width: 48px; 
+    height: 48px;
+    border-radius: 12px;
     overflow: hidden;
 }
 
-/* Oculta o texto */
-.sidebar.collapsed .hide-on-collapse {
-    display: none !important; 
-}
-
-/* Centraliza o ícone perfeitamente dentro do quadrado */
 .sidebar.collapsed .sidebar-link i {
     margin: 0 !important;
-    font-size: 1.3rem; /* Tamanho ajustado do ícone */
+    font-size: 1.3rem;
 }
 
-/* Ajusta a secção do perfil (O "PA" lá em baixo) */
 .sidebar.collapsed .profile-section {
     padding: 20px 0 !important;
     display: flex;
@@ -134,125 +134,90 @@ nav.vh-100 {
     width: 100%;
 }
 
-.sidebar.collapsed .profile-info {
-    display: none !important;
-}
-
-/* 1. Previne scroll horizontal acidental */
-body {
-    overflow-x: hidden; 
-}
-
-/* 2. Comportamento da Barra Lateral */
-.sidebar {
-    width: 280px !important;
-    height: 100vh;
-    position: fixed !important;
-    top: 0;
-    left: 0;
-    transition: width 0.3s ease-in-out;
-    z-index: 1000;
-}
-
-.sidebar.collapsed {
-    width: 80px !important;
-}
-
-/* 3. Comportamento do Conteúdo Principal */
-.main-content {
-    /* O conteúdo fica encostado à direita, e a margem protege a sidebar! */
-    margin-left: 280px !important;
-    padding: 2rem;
-    min-height: 100vh;
-    transition: margin-left 0.3s ease-in-out; 
-}
-
-/* 4. A magia quando o menu encolhe */
-.sidebar.collapsed ~ .main-content {
-    margin-left: 80px !important; 
-}
-
-/* --- ESTILOS DA PAGINAÇÃO MODERNA --- */
-
-/* 1. Separa os botões uns dos outros */
-.pagination {
-    gap: 8px; 
-}
-
-/* 2. Estilo base (Cores, bordas e fonte) */
-.page-item .page-link {
-    font-size: 0.85rem; 
-    font-weight: 500;
-    color: #6c757d;
-    border: 1px solid var(--border-color, #dee2e6);
-    transition: all 0.2s ease-in-out;
-    margin-left: 0 !important; /* Remove a cola padrão do Bootstrap */
-}
-
-/* 3. A MAGIA DOS CÍRCULOS (Apenas para os números) */
-/* Aplica-se a todos exceto ao primeiro (Anterior) e ao último (Próximo) */
-.page-item:not(:first-child):not(:last-child) .page-link {
-    width: 32px;            /* Largura exata */
-    height: 32px;           /* Altura igual à largura = Quadrado */
-    padding: 0;             /* Removemos o padding causador das ovais */
-    border-radius: 50% !important; /* Corta o quadrado num CÍRCULO perfeito */
-    display: flex;          /* Usado para centrar o número no meio do círculo */
-    align-items: center; 
-    justify-content: center;
-}
-
-/* 4. Os botões Anterior/Próximo mantêm-se em formato "Pílula" */
-.page-item:first-child .page-link,
-.page-item:last-child .page-link {
-    border-radius: 50px !important;
-    padding: 5px 14px;
-}
-
-/* 5. Estilo do botão ATIVO (a página onde estamos) */
-.page-item.active .page-link {
-    background-color: var(--primary-color, #0d6efd);
-    border-color: var(--primary-color, #0d6efd);
-    color: white !important;
-    box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
-}
-
-/* 6. Efeito ao passar o rato (Hover) */
-.page-item:not(.active):not(.disabled) .page-link:hover {
-    background-color: var(--primary-light, #e7f0ff);
-    color: var(--primary-color, #0d6efd);
-    border-color: #cddfff;
-}
-
-/* 7. Botões desativados */
-.page-item.disabled .page-link {
-    background-color: transparent;
-    color: #adb5bd;
-    border-color: transparent;
-}
-
-/* --- ESTILO DO PERFIL (MENU ABERTO) --- */
-.profile-link {
-    background-color: #f8f9fa; /* Fundo cinzento suave, sem bordas! */
-    transition: background-color 0.2s ease;
-}
-
-.profile-link:hover {
-    background-color: #e9ecef; /* Fica ligeiramente mais escuro ao passar o rato */
-}
-
-/* --- ALINHAMENTO E CORES DO PERFIL (MENU FECHADO) --- */
 .sidebar.collapsed .profile-link {
     justify-content: center !important; 
     padding-left: 0 !important;         
     padding-right: 0 !important;
-    background-color: transparent !important; /* Magia: Fica com o fundo totalmente branco! */
+    background-color: transparent !important;
 }
 
-.sidebar.collapsed .profile-img-container {
-    margin: 0 !important; 
+/* ==========================================================================
+   --- 4. COMPONENTES PADRÃO DE UI ---
+   ========================================================================== */
+.card {
+    border-radius: 16px !important;
+    border: 1px solid rgba(255, 255, 255, 0.4) !important;
+    background: rgba(255, 255, 255, 0.9) !important;
+    backdrop-filter: blur(10px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06) !important;
+    transform: none !important; /* Trava quebras de viewport */
 }
 
-.sidebar.collapsed .profile-info {
-    display: none !important; 
+.form-control, .form-select {
+    border-radius: 10px;
+    padding: 0.75rem;
+    border: 1px solid var(--border-color);
+    background-color: #ffffff;
 }
 
+.form-control:focus, .form-select:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+    border-color: var(--primary-color);
+    outline: none;
+}
+
+/* Componentes de Tabelas */
+.table thead th {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #6c757d;
+}
+
+.pagination {
+    gap: 8px; 
+}
+
+.page-item .page-link {
+    font-size: 0.85rem; 
+    font-weight: 500;
+    color: #6c757d;
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.page-item.active .page-link {
+    background-color: var(--primary-color);
+    border-color: var(--primary-color);
+    color: white !important;
+}
+
+/* ==========================================================================
+   --- 5. RESPONSIVIDADE ADAPTATIVA (MOBILE) ---
+   ========================================================================== */
+@media (max-width: 991px) {
+    .sidebar {
+        transform: translateX(-100%) !important;
+    }
+    
+    .sidebar.active {
+        transform: translateX(0) !important;
+    }
+
+    .main-content {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100vw !important;
+        padding: 100px 15px 40px 15px !important; /* Margem extra para o botão de topo */
+    }
+
+    .card {
+        background: rgba(255, 255, 255, 0.94) !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.12) !important;
+    }
+}
+
+@keyframes waveAnimationGlobal {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}

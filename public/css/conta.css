@@ -1,19 +1,6 @@
-/*  1. ESTILOS BASE E CONFIGURAÇÃO (COMPUTADOR - DESKTOP) */
-
-body {
-    background-color: #f8f9fa; /* Restaura o fundo padrão do Bootstrap removido do HTML */
-    min-height: 100vh;
-    font-family: 'Inter', sans-serif;
-}
-
-.card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.bg-light.rounded-3 {
-    transition: all 0.2s ease-in-out;
-}
-
+/* ==========================================================================
+   --- 1. COMPORTAMENTO DOS PARÂMETROS E ACORDIONS ---
+   ========================================================================== */
 .container-max {
     max-width: 1200px;
     margin: 0 auto;
@@ -21,20 +8,31 @@ body {
 
 .p-3.bg-light.rounded-3.position-relative {
     position: relative !important;
-    overflow: visible !important; /* Impede que o card corte a lista suspensa */
+    overflow: visible !important; /* Permite a expansão da lista flutuante sem cortes */
+    transition: all 0.2s ease-in-out;
 }
 
-/* 2. ESTILIZAÇÃO DO AUTOCOMPLETE (LISTAS FLUTUANTES)*/
+.p-3.bg-light.rounded-3.position-relative:hover {
+    background-color: #ffffff !important;
+    border-color: #0d6efd !important;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.05);
+}
 
+/* Elemento de Input de Perfil Trancado */
+.input-group.opacity-75 {
+    opacity: 0.75;
+}
+
+/* ==========================================================================
+   --- 2. AUTOCOMPLETE DE REMOÇÃO (SUGESTÕES EM CASCATA) ---
+   ========================================================================== */
 .custom-autocomplete-list {
     position: absolute !important;
     top: 100% !important;
-    left: 16px !important; /* Alinha perfeitamente com o início do input de texto */
-    width: calc(100% - 86px) !important; /* Desconta o espaço das bordas + botão vermelho */
-    
+    left: 16px !important;
+    width: calc(100% - 86px) !important; /* Desconta as margens e a área do botão Trash */
     max-height: 180px !important;
     overflow-y: auto !important;
-    
     background-color: #ffffff !important;
     border: 1px solid #dee2e6 !important;
     border-radius: 8px !important;
@@ -63,11 +61,9 @@ body {
     background-color: #f0f5ff !important;
     color: #0d6efd !important;
     font-weight: 600 !important;
-    padding-left: 14px !important;
-    transform: none !important;
 }
 
-/* Customização da barra de scroll das sugestões */
+/* Customização Dinâmica do Scrollbar do Autocomplete */
 .custom-autocomplete-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -83,74 +79,10 @@ body {
     background: #94a3b8;
 }
 
-.p-3.bg-light.rounded-3.position-relative:hover {
-    transform: none !important;
-    background-color: #ffffff !important;
-    border-color: #0d6efd !important;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
-}
-
-/*3. RESPONSIVIDADE E EFEITO VISUAL PREMIUM (MOBILE/TABLET)*/
-
+/* ==========================================================================
+   --- 3. RESPONSIVIDADE INTERNA (MOBILE) ---
+   ========================================================================== */
 @media (max-width: 991px) {
-    body {
-        /* Força o gradiente azul a assumir o ecrã inteiro do telemóvel */
-        background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
-        position: relative;
-        overflow-x: hidden;
-        min-height: 100vh;
-    }
-
-    /* Injeta as ondas animadas em background por trás dos cartões */
-    body::after {
-        content: "";
-        position: absolute;
-        width: 300%;
-        height: 300%;
-        top: -100%;
-        left: -100%;
-        background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.06" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>') !important;
-        background-size: cover;
-        animation: waveAnimation 30s infinite linear;
-        z-index: 0;
-        pointer-events: none;
-    }
-
-    /* Liberta a main-content removendo as margens de computador */
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding-left: 10px !important;
-        padding-right: 10px !important;
-        position: relative;
-        z-index: 2;
-    }
-
-    /* Confere legibilidade em Glassmorphism aos títulos do cabeçalho */
-    .page-header h2 {
-        font-size: 1.8rem !important;
-        color: #ffffff !important;
-        margin-top: 20px;
-    }
-    
-    .page-header p {
-        color: rgba(255, 255, 255, 0.85) !important;
-    }
-    
-    .page-header .bg-primary.bg-opacity-10 {
-        background-color: rgba(255, 255, 255, 0.15) !important;
-        color: #ffffff !important;
-    }
-
-    /* Transforma os cartões brancos em camadas semi-transparentes modernas */
-    .card {
-        background: rgba(255, 255, 255, 0.94) !important;
-        backdrop-filter: blur(15px);
-        -webkit-backdrop-filter: blur(15px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
-    }
-
-    /* Reajuste dinâmico da largura da lista flutuante no telemóvel */
     .custom-autocomplete-list {
         left: 16px !important;
         width: calc(100% - 82px) !important;
@@ -166,10 +98,4 @@ body {
     .btn {
         font-size: 0.95rem !important;
     }
-}
-
-/* 4. TIMINGS DAS ANIMAÇÕES DE BACKGROUND */
-@keyframes waveAnimation {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
 }
