@@ -1,125 +1,162 @@
-/* public/css/partilha.css */
-body { 
-    background-color: #f0f4f8; 
-    font-family: 'Inter', sans-serif; 
-    color: #2d3748;
+/* --- 1. AJUSTE DE ALTURA E FUNDO ANIMADO --- */
+html, body {
+    height: 100%;
     margin: 0;
+    padding: 0;
+    font-family: 'Inter', sans-serif;
+}
+
+.bg-gradient-custom {
+    background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%);
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
     padding: 20px;
 }
 
+/* Injeção das Ondas em SVG Animadas por trás do Vidro */
+.bg-gradient-custom::after {
+    content: "";
+    position: absolute;
+    width: 220%;
+    height: 220%;
+    top: -60%;
+    left: -60%;
+    background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 320"><path fill="%23ffffff" fill-opacity="0.05" d="M0,224L48,213.3C96,203,192,181,288,181.3C384,181,480,203,576,213.3C672,224,768,224,864,202.7C960,181,1056,139,1152,138.7C1248,139,1344,181,1392,202.7L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z"></path></svg>');
+    background-size: cover;
+    animation: waveAnimation 28s infinite linear;
+    opacity: 0.8;
+    z-index: 1;
+}
+
+/* --- 2. PAINEL CENTRAL EM VIDRO (GLASSMORPHISM) --- */
 .container-partilha { 
-    max-width: 800px; 
-    margin: 40px auto; 
-    background: white; 
-    padding: 0; 
-    border-radius: 24px; 
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    max-width: 760px; 
+    width: 100%;
+    margin: auto; 
+    background: rgba(255, 255, 255, 0.82) !important; /* Transparência para ver o fundo */
+    backdrop-filter: blur(20px) saturate(190%);
+    -webkit-backdrop-filter: blur(20px) saturate(190%);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    border-radius: 28px; 
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.18);
     overflow: hidden;
+    position: relative;
+    z-index: 2; /* Fica por cima do efeito de ondas */
 }
 
+/* --- 3. COMPONENTES DO PAINEL --- */
 .header-clinico {
-    background: linear-gradient(135deg, #0d6efd 0%, #0a58ca 100%);
-    padding: 40px;
-    color: white;
+    padding: 35px 40px;
+    color: #1e3a8a;
     text-align: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
-.corpo-partilha { padding: 40px; }
+.corpo-partilha { padding: 35px 40px; }
 
 .nota-informativa {
-    background-color: #eff6ff;
-    border-left: 4px solid #3b82f6;
-    padding: 15px;
+    background-color: #e0f2fe;
+    border-left: 4px solid #0284c7;
+    padding: 16px;
     border-radius: 12px;
-    font-size: 0.9rem;
-    color: #1e40af;
+    font-size: 0.92rem;
+    color: #0369a1;
     margin-bottom: 30px;
     display: flex;
     align-items: center;
 }
 
+/* --- 4. CARTÕES DE EXAMES CLÍNICOS --- */
 .exame-card { 
     border: 1px solid #e2e8f0; 
-    padding: 24px; 
-    border-radius: 18px; 
-    margin-bottom: 20px; 
+    padding: 22px; 
+    border-radius: 16px; 
+    margin-bottom: 18px; 
     background-color: #ffffff;
     transition: all 0.2s ease-in-out;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+    display: block !important; /* Mantém block para aceitar observações abaixo */
 }
 
 .exame-card:hover {
-    border-color: #3b82f6;
-    box-shadow: 0 4px 12px rgba(59, 130, 246, 0.1);
+    border-color: #3b5afa;
+    box-shadow: 0 8px 20px rgba(59, 90, 250, 0.08);
     transform: translateY(-2px);
 }
 
 .btn-visualizar {
-    background-color: #0d6efd;
+    background-color: #3b5afa;
     color: white !important;
     border: none;
     border-radius: 10px;
-    padding: 10px 20px;
+    padding: 10px 18px;
     font-weight: 600;
-    text-decoration: none;
+    font-size: 0.9rem;
     display: inline-flex;
     align-items: center;
     cursor: pointer;
+    transition: background 0.2s;
 }
 
 .btn-visualizar:hover {
-    background-color: #0b5ed7;
-    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.3);
+    background-color: #2563eb;
+    box-shadow: 0 4px 12px rgba(59, 90, 250, 0.25);
 }
 
 .data-badge {
     background-color: #f1f5f9;
-    color: #64748b;
-    padding: 4px 12px;
-    border-radius: 8px;
-    font-size: 0.8rem;
+    color: #475569;
+    padding: 5px 12px;
+    border-radius: 30px;
+    font-size: 0.82rem;
     font-weight: 600;
     display: inline-block;
 }
 
 .footer-secure {
-    padding: 25px;
-    background-color: #f8fafc;
-    border-top: 1px solid #e2e8f0;
+    padding: 22px;
+    background-color: rgba(248, 250, 252, 0.5);
+    border-top: 1px solid rgba(0, 0, 0, 0.05);
     text-align: center;
     font-size: 0.75rem;
-    color: #94a3b8;
+    color: #64748b;
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-/* Faz o modal ocupar 95% da largura em ecrãs grandes */
+/* --- 5. MODAL E IFRAME --- */
 @media (min-width: 1200px) {
-    .modal-xl {
-        max-width: 95% !important;
-    }
+    .modal-xl { max-width: 92% !important; }
 }
 
-/* Garante que o corpo do modal não tem scroll interno, quem manda é o iframe */
-.modal-body {
-    padding: 0 !important;
-    overflow: hidden;
+.modal-body { padding: 0 !important; overflow: hidden; }
+#framePDF { width: 100%; height: 82vh; border: none; display: block; }
+.modal-content { border-radius: 24px; border: none; }
+.modal-header { background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 24px 24px 0 0; }
+
+/* --- 6. TIMINGS DAS ANIMAÇÕES --- */
+.animate-card {
+    animation: cardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-/* Ajuste automático do Iframe */
-#framePDF {
-    width: 100%;
-    height: 85vh; /* Ocupa 85% da altura da janela do navegador */
-    border: none;
-    display: block;
+@keyframes waveAnimation {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
 }
 
-/* Ajuste para o cartão do exame aceitar a descrição em baixo */
-.exame-card {
-    display: block !important; /* Mudamos de flex para block para a descrição respirar */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
-.modal-content { border-radius: 20px; border: none; }
-.modal-header { background-color: #f8fafc; border-bottom: 1px solid #e2e8f0; border-radius: 20px 20px 0 0; }
+/* RESPONSIVIDADE EM SMARTPHONES */
+@media (max-width: 576px) {
+    .corpo-partilha { padding: 20px; }
+    .container-partilha { padding: 0; margin: 10px; }
+    .header-clinico { padding: 25px 20px; }
+    .exame-card { padding: 16px; }
+    .btn-visualizar { width: 100%; justify-content: center; margin-top: 10px; }
+}
