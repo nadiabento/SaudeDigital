@@ -25,7 +25,7 @@ async function carregarDados() {
         if (campoData) {
           const dataConvertida = new Date(campoData);
           // Valida se a conversão do objeto Date foi bem sucedida
-          if (!isNaN(dataConvertida.getTime())) {
+          if (!Number.isNaN(dataConvertida.getTime())) {
             dataFinalFormatada = dataConvertida.toLocaleDateString("pt-PT");
           }
         }
