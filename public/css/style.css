@@ -1,3 +1,4 @@
+/* VARIÁVEIS E CONFIGURAÇÃO BASE  */
 :root {
     --primary-color: #0d6efd;
     --primary-light: #e7f0ff;
@@ -12,7 +13,7 @@ html, body {
     margin: 0;
     padding: 0;
     min-height: 100vh;
-    background-color: var(--bg-light);
+    background-color: var(--bg-light) !important; /* Força o fundo cinza plano original */
     font-family: "Inter", sans-serif;
 }
 
@@ -20,16 +21,16 @@ body {
     overflow-x: hidden;
 }
 
-/* --- SIDEBAR PADRÃO --- */
+/*SIDEBAR PADRÃO (PC) */
 .sidebar {
     width: var(--sidebar-width) !important;
     height: 100vh;
     position: fixed !important;
     top: 0;
     left: 0;
-    background-color: #ffffff;
-    transition: width 0.3s ease-in-out;
-    z-index: 1000;
+    background-color: #ffffff !important;
+    transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+    z-index: 1050;
     border-right: 1px solid var(--border-color);
 }
 
@@ -40,13 +41,13 @@ body {
 .sidebar-link {
     color: #101616;
     font-weight: 400;
-    transition: all 0.2s ease;
     text-decoration: none;
     display: flex;
     align-items: center;
     padding: 12px 20px;
     margin: 4px 12px;
     border-radius: 8px;
+    transition: all 0.2s ease;
 }
 
 .sidebar-link:hover {
@@ -64,11 +65,12 @@ body {
     display: none !important;
 }
 
-/* --- CONTEÚDO PRINCIPAL PADRÃO --- */
+/* CONTEÚDO PRINCIPAL PADRÃO  */
 .main-content {
     margin-left: var(--sidebar-width) !important;
     padding: 2rem;
     min-height: 100vh;
+    background-color: var(--bg-light) !important;
     transition: margin-left 0.3s ease-in-out;
 }
 
@@ -76,12 +78,12 @@ body {
     margin-left: var(--sidebar-width-collapsed) !important;
 }
 
-/* --- COMPONENTES UI COMPARTILHADOS --- */
+/* COMPONENTES DE UI */
 .card {
     border-radius: 16px;
     border: none;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
-    background-color: #ffffff;
+    background-color: #ffffff !important;
 }
 
 .form-control, .form-select {
@@ -90,16 +92,19 @@ body {
     border: 1px solid var(--border-color);
 }
 
+/* RESPONSIVIDADE SIDEBAR MÓVEL (DASHBOARD / EXAMES FIXOS) */
 @media (max-width: 991px) {
     .sidebar {
-        transform: translateX(-100%) !important;
+        transform: translateX(-100%) !important; /* CORREÇÃO: Esconde o menu por padrão no mobile */
     }
+    
     .sidebar.active {
-        transform: translateX(0) !important;
+        transform: translateX(0) !important; /* Abre como gaveta ao clicar */
     }
+    
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
-        padding: 80px 15px 20px 15px !important;
+        padding: 90px 15px 20px 15px !important;
     }
 }

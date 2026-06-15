@@ -1,6 +1,4 @@
-/* ==========================================================================
-   --- 1. INJEÇÃO MANDATÓRIA DE FUNDO EXCLUSIVO (CONTA) ---
-   ========================================================================== */
+/* 1. EXCLUSIVO DA PÁGINA CONTA (FUNDO AZUL + ONDAS)  */
 html:has(#formAtualizarPerfil), 
 body:has(#formAtualizarPerfil) {
     background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
@@ -8,7 +6,6 @@ body:has(#formAtualizarPerfil) {
     height: auto !important;
 }
 
-/* Injeção das ondas animadas por trás dos cartões */
 body:has(#formAtualizarPerfil)::after {
     content: "";
     position: fixed;
@@ -23,71 +20,11 @@ body:has(#formAtualizarPerfil)::after {
     pointer-events: none;
 }
 
-/* Remove o fundo cinzento padrão da main-content para revelar o azul */
 .main-content:has(#formAtualizarPerfil) {
     background: transparent !important;
 }
 
-/* ==========================================================================
-   --- 2. COMPACTAÇÃO VISUAL EQUILIBRADA (OS MEUS DADOS PESSOAIS) ---
-   ========================================================================== */
-#formAtualizarPerfil .mb-3 {
-    margin-bottom: 1rem !important; /* Espaçamento ideal para respirar */
-}
-
-#formAtualizarPerfil .mb-4 {
-    margin-bottom: 1.25rem !important;
-}
-
-#formAtualizarPerfil .form-control, 
-#formAtualizarPerfil .form-select {
-    padding: 0.65rem 0.85rem !important; /* Tamanho confortável para cliques */
-    font-size: 0.92rem !important;
-}
-
-#formAtualizarPerfil .input-group-text {
-    padding: 0.65rem 0.85rem !important;
-}
-
-#formAtualizarPerfil .btn {
-    padding: 12px !important; 
-    font-size: 0.95rem !important;
-    margin-top: 10px;
-}
-
-/* ==========================================================================
-   --- 3. GESTÃO DE CATÁLOGOS (FUNDO BRANCO + ESPAÇAMENTO REFORÇADO) ---
-   ========================================================================== */
-/* Transforma as caixas de remoção em BRANCO para destacar o botão de Trash */
-.d-flex.flex-column.gap-3 .bg-light {
-    background-color: #ffffff !important; 
-    border: 1px solid #e2e8f0 !important;
-    padding: 20px !important; /* Dá mais espaçamento interno para os elementos respirarem */
-    border-radius: 14px !important;
-    transition: all 0.2s ease-in-out !important;
-}
-
-/* Efeito visual de alerta ao passar o rato nos blocos de eliminação */
-.d-flex.flex-column.gap-3 .bg-light:hover {
-    border-color: #f1aeb5 !important; /* Borda vermelha suave do Bootstrap */
-    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.06) !important;
-}
-
-/* Ajusta os inputs dentro dos blocos de remoção */
-.d-flex.flex-column.gap-3 .form-control {
-    background-color: #f8f9fa !important; /* Input ligeiramente cinza para contrastar com o bloco branco */
-    border: 1px solid #e2e8f0 !important;
-}
-
-.d-flex.flex-column.gap-3 .form-control:focus {
-    background-color: #ffffff !important;
-    border-color: #dc3545 !important; /* Foco vermelho no input */
-    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15) !important;
-}
-
-/* ==========================================================================
-   --- 4. CORES DE CONTRASTE DOS TÍTULOS E GLASSMORPHISM ---
-   ========================================================================== */
+/* 2. CONFIGURAÇÃO DE CONTRASTE DOS TÍTULOS E GLASSMORPHISM  */
 .page-header h2 {
     color: #ffffff !important;
     font-weight: 700;
@@ -98,38 +35,64 @@ body:has(#formAtualizarPerfil)::after {
 }
 
 .page-header .bg-primary.bg-opacity-10 {
-    background-color: rgba(255, 255, 255, 0.15) !important;
+    background-color: rgba(255, 255, 255, 0.2) !important;
     color: #ffffff !important;
 }
 
-/* Transforma os painéis em cartões translúcidos integrados */
 .card {
     background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(20px) saturate(190%);
     -webkit-backdrop-filter: blur(20px) saturate(190%);
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
-    transform: none !important; 
+    transform: none !important;
 }
 
-.container-max {
-    max-width: 1200px;
-    margin: 0 auto;
+/* 3. OS MEUS DADOS PESSOAIS (ESPAÇAMENTO EQUILIBRADO) */
+#formAtualizarPerfil .mb-3 {
+    margin-bottom: 1.1rem !important;
 }
 
-.p-3.bg-light.rounded-3.position-relative {
-    position: relative !important;
-    overflow: visible !important;
+#formAtualizarPerfil .form-control, 
+#formAtualizarPerfil .form-select {
+    padding: 0.65rem 0.85rem !important;
+    font-size: 0.92rem !important;
 }
 
-/* ==========================================================================
-   --- 5. AUTOCOMPLETE ---
-   ========================================================================== */
+/*  4. GESTÃO DE CATÁLOGOS (FUNDO BRANCO + RESPIRO DE TABELAS) */
+/* Passa as caixas de remoção cinzentas para BRANCO Puro */
+.d-flex.flex-column.gap-3 .bg-light {
+    background-color: #ffffff !important;
+    border: 1px solid #e2e8f0 !important;
+    padding: 22px !important; /* Mais espaçamento interno para as tabelas respirarem */
+    border-radius: 14px !important;
+    transition: all 0.2s ease-in-out !important;
+}
+
+/* Hover de perigo com borda avermelhada ao passar o rato */
+.d-flex.flex-column.gap-3 .bg-light:hover {
+    border-color: #f1aeb5 !important;
+    box-shadow: 0 6px 14px rgba(220, 53, 69, 0.05) !important;
+}
+
+/* Inputs das tabelas de remoção ganham fundo cinza suave para contraste */
+.d-flex.flex-column.gap-3 .form-control {
+    background-color: #f8f9fa !important;
+    border: 1px solid #e2e8f0 !important;
+}
+
+.d-flex.flex-column.gap-3 .form-control:focus {
+    background-color: #ffffff !important;
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15) !important;
+}
+
+/* 5. AUTOCOMPLETE E ANIMAÇÃO  */
 .custom-autocomplete-list {
     position: absolute !important;
     top: 100% !important;
     left: 20px !important;
-    width: calc(100% - 94px) !important; /* Ajustado para o novo padding do bloco */
+    width: calc(100% - 94px) !important;
     max-height: 150px !important;
     overflow-y: auto !important;
     background-color: #ffffff !important;
@@ -141,7 +104,6 @@ body:has(#formAtualizarPerfil)::after {
 .custom-autocomplete-list .list-group-item {
     cursor: pointer !important;
     padding: 8px 12px !important;
-    font-size: 0.85rem !important;
 }
 
 @keyframes waveAnimationConta {
