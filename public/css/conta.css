@@ -1,21 +1,12 @@
-/*  1. CONFIGURAÇÃO DE VIEWPORT E FUNDO ANIMADO (CONTA)  */
-html, body {
-    margin: 0;
-    padding: 0;
-    min-height: 100vh;
-    height: auto !important;
-    font-family: 'Inter', sans-serif;
-    /* Força o gradiente azul em toda a página de forma estática */
+/* 1. INJEÇÃO MANDATÓRIA DE FUNDO EXCLUSIVO (CONTA)  */
+html:has(#formAtualizarPerfil), 
+body:has(#formAtualizarPerfil) {
     background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
-    overflow-x: hidden;
+    min-height: 100vh !important;
+    height: auto !important;
 }
 
-body {
-    overflow-y: scroll !important; /* Mantém a barra de scroll ativa para estabilidade visual */
-}
-
-/* Injeção das ondas animadas por trás dos cartões */
-body::after {
+body:has(#formAtualizarPerfil)::after {
     content: "";
     position: fixed;
     width: 300%;
@@ -29,83 +20,60 @@ body::after {
     pointer-events: none;
 }
 
-/* 2. CONTEÚDO PRINCIPAL E MARGENS DAS BORDAS (PC)  */
-.main-content {
-    /* CORREÇÃO DO ENCOSTO: Margem esquerda protege a sidebar e o padding afasta das bordas */
-    margin-left: 280px !important; 
-    padding: 50px 45px 50px 45px !important; /* Dá um espaçamento generoso e simétrico em toda a volta */
-    min-height: 100vh;
-    background: transparent !important; /* Revela o gradiente do body */
-    box-sizing: border-box;
+/* Garante que o contentor da main-content não gera nenhuma barra cinzenta ou branca de fundo */
+.main-content:has(#formAtualizarPerfil) {
+    background: transparent !important;
+    padding-left: 45px !important;
+    padding-right: 45px !important;
 }
 
-/* Limita a largura máxima do conteúdo para não esticar infinitamente em ecrãs ultra-wide */
-.main-content .container-fluid {
-    max-width: 1300px !important;
-    margin: 0 auto !important;
-    padding: 0 !important;
+/* --- ESTILO DO BOTÃO VOLTAR MINIMALISTA --- */
+.transition-link {
+    color: rgba(255, 255, 255, 0.8) !important;
+    transition: color 0.2s ease, transform 0.2s ease !important;
 }
 
-/* 3. OS MEUS DADOS PESSOAIS (FORMULÁRIO COESO)  */
+.transition-link:hover {
+    color: #ffffff !important;
+    transform: translateX(-3px); /* Ligeiro deslize intuitivo para a esquerda */
+}
+
+/* 2. OS MEUS DADOS PESSOAIS E GESTÃO DE CATÁLOGOS  */
 #formAtualizarPerfil .mb-3 {
-    margin-bottom: 1.1rem !important; /* Garante o respiro entre as linhas de inputs */
-}
-
-#formAtualizarPerfil .mb-4 {
-    margin-bottom: 1.35rem !important;
+    margin-bottom: 1rem !important;
 }
 
 #formAtualizarPerfil .form-control, 
 #formAtualizarPerfil .form-select {
-    padding: 0.65rem 0.85rem !important; /* Altura confortável para digitação */
-    font-size: 0.92rem !important;
-    border: 1px solid #dee2e6;
-    border-radius: 10px;
-}
-
-#formAtualizarPerfil .input-group-text {
     padding: 0.65rem 0.85rem !important;
-    border-radius: 10px 0 0 10px;
+    font-size: 0.92rem !important;
 }
 
 #formAtualizarPerfil .btn {
     padding: 12px !important; 
     font-size: 0.95rem !important;
     margin-top: 10px;
-    border-radius: 10px;
 }
 
-/* 4. GESTÃO DE CATÁLOGOS (FUNDO BRANCO + RESPIRO EXTRA) 
- */
-/* Transforma os blocos cinzentos de remoção para BRANCO Puro */
 .d-flex.flex-column.gap-3 .bg-light {
     background-color: #ffffff !important;
     border: 1px solid #e2e8f0 !important;
-    padding: 24px !important; /* Aumentado o espaçamento para as tabelas respirarem com elegância */
+    padding: 22px !important; 
     border-radius: 14px !important;
     transition: all 0.2s ease-in-out !important;
 }
 
-/* Efeito hover de aviso com borda vermelha suave ao passar o rato */
 .d-flex.flex-column.gap-3 .bg-light:hover {
     border-color: #f1aeb5 !important;
-    box-shadow: 0 6px 15px rgba(220, 53, 69, 0.05) !important;
+    box-shadow: 0 4px 12px rgba(220, 53, 69, 0.06) !important;
 }
 
-/* Inputs de pesquisa dentro dos blocos ganham fundo cinza claro para contraste */
 .d-flex.flex-column.gap-3 .form-control {
     background-color: #f8f9fa !important;
     border: 1px solid #e2e8f0 !important;
-    border-radius: 10px;
 }
 
-.d-flex.flex-column.gap-3 .form-control:focus {
-    background-color: #ffffff !important;
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15) !important;
-}
-
-/* 5. ACABAMENTO GLASSMORPHISM E TIPOGRAFIA DE CONTRASTE */
+/* 3. ACABAMENTO GLASSMORPHISM DOS CARDS  */
 .page-header h2 {
     color: #ffffff !important;
     font-weight: 700;
@@ -115,28 +83,25 @@ body::after {
     color: rgba(255, 255, 255, 0.85) !important;
 }
 
-.page-header .bg-primary.bg-opacity-10 {
-    background-color: rgba(255, 255, 255, 0.18) !important;
+.page-header .block-icon {
+    background-color: rgba(255, 255, 255, 0.15) !important;
     color: #ffffff !important;
 }
 
-/* Transforma os painéis em cartões translúcidos com blur de vidro */
 .card {
     background: rgba(255, 255, 255, 0.88) !important;
     backdrop-filter: blur(20px) saturate(190%);
     -webkit-backdrop-filter: blur(20px) saturate(190%);
     border: 1px solid rgba(255, 255, 255, 0.4) !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12) !important;
-    border-radius: 16px;
-    transform: none !important;
 }
 
-/*  6. AUTOCOMPLETE E RESPONSIVIDADE (MOBILE) */
+/* 4. AUTOCOMPLETE E ANIMAÇÃO  */
 .custom-autocomplete-list {
     position: absolute !important;
     top: 100% !important;
-    left: 22px !important;
-    width: calc(100% - 98px) !important; /* Sincronizado dinamicamente com o novo padding de 24px */
+    left: 20px !important;
+    width: calc(100% - 94px) !important; 
     max-height: 150px !important;
     overflow-y: auto !important;
     background-color: #ffffff !important;
@@ -145,35 +110,18 @@ body::after {
     z-index: 99999 !important;
 }
 
-.custom-autocomplete-list .list-group-item {
-    cursor: pointer !important;
-    padding: 8px 12px !important;
-    font-size: 0.85rem !important;
-}
-
 @keyframes waveAnimationConta {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
 
 @media (max-width: 991px) {
-    .main-content {
-        margin-left: 0 !important;
-        width: 100% !important;
-        padding: 100px 20px 30px 20px !important; /* Margem de respiro lateral controlada no mobile */
+    .main-content:has(#formAtualizarPerfil) {
+        padding-left: 15px !important;
+        padding-right: 15px !important;
     }
     .custom-autocomplete-list {
         width: calc(100% - 82px) !important;
         left: 16px !important;
-    }
-}
-
-@media (max-width: 576px) {
-    .main-content {
-        padding: 95px 15px 20px 15px !important;
-    }
-    .form-control, .form-select {
-        font-size: 0.9rem !important;
-        padding: 10px !important;
     }
 }
