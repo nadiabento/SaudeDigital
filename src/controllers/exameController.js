@@ -113,7 +113,7 @@ exports.registarExame = async (req, res) => {
   }
 
   // Inicializa a transação do Sequelize
-  const t = await sequelize.transaction();
+  const t = await Exame.sequelize.transaction();
 
   try {
     // 1. Inserção na tabela principal dentro da transação
@@ -137,14 +137,12 @@ exports.registarExame = async (req, res) => {
       { transaction: t },
     );
 
-    // Se as duas correrem bem, guarda definitivamente na BD
     await t.commit();
 
     res
       .status(200)
       .json({ message: "Exame e relatório guardados com sucesso!" });
   } catch (error) {
-    // Se qualquer uma falhar, desfaz as alterações e não deixa lixo na BD
     await t.rollback();
     console.error("Erro ao registar exame (Transaction Rollback):", error);
 
