@@ -1,37 +1,34 @@
 /* --- 1. AJUSTE DE ALTURA E FUNDO ANIMADO --- */
 html, body {
-    /* Permitir que o documento cresça verticalmente se houver muitos exames */
-    min-height: 100vh;
     margin: 0;
     padding: 0;
     font-family: 'Inter', sans-serif;
-    background-color: #2563eb; /* Cor de segurança para evitar fundo branco no fim */
+    background-color: #2563eb; 
+    /* Remove min-height e height fixos daqui para evitar que o body force um tamanho gigante vazio */
+    height: 100%; 
 }
 
 body {
-    min-height: 100vh !important; 
-    height: auto !important;       
-    overflow-y: auto !important; /* Força o scroll vertical a estar ativo no browser */
+    overflow-x: hidden;
+    overflow-y: auto !important; /* Permite scroll natural apenas se houver muitos exames */
+    display: flex;
+    flex-direction: column;
 }
 
 .bg-gradient-custom {
     background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%);
     position: relative;
-    /* CORREÇÃO CRÍTICA: Mudado para overflow-y: auto para o fundo esticar com a página */
     overflow-x: hidden;
-    overflow-y: auto !important; 
-    display: flex;
-    align-items: flex-start; /* Alinha o cartão ao topo para não ficar cortado em ecrãs pequenos */
-    justify-content: center;
+    overflow-y: visible !important;
+    display: block;
     min-height: 100vh;
-    height: auto !important; /* Permite expansão se o conteúdo ultrapassar 100vh */
-    padding: 40px 20px;      /* Mais espaço para respirar no topo e fundo */
+    padding: 60px 20px;
 }
 
 /* Injeção das Ondas em SVG Animadas por trás do Vidro */
 .bg-gradient-custom::after {
     content: "";
-    position: absolute;
+    position: fixed;
     width: 220%;
     height: 220%;
     top: -60%;
@@ -41,14 +38,13 @@ body {
     animation: waveAnimation 28s infinite linear;
     opacity: 0.8;
     z-index: 1;
-    pointer-events: none; /* Impede as ondas de intercetarem cliques do rato */
+    pointer-events: none;
 }
-
 /* --- 2. PAINEL CENTRAL EM VIDRO (GLASSMORPHISM) --- */
 .container-partilha { 
     max-width: 760px; 
     width: 100%;
-    margin: 20px auto; /* Dá uma margem uniforme ao flutuar no fundo azul */
+    margin: 0 auto;
     background: rgba(255, 255, 255, 0.82) !important; 
     backdrop-filter: blur(20px) saturate(190%);
     -webkit-backdrop-filter: blur(20px) saturate(190%);
