@@ -42,7 +42,6 @@ router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 router.post(
   "/registar",
   (req, res, next) => {
-    // CORREÇÃO: Intercetor de erros do Multer para responder com HTTP 400 limpo
     upload.single("relatorio")(req, res, (err) => {
       if (err) {
         return res.status(400).json({ error: err.message });

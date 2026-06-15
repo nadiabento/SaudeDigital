@@ -1,6 +1,7 @@
 const express = require("express");
 const session = require("express-session");
-const path = require("node:path");
+const fs = require("fs");
+const path = require("path"); // Apenas uma importação limpa aqui
 
 // 1. IMPORTAÇÃO CORRETA E INICIALIZAÇÃO DA CLASSE DO MYSQLSTORE
 const MySQLStore = require("express-mysql-session")(session);
@@ -11,6 +12,12 @@ const authRoutes = require("./src/routes/authRoutes");
 const medRoutes = require("./src/routes/medRoutes");
 const consultaRoutes = require("./src/routes/consultaRoutes");
 const sinalVitalRoutes = require("./src/routes/sinalVitalRoutes");
+
+// Criação automática da pasta de uploads de forma segura
+const dir = path.join(__dirname, "uploads");
+if (!fs.existsSync(dir)) {
+  fs.mkdirSync(dir, { recursive: true });
+}
 
 require("dotenv").config();
 
@@ -24,10 +31,10 @@ const dbOptions = {
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
   port: process.env.DB_PORT || 3306,
-  ssl: { rejectUnauthorized: false }, // Requisito obrigatório de SSL para o Aiven
+  ssl: { rejectUnauthorized: false }, // Requisito de SSL para o Aiven
 };
 
-// 2. AGORA JÁ PODES USAR O "new" PORQUE A CLASSE FOI DEVIDAMENTE INICIALIZADA ACIMA
+// 2. INSTANCIAÇÃO DA SESSÃO PERSISTENTE
 const sessionStore = new MySQLStore(dbOptions);
 
 // --- MIDDLEWARES ---
@@ -36,23 +43,21 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Configuração da pasta pública de uploads
-app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // Configuração de Sessão de Utilizador Persistente na BD
 app.use(
   session({
     key: "saudedigital_sid",
     secret: process.env.SESSION_SECRET || "chave_de_reserva_segura",
-    store: sessionStore, // Guarda na BD e não na RAM
+    store: sessionStore,
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }, // Se o Render usar HTTPS de ponta a ponta podes ligar para true mais tarde
+    cookie: { secure: false },
   }),
 );
 
-// [Resto do teu código das rotas app.get e app.post mantém-se exatamente igual...]
-
-// --- ROTAS DA API ---
+// --- MAPEAMENTO DAS ROTAS DA API ---
 app.use("/api/exames", examenRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/medicacao", medRoutes);
@@ -65,7 +70,6 @@ app.get("/api/dashboard/resumo", async (req, res) => {
     const userId = req.session.userId;
     if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
-    // 1. Procurar a PRÓXIMA consulta
     const [consultas] = await db.execute(
       "SELECT data_hora FROM Consulta WHERE id_utilizador = ? AND data_hora >= NOW() ORDER BY data_hora ASC LIMIT 1",
       [userId],
@@ -83,14 +87,12 @@ app.get("/api/dashboard/resumo", async (req, res) => {
         });
     }
 
-    // 2. Contar os Medicamentos ATIVOS
     const [medicamentos] = await db.execute(
       "SELECT COUNT(*) as total FROM Medicamento WHERE id_utilizador = ? AND estado = 'Ativo'",
       [userId],
     );
     const totalMedicamentos = medicamentos[0].total;
 
-    // 3. Contar os Efeitos Secundários
     const [efeitos] = await db.execute(
       `SELECT COUNT(*) as total FROM Efeito_Secundario e 
              JOIN Medicamento m ON e.id_medicamento = m.id 
@@ -150,7 +152,7 @@ app.get("/api/dashboard/historico-vitals", async (req, res) => {
   }
 });
 
-// --- ROTA CRUD PARA SINAIS VITAIS (CRUD COMPLETO) ---
+// --- ROTA CRUD PARA SINAIS VITAIS ---
 app.get("/api/vitals", async (req, res) => {
   try {
     if (!req.session.userId)
