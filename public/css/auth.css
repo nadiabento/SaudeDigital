@@ -1,4 +1,10 @@
 /* --- CONFIGURAÇÕES GERAIS --- */
+html, body {
+    height: 100%; /* Garante que a base do documento conhece a altura total */
+    margin: 0;
+    padding: 0;
+}
+
 body {
     font-family: 'Inter', sans-serif;
     background-color: #f1f5f9;
@@ -8,11 +14,22 @@ body {
     flex-direction: column;
 }
 
+.row, .main-wrapper {
+    flex: 1;
+    display: flex;
+    margin: 0; /* Remove margens que causam scroll horizontal indesejado */
+}
+
 /* --- COLUNA ESQUERDA: Gradiente Dinâmico com Efeito de Ondas --- */
 .bg-gradient-custom {
     background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%);
     position: relative;
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh; /* Garante que a coluna azul vai até ao fim da página no PC */
 }
 
 .bg-gradient-custom::after {
@@ -26,6 +43,13 @@ body {
     background-size: cover;
     animation: waveAnimation 25s infinite linear;
     opacity: 0.8;
+}
+
+.col-right-login {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh; /* Garante que a coluna branca/cinza também acompanha a altura total */
 }
 
 .max-w-400 {
@@ -43,6 +67,7 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.6) !important;
     box-shadow: 0 20px 40px rgba(0, 0, 0, 0.05) !important;
     padding: 3.5rem 2.5rem;
+    animation: cardFadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Customização dos Inputs para combinar com o Vidro */
@@ -104,40 +129,38 @@ body {
 
 @media (max-width: 576px) {
     body {
-        overflow-y: auto; /* Permite scroll natural no telemóvel */
+        overflow-y: auto;
     }
     
     .glass-login-card {
         padding: 2.5rem 1.75rem !important;
         margin: 1rem;
-        background: rgba(255, 255, 255, 0.85) !important; /* Um pouco mais opaco para leitura no telemóvel */
     }
     
     .icon-box-logo-neon {
         width: 65px;
         height: 65px;
-        background-color: rgba(59, 90, 250, 0.12) !important;
     }
     
     .display-4, .display-5 {
-        font-size: 2.5rem; /* Evita que os títulos fiquem gigantes e quebrem linhas estranhas */
+        font-size: 2.5rem;
     }
 }
 
 /* --- APLICAR O EFEITO DE ONDAS E GRADIENTE APENAS NO TELEMÓVEL --- */
 @media (max-width: 991px) {
-    /* 1. Força a coluna do formulário a ter o gradiente azul de fundo */
-    .col-lg-5 {
+    /* Força a coluna do formulário a ter o gradiente azul de fundo e ocupar o ecrã inteiro no mobile */
+    .col-lg-5, .col-md-12 {
         background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
         position: relative;
         overflow: hidden;
         min-height: 100vh;
         display: flex;
         align-items: center;
+        justify-content: center;
     }
 
-    /* 2. Injeta as ondas animadas transparentes por trás do cartão no telemóvel */
-    .col-lg-5::after {
+    .col-lg-5::after, .col-md-12::after {
         content: "";
         position: absolute;
         width: 300%;
@@ -150,11 +173,10 @@ body {
         z-index: 1;
     }
 
-    /* 3. Garante que o cartão de vidro fica por cima das ondas e ganha contraste */
     .glass-login-card {
         position: relative;
         z-index: 2;
-        background: rgba(255, 255, 255, 0.88) !important; /* Ligeiramente mais opaco para leitura no telemóvel */
+        background: rgba(255, 255, 255, 0.88) !important;
         backdrop-filter: blur(20px) saturate(180%) !important;
         -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
         box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15) !important;
