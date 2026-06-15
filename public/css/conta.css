@@ -1,4 +1,11 @@
-/* --- ESTILOS COMPONENTES EXISTENTES --- */
+/*  1. ESTILOS BASE E CONFIGURAÇÃO (COMPUTADOR - DESKTOP) */
+
+body {
+    background-color: #f8f9fa; /* Restaura o fundo padrão do Bootstrap removido do HTML */
+    min-height: 100vh;
+    font-family: 'Inter', sans-serif;
+}
+
 .card {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
@@ -17,12 +24,13 @@
     overflow: visible !important; /* Impede que o card corte a lista suspensa */
 }
 
-/* Estilização da lista flutuante com Scroll e limite de altura */
+/* 2. ESTILIZAÇÃO DO AUTOCOMPLETE (LISTAS FLUTUANTES)*/
+
 .custom-autocomplete-list {
     position: absolute !important;
     top: 100% !important;
     left: 16px !important; /* Alinha perfeitamente com o início do input de texto */
-    width: calc(100% - 86px) !important; /* Desconta o padding esquerdo/direito + o botão vermelho */
+    width: calc(100% - 86px) !important; /* Desconta o espaço das bordas + botão vermelho */
     
     max-height: 180px !important;
     overflow-y: auto !important;
@@ -59,7 +67,7 @@
     transform: none !important;
 }
 
-/* Customização da barra de scroll */
+/* Customização da barra de scroll das sugestões */
 .custom-autocomplete-list::-webkit-scrollbar {
     width: 6px;
 }
@@ -82,38 +90,18 @@
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
 }
 
-/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
-@media (max-width: 576px) {
-    .main-content {
-        padding-left: 5px !important;
-        padding-right: 5px !important;
-    }
-    
-    /* Reajuste do cálculo do autocomplete para a largura do telemóvel */
-    .custom-autocomplete-list {
-        left: 16px !important;
-        width: calc(100% - 82px) !important; /* Alinhamento dinâmico na largura mobile */
-    }
+/*3. RESPONSIVIDADE E EFEITO VISUAL PREMIUM (MOBILE/TABLET)*/
 
-    .form-control, .form-select {
-        font-size: 0.9rem !important;
-        padding: 10px !important;
-    }
-    
-    .btn {
-        font-size: 0.95rem !important;
-    }
-}
-
-/* --- AJUSTES DE RESPONSIVIDADE (MOBILE) --- */
 @media (max-width: 991px) {
     body {
+        /* Força o gradiente azul a assumir o ecrã inteiro do telemóvel */
         background: linear-gradient(135deg, #3b5afa 0%, #2563eb 100%) !important;
         position: relative;
         overflow-x: hidden;
+        min-height: 100vh;
     }
 
-    /* Injeta as ondas animadas discretas em background por trás dos cartões */
+    /* Injeta as ondas animadas em background por trás dos cartões */
     body::after {
         content: "";
         position: absolute;
@@ -128,6 +116,7 @@
         pointer-events: none;
     }
 
+    /* Liberta a main-content removendo as margens de computador */
     .main-content {
         margin-left: 0 !important;
         width: 100% !important;
@@ -137,30 +126,49 @@
         z-index: 2;
     }
 
-    /* Transforma os títulos em Glassmorphism para legibilidade sob o fundo azul */
+    /* Confere legibilidade em Glassmorphism aos títulos do cabeçalho */
     .page-header h2 {
         font-size: 1.8rem !important;
         color: #ffffff !important;
+        margin-top: 20px;
     }
     
     .page-header p {
         color: rgba(255, 255, 255, 0.85) !important;
     }
+    
+    .page-header .bg-primary.bg-opacity-10 {
+        background-color: rgba(255, 255, 255, 0.15) !important;
+        color: #ffffff !important;
+    }
 
-    /* Cartões ganham opacidade extra e blur para contraste */
+    /* Transforma os cartões brancos em camadas semi-transparentes modernas */
     .card {
         background: rgba(255, 255, 255, 0.94) !important;
         backdrop-filter: blur(15px);
         -webkit-backdrop-filter: blur(15px);
-        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15) !important;
+        box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2) !important;
     }
 
+    /* Reajuste dinâmico da largura da lista flutuante no telemóvel */
     .custom-autocomplete-list {
         left: 16px !important;
         width: calc(100% - 82px) !important;
     }
 }
 
+@media (max-width: 576px) {
+    .form-control, .form-select {
+        font-size: 0.9rem !important;
+        padding: 10px !important;
+    }
+    
+    .btn {
+        font-size: 0.95rem !important;
+    }
+}
+
+/* 4. TIMINGS DAS ANIMAÇÕES DE BACKGROUND */
 @keyframes waveAnimation {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
