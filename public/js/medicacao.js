@@ -1,4 +1,7 @@
 
+let listaMedicamentos = [];
+let colunaOrdenacaoMedicacao = null;
+let direcaoOrdenacaoMedicacao = "asc";
 
 let modoHistorico = false;
 
@@ -33,78 +36,154 @@ const resposta = await fetch(url);
 
     const medicamentos = await resposta.json();
 
-    tabela.innerHTML = "";
+    listaMedicamentos = medicamentos;
 
-    if (medicamentos.length === 0) {
-      tabela.innerHTML = `
-        <tr>
-          <td colspan="7" class="text-center text-muted py-4">
-            Ainda não existe medicação registada.
-          </td>
-        </tr>
-      `;
-      return;
-    }
+    renderizarTabelaMedicacao(listaMedicamentos);    
+    
+  
+}
+function renderizarTabelaMedicacao(medicamentos) {
+  const tabela = document.getElementById("tabela-medicacao");
 
-    medicamentos.forEach((med) => {
-      const infoDias = calcularDiasRestantes(med.data_fim);
-      const badgeEstado = criarBadgeEstado(med.estado, infoDias);
+  tabela.innerHTML = "";
 
-      tabela.innerHTML += `
-        <tr>
-          <td>
-            <strong>${med.nome_medicamento}</strong><br>
-            <small class="text-muted">${med.forma_farmaceutica || ""}</small>
-          </td>
-          <td>${med.dosagem || "-"}</td>
-          <td>${med.posologia}</td>
-          <td>${formatarDuracao(med.data_inicio, med.data_fim)}</td>
-          <td>${infoDias.texto}</td>
-          <td>${badgeEstado}</td>
-          <td>
-            <div class="d-flex gap-1">
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-success"
-                title="Concluir medicação"
-                onclick="atualizarEstadoMedicacao(${med.id}, 'Concluído')"
-              >
-                <i class="bi bi-check-circle"></i>
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-warning"
-                title="Suspender medicação"
-                onclick="atualizarEstadoMedicacao(${med.id}, 'Suspenso')"
-              >
-                <i class="bi bi-pause-circle"></i>
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-danger"
-                title="Eliminar medicação"
-                onclick="eliminarMedicacao(${med.id})"
-              >
-                <i class="bi bi-trash"></i>
-              </button>
-            </div>
-          </td>      
-        </tr>
-      `;
-    });
-  } catch (erro) {
-    console.error(erro);
-
+  if (medicamentos.length === 0) {
     tabela.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center text-danger py-4">
-          Não foi possível carregar a medicação.
+        <td colspan="7" class="text-center text-muted py-4">
+          Ainda não existe medicação registada.
         </td>
       </tr>
     `;
+    return;
   }
+
+  medicamentos.forEach((med) => {
+    const infoDias = calcularDiasRestantes(med.data_fim);
+    const badgeEstado = criarBadgeEstado(med.estado, infoDias);
+
+    tabela.innerHTML += `
+      <tr>
+        <td>
+          <strong>${med.nome_medicamento}</strong><br>
+          <small class="text-muted">${med.forma_farmaceutica || ""}</small>
+        </td>
+
+        <td>${med.dosagem || "-"}</td>
+
+        <td>${med.posologia}</td>
+
+        <td>${formatarDuracao(med.data_inicio, med.data_fim)}</td>
+
+        <td>${infoDias.texto}</td>
+
+        <td>${badgeEstado}</td>
+
+        <td class="text-end">
+          <div class="dropdown">
+            <button
+              class="btn btn-sm btn-light border"
+              type="button"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+            >
+              <i class="bi bi-three-dots"></i>
+            </button>
+
+            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+              <li>
+                <button
+                  class="dropdown-item"
+                  type="button"
+                  onclick="atualizarEstadoMedicacao(${med.id}, 'Concluído')"
+                >
+                  <i class="bi bi-check-circle me-2 text-success"></i>
+                  Concluir
+                </button>
+              </li>
+
+              <li>
+                <button
+                  class="dropdown-item"
+                  type="button"
+                  onclick="atualizarEstadoMedicacao(${med.id}, 'Suspenso')"
+                >
+                  <i class="bi bi-pause-circle me-2 text-warning"></i>
+                  Suspender
+                </button>
+              </li>
+
+              <li>
+                <hr class="dropdown-divider">
+              </li>
+
+              <li>
+                <button
+                  class="dropdown-item text-danger"
+                  type="button"
+                  onclick="eliminarMedicacao(${med.id})"
+                >
+                  <i class="bi bi-trash me-2"></i>
+                  Eliminar
+                </button>
+              </li>
+            </ul>
+          </div>
+        </td>
+      </tr>
+    `;
+  });
+}
+function ordenarMedicacao(coluna) {
+  if (colunaOrdenacaoMedicacao === coluna) {
+    direcaoOrdenacaoMedicacao =
+      direcaoOrdenacaoMedicacao === "asc" ? "desc" : "asc";
+  } else {
+    colunaOrdenacaoMedicacao = coluna;
+    direcaoOrdenacaoMedicacao = "asc";
+  }
+
+  listaMedicamentos.sort(function (a, b) {
+    let valorA;
+    let valorB;
+
+    if (coluna === "medicamento") {
+      valorA = a.nome_medicamento || "";
+      valorB = b.nome_medicamento || "";
+    }
+
+    if (coluna === "dosagem") {
+      valorA = a.dosagem || "";
+      valorB = b.dosagem || "";
+    }
+
+    if (coluna === "data") {
+      valorA = new Date(a.data_inicio);
+      valorB = new Date(b.data_inicio);
+    }
+
+    if (coluna === "dias") {
+      valorA = calcularDiasRestantes(a.data_fim).dias ?? 999999;
+      valorB = calcularDiasRestantes(b.data_fim).dias ?? 999999;
+    }
+
+    if (coluna === "estado") {
+      valorA = a.estado || "";
+      valorB = b.estado || "";
+    }
+
+    if (valorA < valorB) {
+      return direcaoOrdenacaoMedicacao === "asc" ? -1 : 1;
+    }
+
+    if (valorA > valorB) {
+      return direcaoOrdenacaoMedicacao === "asc" ? 1 : -1;
+    }
+
+    return 0;
+  });
+
+  renderizarTabelaMedicacao(listaMedicamentos);
 }
 
 function calcularDiasRestantes(dataFim) {
