@@ -220,16 +220,36 @@
             <table class="table table-hover align-middle" style="font-size: 0.85rem;">
               <thead class="table-light">
                 <tr>
-                  <th>Medicamento</th>
-                  <th>Dosagem</th>
+                  <th onclick="ordenarMedicacao('medicamento')" style="cursor: pointer">
+                    Medicamento
+                    <i id="setaMedicamento" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                  </th>
+
+                  <th onclick="ordenarMedicacao('dosagem')" style="cursor: pointer">
+                    Dosagem
+                    <i id="setaDosagem" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                  </th>
+
                   <th>Posologia</th>
-                  <th>Duração</th>
-                  <th>Dias restantes</th>
-                  <th>Estado</th>
-                  <th class="text-end" style="min-width: 90px;">cenas Ação</th>
+
+                  <th onclick="ordenarMedicacao('data')" style="cursor: pointer">
+                    Duração
+                    <i id="setaDataMedicacao" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                  </th>
+
+                  <th onclick="ordenarMedicacao('dias')" style="cursor: pointer">
+                    Dias restantes
+                    <i id="setaDias" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                  </th>
+
+                  <th onclick="ordenarMedicacao('estado')" style="cursor: pointer">
+                    Estado
+                    <i id="setaEstado" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
+                  </th>
+
+                  <th class="text-end">Ações</th>
                 </tr>
               </thead>
-
               <tbody id="tabela-medicacao">
                 <tr>
                   <td colspan="7" class="text-center text-muted py-4">
