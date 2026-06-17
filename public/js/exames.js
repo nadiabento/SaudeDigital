@@ -111,14 +111,14 @@ function renderizarTabela(totalPaginas) {
     tbody.innerHTML += `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input examen-checkbox" value="${exame.id}" onchange="verificarSelecao()">
+                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id_exame}" onchange="verificarSelecao()">
             </td>
             <td><strong>${exame.nome}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
             <td>
                 ${
-                  exame.resultado
-                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
+                  exame.relatorio
+                    ? `<a href="/uploads/${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
                         <i class="bi bi-file-pdf text-white"></i> PDF
                       </a>`
                     : '<span class="text-muted small fw-semibold">Sem anexo</span>'
@@ -130,11 +130,11 @@ function renderizarTabela(totalPaginas) {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id_exame}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id_exame}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id_exame})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id_exame})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
                     </ul>
                 </div>
             </td>

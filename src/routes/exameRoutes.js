@@ -39,18 +39,40 @@ router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
 router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
 // --- ENTRADAS DE ESCRITA (POST) ---
-router.post(
-  "/registar",
-  (req, res, next) => {
-    upload.single("relatorio")(req, res, (err) => {
-      if (err) {
-        return res.status(400).json({ error: err.message });
-      }
-      next();
-    });
-  },
-  exameController.registarExame,
-);
+// ROTA: Registar Novo Exame com Relatório PDF
+router.post("/registar", upload.single("relatorio"), async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    // O id_tipo_exame, data_exame, observacoes e o resultado (texto se houver) vêm do formulário
+    const { data_exame, observacoes, id_tipo_exame, resultado_texto } =
+      req.body;
+
+    if (!userId) return res.status(401).json({ error: "Não autenticado" });
+
+    // O Multer guarda o PDF aqui se o utilizador tiver anexado um ficheiro
+    const nomeFicheiroPDF = req.file ? req.file.filename : null;
+
+    const sql = `INSERT INTO Exame_TipoExame (id_utilizador, id_tipo_exame, data, observacoes, resultado, relatorio) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+    // Passamos as variáveis na ordem correta das colunas
+    await db.execute(sql, [
+      userId,
+      id_tipo_exame,
+      data_exame,
+      observacoes,
+      resultado_texto || null,
+      nomeFicheiroPDF,
+    ]);
+
+    res
+      .status(200)
+      .json({ mensagem: "Exame e relatório guardados com sucesso!" });
+  } catch (error) {
+    console.error("Erro ao registar exame:", error);
+    res.status(500).json({ error: "Erro interno ao guardar o exame" });
+  }
+});
 
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
