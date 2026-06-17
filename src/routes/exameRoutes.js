@@ -47,7 +47,7 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      // EXTRAÇÃO ABSOLUTA DO ID NUMÉRICO
+      // EXTRAÇÃO ABSOLUTA DO ID NUMÉRICO (Evita o [object Object])
       let userId = req.session.userId;
       if (userId && typeof userId === "object") {
         userId = userId.id_utilizador || userId.id || userId.utilizador_id;
@@ -75,21 +75,18 @@ router.post(
           : null;
 
       // --- PASSO 1: Inserir dados na tabela pai 'Exame' ---
-      // CORREÇÃO: Uso de "?" para total compatibilidade com o dialeto MySQL do Sequelize
-      // e ajuste do nome do campo para 'utilizador_id' conforme o seu schema.
       const sqlExamePai = `INSERT INTO Exame (utilizador_id, data_exame, observacoes) 
                            VALUES (?, ?, ?)`;
 
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
         replacements: [userId, data_exame, observacoes || null],
-        type: INSERT,
+        type: "INSERT",
       });
 
       // No MySQL/Sequelize o retorno direto é o ID auto-incrementado gerado
       const novoIdExame = resultadoInsercao;
 
       // --- PASSO 2: Vincular o ID e os PDFs na tabela intermédia 'Exame_TipoExame' ---
-      // CORREÇÃO: Ajustada para usar "?" ordenados e bater certo com a estrutura do print.
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
                           VALUES (?, ?, ?, ?)`;
 
@@ -100,7 +97,7 @@ router.post(
           ficheiroExame,
           ficheiroRelatorio,
         ],
-        type: INSERT,
+        type: "INSERT",
       });
 
       res.status(200).json({
