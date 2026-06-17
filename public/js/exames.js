@@ -120,7 +120,7 @@ function renderizarTabela(totalPaginas) {
     tbody.innerHTML += `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id_exame}" onchange="verificarSelecao()">
+                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
             </td>
             <td><strong>${exame.nome || "Exame Indefinido"}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
@@ -151,11 +151,11 @@ function renderizarTabela(totalPaginas) {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id_exame}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id_exame}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id_exame})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id_exame})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
                     </ul>
                 </div>
             </td>
