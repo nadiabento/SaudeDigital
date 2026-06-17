@@ -6,6 +6,7 @@ let tiposGlobais = [];
 let examesParaTabela = [];
 let direcaoOrdenacao = { exame: 1, data: 1 };
 let paginaAtual = 1;
+let totalPaginasGlobal = 1; // 👈 CORREÇÃO: Variável global para não perder os controlos de página
 const examesPorPagina = 10;
 
 // --- CONFIGURAÇÃO INICIAL ---
@@ -14,7 +15,7 @@ window.onload = () => {
   carregarHistorico();
   configurarEventosInterface();
 
-  // Bloqueia datas futuras nos calendários (Integridade de dados)
+  // Bloqueia datas futures nos calendários (Integridade de dados)
   const hojeFormatado = new Date().toISOString().split("T")[0];
   ["dataExame", "editDataExame"].forEach((id) => {
     const el = document.getElementById(id);
@@ -34,7 +35,7 @@ async function carregarCategorias() {
         '<option value="">Selecione uma categoria...</option>';
       categoriasGlobais.forEach((cat) => {
         const opt = document.createElement("option");
-        opt.value = cat.id; // Garantido o alinhamento com a PK .id do Sequelize
+        opt.value = cat.id;
         opt.textContent = cat.nome;
         selectModal.appendChild(opt);
       });
@@ -54,6 +55,7 @@ async function carregarHistorico(pagina = 1) {
     // Extração segura dos dados paginados estruturados pelo Sequelize
     examesParaTabela = data.exames;
     paginaAtual = data.paginaAtual;
+    totalPaginasGlobal = data.totalPaginas; // 👈 CORREÇÃO: Salva o total real de páginas da API
 
     // Chama a renderização passando o total de páginas que veio do servidor
     renderizarTabela(data.totalPaginas);
@@ -91,7 +93,6 @@ function renderizarTabela(totalPaginas) {
   }
 
   examesParaTabela.forEach((exame) => {
-    // CORREÇÃO: Variável alterada de 'examen.data' para 'exame.data'
     let dataF = "---";
     if (exame.data) {
       const partes = exame.data.split("T")[0].split("-");
@@ -110,7 +111,7 @@ function renderizarTabela(totalPaginas) {
     tbody.innerHTML += `
         <tr>
             <td>
-                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
+                <input type="checkbox" class="form-check-input examen-checkbox" value="${exame.id}" onchange="verificarSelecao()">
             </td>
             <td><strong>${exame.nome}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
@@ -141,6 +142,7 @@ function renderizarTabela(totalPaginas) {
   });
 
   renderizarControlosPaginacao(totalPaginas);
+  verificarSelecao(); // Garante o sync da barra de ações após redesenhar
 }
 
 function renderizarControlosPaginacao(totalPaginas) {
@@ -176,7 +178,7 @@ function renderizarControlosPaginacao(totalPaginas) {
 }
 
 function mudarPagina(num) {
-  if (num < 1) return;
+  if (num < 1 || num > totalPaginasGlobal) return;
   paginaAtual = num;
   carregarHistorico(num);
 }
@@ -185,7 +187,7 @@ function filtrarTabela() {
   const termo = document.getElementById("inputSearch").value.toLowerCase();
   const linhas = document.querySelectorAll("#tabelaExames tr");
   linhas.forEach((linha) => {
-    const texto = linha.innerText.toLowerCase();
+    const texto = i.innerText.toLowerCase();
     linha.style.display = texto.includes(termo) ? "" : "none";
   });
 }
@@ -200,26 +202,20 @@ function toggleTodos(master) {
 }
 
 function verificarSelecao() {
-  // Procura todas as checkboxes que estão selecionadas (com o visto)
   const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
   const marcados = checkboxes.length;
-
-  // Encontra a barra que contém os botões de Eliminar em Massa/Partilhar
   const barraAcoes = document.getElementById("acoesMassa");
 
   if (barraAcoes) {
     if (marcados > 0) {
-      // Se houver itens selecionados, GARANTE que a barra aparece
       barraAcoes.classList.remove("d-none");
-      barraAcoes.style.display = "flex"; // Força o layout flex do Bootstrap
+      barraAcoes.style.display = "flex";
     } else {
-      // Se não houver nada selecionado, esconde a barra
       barraAcoes.classList.add("d-none");
       barraAcoes.style.display = "none";
     }
   }
 
-  // Bloquear ou desbloquear ações individuais (Ver Detalhes, Editar) no menu de 3 pontos
   const acoesIndividuais = document.querySelectorAll(".btn-acao-individual");
   const bloquearIndividuais = marcados > 1;
 
@@ -386,15 +382,13 @@ function configurarEventosInterface() {
     });
   }
 
-  // --- SUBMISSÃO DO FORMULÁRIO COM FEEDBACK DE POP-UP (SWAL) ---
   const form = document.getElementById("formExame");
   if (form) {
-    // Removemos qualquer listener duplicado clonando a intenção
     form.removeAttribute("action");
     form.removeAttribute("method");
 
     form.addEventListener("submit", async (e) => {
-      e.preventDefault(); // Trava o refresh nativo do HTML para dar tempo ao Pop-up
+      e.preventDefault();
 
       const dataExame = document.getElementById("dataExame").value;
       const idTipoExame = document.getElementById("idTipoSelecionado").value;
@@ -408,7 +402,6 @@ function configurarEventosInterface() {
         });
       }
 
-      // Criar o FormData para empacotar o PDF do Multer
       const formData = new FormData();
       formData.append("data_exame", dataExame);
       formData.append(
@@ -423,25 +416,20 @@ function configurarEventosInterface() {
       }
 
       try {
-        // Dispara o pedido AJAX assíncrono para o Sequelize
         const res = await fetch("/api/exames/registar", {
           method: "POST",
           body: formData,
         });
 
         if (res.ok) {
-          // INTERCEÇÃO COM POP-UP ANTES DO REFRESH
           Swal.fire({
             title: "Exame Registado!",
             text: "O seu novo exame foi guardado com sucesso no histórico clínico.",
             icon: "success",
             confirmButtonColor: "#0d6efd",
-            allowOutsideClick: false, // Impede o utilizador de fechar sem querer
-          }).then((result) => {
-            if (result.isConfirmed || result.isDismissed) {
-              // SÓ RECARREGA QUANDO O UTILIZADOR CLICAR EM OK no Pop-up
-              location.reload();
-            }
+            allowOutsideClick: false,
+          }).then(() => {
+            location.reload();
           });
         } else {
           const erro = await res.json();
@@ -456,7 +444,7 @@ function configurarEventosInterface() {
         console.error("Erro na submissão do exame:", error);
         Swal.fire({
           title: "Erro de Conexão",
-          text: "Não foi possível comunicar com o servidor da UA.",
+          text: "Não foi possível comunicar com o servidor.",
           icon: "error",
           confirmButtonColor: "#dc3545",
         });
@@ -491,7 +479,6 @@ async function adicionarClasse() {
     });
 
     if (res.ok) {
-      // Bloqueia o ecrã com o Pop-up de Sucesso e só atualiza quando clicas em OK
       Swal.fire({
         title: "Categoria Criada!",
         text: `A categoria "${nome}" foi adicionada com sucesso.`,
@@ -499,7 +486,7 @@ async function adicionarClasse() {
         confirmButtonColor: "#0d6efd",
         allowOutsideClick: false,
       }).then(() => {
-        location.reload(); // Recarrega SÓ DEPOIS de veres o pop-up
+        location.reload();
       });
     } else {
       Swal.fire("Erro", "Não foi possível criar a categoria.", "error");
@@ -536,7 +523,7 @@ async function adicionarTipo() {
         confirmButtonColor: "#0d6efd",
         allowOutsideClick: false,
       }).then(() => {
-        location.reload(); // Recarrega SÓ DEPOIS de veres o pop-up
+        location.reload();
       });
     } else {
       Swal.fire("Erro", "Não foi possível guardar o novo tipo.", "error");
@@ -549,12 +536,20 @@ async function adicionarTipo() {
 function ordenarTabela(coluna) {
   const fator = direcaoOrdenacao[coluna];
   examesParaTabela.sort((a, b) => {
-    let valA = coluna === "exame" ? a.nome.toLowerCase() : new Date(a.data);
-    let valB = coluna === "exame" ? b.nome.toLowerCase() : new Date(b.data);
+    let valA =
+      coluna === "exame"
+        ? a.nome.toLowerCase()
+        : new Date(a.data || a.data_exame);
+    let valB =
+      coluna === "exame"
+        ? b.nome.toLowerCase()
+        : new Date(b.data || b.data_exame);
     return (valA < valB ? -1 : 1) * fator;
   });
   direcaoOrdenacao[coluna] *= -1;
-  renderizarTabela(Math.ceil(examesParaTabela.length / examesPorPagina));
+
+  // 👈 CORREÇÃO: Força o render a usar o total de páginas real guardado globalmente
+  renderizarTabela(totalPaginasGlobal);
 }
 
 //--- 7. PARTILHA EXTERNA ---
