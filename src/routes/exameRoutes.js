@@ -50,13 +50,11 @@ router.post(
       // EXTRAÇÃO ABSOLUTA DO ID NUMÉRICO (Evita o [object Object])
       let userId = req.session.userId;
       if (userId && typeof userId === "object") {
-        // Tenta mapear todas as variações comuns da tua estrutura de tabelas
         userId = userId.id_utilizador || userId.id || userId.utilizador_id;
       }
 
       const { data_exame, observacoes, id_tipo_exame } = req.body;
 
-      // Se mesmo após a extração não houver um ID válido ou for um objeto falhado
       if (!userId || typeof userId === "object") {
         return res
           .status(401)
@@ -77,27 +75,33 @@ router.post(
           : null;
 
       // --- PASSO 1: Inserir dados na tabela pai 'Exame' ---
-      const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
+      // MUDANÇA CRÍTICA: Uso de ":nomeDaVariavel" em vez de "?" para compatibilidade total
+      const sqlExamePai = `INSERT INTO Exame (id_utilizador, data_exame, observacoes) 
+                           VALUES (:id_utilizador, :data, :observacoes)`;
 
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
-        replacements: [userId, data_exame, observacoes || null],
+        replacements: {
+          id_utilizador: userId,
+          data: data_exame,
+          observacoes: observacoes || null,
+        },
         type: "INSERT",
       });
 
-      // O Sequelize retorna o ID numérico gerado diretamente
+      // No Sequelize com type "INSERT", o retorno direto é o ID auto-incrementado gerado
       const novoIdExame = resultadoInsercao;
 
       // --- PASSO 2: Vincular o ID e os PDFs na tabela intermédia 'Exame_TipoExame' ---
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
-                          VALUES (?, ?, ?, ?)`;
+                          VALUES (:id_exame, :id_tipo_exame, :resultado, :relatorio)`;
 
       await sequelize.query(sqlRelacao, {
-        replacements: [
-          novoIdExame,
-          id_tipo_exame,
-          ficheiroExame,
-          ficheiroRelatorio,
-        ],
+        replacements: {
+          id_exame: novoIdExame,
+          id_tipo_exame: id_tipo_exame,
+          resultado: ficheiroExame,
+          relatorio: ficheiroRelatorio,
+        },
         type: "INSERT",
       });
 
