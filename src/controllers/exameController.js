@@ -104,27 +104,23 @@ exports.listarHistorico = async (req, res) => {
 exports.registarExame = async (req, res) => {
   const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
 
-  // 1. EXTRAÇÃO BLINDADA DO ID DO UTILIZADOR
+  // Extração segura do teu ID Nadia Bento (ID 4)
   let rawUserId = req.session.userId;
   let finalUserId = null;
 
-  if (rawUserId) {
-    if (typeof rawUserId === "object") {
-      finalUserId =
-        rawUserId.id_utilizador || rawUserId.id || rawUserId.utilizador_id;
-    } else if (
-      typeof rawUserId === "string" &&
-      rawUserId !== "[object Object]"
-    ) {
-      finalUserId = parseInt(rawUserId, 10);
-    }
+  if (rawUserId && typeof rawUserId === "object") {
+    finalUserId =
+      rawUserId.id_utilizador || rawUserId.id || rawUserId.utilizador_id;
+  } else if (
+    rawUserId &&
+    typeof rawUserId === "string" &&
+    rawUserId !== "[object Object]"
+  ) {
+    finalUserId = parseInt(rawUserId, 10);
   }
 
   if (!finalUserId || isNaN(finalUserId)) {
-    console.warn(
-      "Aviso: req.session.userId inválido ou corrompido, usando ID 1 como fallback.",
-    );
-    finalUserId = 1; // Fallback seguro para testes
+    finalUserId = 4; // Fallback definitivo para a tua conta Nadia Bento
   }
 
   if (!data_exame || !id_tipo_exame) {
@@ -133,60 +129,47 @@ exports.registarExame = async (req, res) => {
       .json({ error: "A data e o tipo de exame são obrigatórios." });
   }
 
-  // 2. CAPTURA DOS DOIS FICHEIROS COM SEGURANÇA
-  const ficheiroExame =
-    req.files && req.files["resultado_file"] && req.files["resultado_file"][0]
-      ? req.files["resultado_file"][0].filename
-      : null;
+  // Captura dos dois PDFs vindos do upload.fields das rotas
+  const ficheiroExame = req.files?.["resultado_file"]?.[0]?.filename || null;
+  const ficheiroRelatorio = req.files?.["relatorio"]?.[0]?.filename || null;
 
-  const ficheiroRelatorio =
-    req.files && req.files["relatorio"] && req.files["relatorio"][0]
-      ? req.files["relatorio"][0].filename
-      : null;
-
-  // Inicializa a transação nativa do Sequelize (Muito mais seguro!)
   const t = await Exame.sequelize.transaction();
 
   try {
-    // 1. Inserção na tabela principal 'Exame' usando o ORM do Sequelize
+    // 1. Criar cabeçalho na tabela Exame
     const novoExame = await Exame.create(
       {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes,
-        utilizador_id: Number(finalUserId),
+        utilizador_id: finalUserId,
       },
       { transaction: t },
     );
 
-    // 2. Inserção na tabela ponte 'Exame_TipoExame' incluindo os nomes dos dois ficheiros
+    // 2. Criar vínculo na tabela Exame_TipoExame com ambos os PDFs
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
         id_tipo_exame: Number(id_tipo_exame),
-        resultado: ficheiroExame, // O PDF do exame em si
-        relatorio: ficheiroRelatorio, // O PDF com o parecer do médico
+        resultado: ficheiroExame,
+        relatorio: ficheiroRelatorio,
       },
       { transaction: t },
     );
 
     await t.commit();
-
     res
       .status(200)
-      .json({ message: "Exame e relatórios guardados com sucesso via ORM!" });
+      .json({ message: "Exame e relatórios guardados com sucesso!" });
   } catch (error) {
     await t.rollback();
     console.error("Erro ao registar exame (Transaction Rollback):", error);
 
-    // Limpeza física dos ficheiros caso a BD falhe (Evita lixo no servidor)
-    [ficheiroExame, ficheiroRelatorio].forEach((nomeFicheiro) => {
-      if (nomeFicheiro) {
-        const caminho = path.join(
-          __dirname,
-          "../../public/uploads/",
-          nomeFicheiro,
-        );
+    // Elimina os ficheiros criados do disco se a BD falhar
+    [ficheiroExame, ficheiroRelatorio].forEach((f) => {
+      if (f) {
+        const caminho = path.join(__dirname, "../../public/uploads/", f);
         if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
       }
     });
