@@ -38,7 +38,11 @@ const ExameTipoExame = sequelize.define(
   "ExameTipoExame",
   {
     resultado: {
-      type: DataTypes.STRING, // Guarda o nome do ficheiro PDF ou string de resultado
+      type: DataTypes.STRING, // Guarda o PDF do Exame
+      allowNull: true,
+    },
+    relatorio: {
+      type: DataTypes.STRING, //
       allowNull: true,
     },
   },
