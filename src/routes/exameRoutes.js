@@ -41,15 +41,47 @@ router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 // --- ENTRADAS DE ESCRITA (POST) ---
 router.post(
   "/registar",
-  (req, res, next) => {
-    upload.single("relatorio")(req, res, (err) => {
-      if (err) {
-        return res.status(400).json({ error: err.message });
-      }
-      next();
-    });
+  upload.fields([
+    { name: "resultado_file", maxCount: 1 },
+    { name: "relatorio", maxCount: 1 },
+  ]),
+  async (req, res) => {
+    try {
+      const userId = req.session.userId;
+      const { data_exame, observacoes, id_tipo_exame } = req.body;
+
+      if (!userId) return res.status(401).json({ error: "Não autenticado" });
+
+      // Captura os nomes dos ficheiros de forma segura a partir do mapeamento do multer
+      const ficheiroExame =
+        req.files && req.files["resultado_file"]
+          ? req.files["resultado_file"][0].filename
+          : null;
+      const ficheiroRelatorio =
+        req.files && req.files["relatorio"]
+          ? req.files["relatorio"][0].filename
+          : null;
+
+      const sql = `INSERT INTO Exame_TipoExame (id_utilizador, id_tipo_exame, data, observacoes, resultado, relatorio) 
+                 VALUES (?, ?, ?, ?, ?, ?)`;
+
+      await db.execute(sql, [
+        userId,
+        id_tipo_exame,
+        data_exame,
+        observacoes,
+        ficheiroExame,
+        ficheiroRelatorio,
+      ]);
+
+      res
+        .status(200)
+        .json({ mensagem: "Exame e Relatório guardados com sucesso!" });
+    } catch (error) {
+      console.error("Erro ao guardar exames:", error);
+      res.status(500).json({ error: "Erro interno ao processar registo." });
+    }
   },
-  exameController.registarExame,
 );
 
 router.post("/categorias", exameController.criarCategoria);

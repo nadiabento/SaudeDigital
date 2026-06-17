@@ -109,36 +109,48 @@ function renderizarTabela(totalPaginas) {
       : "";
 
     tbody.innerHTML += `
-        <tr>
-            <td>
-                <input type="checkbox" class="form-check-input examen-checkbox" value="${exame.id}" onchange="verificarSelecao()">
-            </td>
-            <td><strong>${exame.nome}</strong></td>
-            <td style="white-space: nowrap;">${dataF}</td>
-            <td>
-                ${
-                  exame.resultado
-                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
-                        <i class="bi bi-file-pdf text-white"></i> PDF
-                      </a>`
-                    : '<span class="text-muted small fw-semibold">Sem anexo</span>'
-                }
-            </td>
-            <td class="text-end">
-                <div class="dropdown">
-                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
-                        <i class="bi bi-three-dots"></i>
-                    </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
-                        <li><hr class="dropdown-divider"></li>
-                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
-                    </ul>
-                </div>
-            </td>
-        </tr>`;
+      <tr>
+          <td>
+              <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id_exame}" onchange="verificarSelecao()">
+          </td>
+          <td><strong>${exame.nome}</strong></td>
+          <td style="white-space: nowrap;">${dataF}</td>
+          
+          <td>
+              ${
+                exame.resultado
+                  ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
+                      <i class="bi bi-file-earmark-pdf"></i> Ver Exame
+                    </a>`
+                  : '<span class="text-muted small">Sem ficheiro</span>'
+              }
+          </td>
+
+          <td>
+              ${
+                exame.relatorio
+                  ? `<a href="/uploads/${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
+                      <i class="bi bi-file-pdf"></i> PDF Relatório
+                    </a>`
+                  : '<span class="text-muted small">Sem relatório</span>'
+              }
+          </td>
+
+          <td class="text-end">
+              <div class="dropdown">
+                  <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                      <i class="bi bi-three-dots"></i>
+                  </button>
+                  <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                      <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id_exame}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                      <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id_exame}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                      <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id_exame})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                      <li><hr class="dropdown-divider"></li>
+                      <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id_exame})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                  </ul>
+              </div>
+          </td>
+      </tr>`;
   });
 
   renderizarControlosPaginacao(totalPaginas);
@@ -382,6 +394,7 @@ function configurarEventosInterface() {
     });
   }
 
+  // --- DENTRO DE configurarEventosInterface() ---
   const form = document.getElementById("formExame");
   if (form) {
     form.removeAttribute("action");
@@ -396,9 +409,8 @@ function configurarEventosInterface() {
       if (!idTipoExame) {
         return Swal.fire({
           title: "Atenção",
-          text: "Por favor, selecione um tipo de exame válido a partir das sugestões.",
+          text: "Selecione um tipo de exame válido das sugestões.",
           icon: "warning",
-          confirmButtonColor: "#0d6efd",
         });
       }
 
@@ -410,43 +422,42 @@ function configurarEventosInterface() {
       );
       formData.append("id_tipo_exame", idTipoExame);
 
-      const fileInput = document.querySelector('input[name="relatorio"]');
-      if (fileInput?.files[0]) {
-        formData.append("relatorio", fileInput.files[0]);
-      }
+      // Mapeamento dos dois ficheiros para o FormData
+      const exameInput = document.querySelector('input[name="resultado_file"]');
+      if (exameInput?.files[0])
+        formData.append("resultado_file", examenInput.files[0]);
+
+      const relatorioInput = document.querySelector('input[name="relatorio"]');
+      if (relatorioInput?.files[0])
+        formData.append("relatorio", relatorioInput.files[0]);
 
       try {
         const res = await fetch("/api/exames/registar", {
           method: "POST",
           body: formData,
         });
-
         if (res.ok) {
           Swal.fire({
-            title: "Exame Registado!",
-            text: "O seu novo exame foi guardado com sucesso no histórico clínico.",
+            title: "Registado!",
+            text: "Dados guardados com sucesso.",
             icon: "success",
-            confirmButtonColor: "#0d6efd",
-            allowOutsideClick: false,
           }).then(() => {
             location.reload();
           });
         } else {
           const erro = await res.json();
           Swal.fire({
-            title: "Erro ao registar",
-            text: erro.error || "Verifique os dados inseridos.",
+            title: "Erro",
+            text: erro.error || "Erro na inserção.",
             icon: "error",
-            confirmButtonColor: "#dc3545",
           });
         }
       } catch (error) {
-        console.error("Erro na submissão do exame:", error);
+        console.error(error);
         Swal.fire({
           title: "Erro de Conexão",
-          text: "Não foi possível comunicar com o servidor.",
+          text: "Falha ao comunicar com o servidor.",
           icon: "error",
-          confirmButtonColor: "#dc3545",
         });
       }
     });
