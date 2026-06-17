@@ -145,7 +145,7 @@ exports.registarExame = async (req, res) => {
       : null;
 
   // Inicializa a transação nativa do Sequelize (Muito mais seguro!)
-  const t = await sequelize.transaction();
+  const t = await Exame.sequelize.transaction();
 
   try {
     // 1. Inserção na tabela principal 'Exame' usando o ORM do Sequelize
