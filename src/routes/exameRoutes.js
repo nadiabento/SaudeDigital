@@ -53,14 +53,12 @@ router.post(
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
 
       // Captura os nomes dos ficheiros de forma segura a partir do mapeamento do multer
-      const ficheiroExame =
-        req.files && req.files["resultado_file"]
-          ? req.files["resultado_file"][0].filename
-          : null;
-      const ficheiroRelatorio =
-        req.files && req.files["relatorio"]
-          ? req.files["relatorio"][0].filename
-          : null;
+      const ficheiroExame = req.files?.["resultado_file"]
+        ? req.files["resultado_file"][0].filename
+        : null;
+      const ficheiroRelatorio = req.files?.["relatorio"]
+        ? req.files["relatorio"][0].filename
+        : null;
 
       const sql = `INSERT INTO Exame_TipoExame (id_utilizador, id_tipo_exame, data, observacoes, resultado, relatorio) 
                  VALUES (?, ?, ?, ?, ?, ?)`;

@@ -223,20 +223,29 @@ function toggleTodos(master) {
 }
 
 function verificarSelecao() {
-  const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
-  const marcados = checkboxes.length;
-  const barraAcoes = document.getElementById("acoesMassa");
+  const checkboxes = document.querySelectorAll(".exame-checkbox");
+  const marcados = Array.from(checkboxes).filter((cb) => cb.checked).length;
+  const totalCheckboxes = checkboxes.length;
 
+  // 1. Sincroniza o visto do cabeçalho (se todos estiverem marcados, põe visto no checkAll)
+  const checkAll = document.getElementById("checkAll");
+  if (checkAll) {
+    checkAll.checked = marcados === totalCheckboxes && totalCheckboxes > 0;
+  }
+
+  // 2. Controla a exibição da barra de ações externa (#acoesMassa)
+  const barraAcoes = document.getElementById("acoesMassa");
   if (barraAcoes) {
     if (marcados > 0) {
       barraAcoes.classList.remove("d-none");
-      barraAcoes.style.display = "flex";
+      barraAcoes.style.display = "flex"; // Mantém o flexbox para alinhar os botões
     } else {
       barraAcoes.classList.add("d-none");
       barraAcoes.style.display = "none";
     }
   }
 
+  // 3. Bloqueia ou desbloqueia as ações do menu de 3 pontos se houver mais do que 1 selecionado
   const acoesIndividuais = document.querySelectorAll(".btn-acao-individual");
   const bloquearIndividuais = marcados > 1;
 
@@ -423,7 +432,9 @@ function configurarEventosInterface() {
         });
       }
 
-      const formData = new FormData();
+      // Criar o FormData a partir do próprio elemento form garante que TODOS os inputs de ficheiro vão com os nomes corretos!
+      const formData = new FormData(form);
+
       formData.append("data_exame", dataExame);
       formData.append(
         "observacoes",
@@ -431,20 +442,12 @@ function configurarEventosInterface() {
       );
       formData.append("id_tipo_exame", idTipoExame);
 
-      // Mapeamento dos dois ficheiros para o FormData
-      const exameInput = document.querySelector('input[name="resultado_file"]');
-      if (exameInput?.files[0])
-        formData.append("resultado_file", examenInput.files[0]);
-
-      const relatorioInput = document.querySelector('input[name="relatorio"]');
-      if (relatorioInput?.files[0])
-        formData.append("relatorio", relatorioInput.files[0]);
-
       try {
         const res = await fetch("/api/exames/registar", {
           method: "POST",
           body: formData,
         });
+
         if (res.ok) {
           Swal.fire({
             title: "Registado!",
