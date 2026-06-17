@@ -207,9 +207,15 @@
                     <th style="width: 40px">
                       <input type="checkbox" id="checkAll" class="form-check-input" onclick="toggleTodos(this)" />
                     </th>
-                    <th>Exame</th>
-                    <th>Data</th>
-                    <th>Ficheiro Exame</th>  <th>Relatório</th>       <th class="text-end">Ações</th>
+                    <th onclick="ordenarTabela('exame')" style="cursor: pointer;">
+                      Exame <i class="bi bi-arrow-down-up small text-muted ms-1"></i>
+                    </th>
+                    <th onclick="ordenarTabela('data')" style="cursor: pointer; white-space: nowrap;">
+                      Data <i class="bi bi-arrow-down-up small text-muted ms-1"></i>
+                    </th>
+                    <th>Ficheiro Exame</th>
+                    <th>Relatório</th>
+                    <th class="text-end">Ações</th>
                   </tr>
                 </thead>
                 
