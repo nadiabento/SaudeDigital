@@ -52,7 +52,7 @@ router.post(
 
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
 
-      // Captura dos ficheiros do Multer
+      // Captura segura dos ficheiros do Multer
       const ficheiroExame = req.files?.["resultado_file"]?.[0]
         ? req.files["resultado_file"][0].filename
         : null;
@@ -61,19 +61,17 @@ router.post(
         ? req.files["relatorio"][0].filename
         : null;
 
-      // --- PASSO 1: Inserir os dados gerais na tabela pai 'Exame' ---
       const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
 
-      // No Sequelize, o método correto é .query() com replacements
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
         replacements: [userId, data_exame, observacoes || null],
-        type: sequelize.QueryTypes.INSERT,
+        type: "INSERT",
       });
 
-      // O Sequelize devolve diretamente o ID gerado (insertId) como resultado da promessa
+      // O Sequelize devolve o ID numérico gerado como resultado direto do INSERT
       const novoIdExame = resultadoInsercao;
 
-      // --- PASSO 2: Vincular o ID e guardar os PDFs na tabela intermédia 'Exame_TipoExame' ---
+      // --- PASSO 2: Vincular o ID e os PDFs na tabela 'Exame_TipoExame' ---
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
                         VALUES (?, ?, ?, ?)`;
 
@@ -84,7 +82,7 @@ router.post(
           ficheiroExame,
           ficheiroRelatorio,
         ],
-        type: sequelize.QueryTypes.INSERT,
+        type: "INSERT",
       });
 
       res.status(200).json({
