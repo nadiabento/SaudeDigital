@@ -574,21 +574,24 @@ async function adicionarTipo() {
 
 function ordenarTabela(coluna) {
   const fator = direcaoOrdenacao[coluna];
+
   examesParaTabela.sort((a, b) => {
-    let valA =
-      coluna === "exame"
-        ? a.nome.toLowerCase()
-        : new Date(a.data || a.data_exame);
-    let valB =
-      coluna === "exame"
-        ? b.nome.toLowerCase()
-        : new Date(b.data || b.data_exame);
-    return (valA < valB ? -1 : 1) * fator;
+    if (coluna === "exame") {
+      let valA = (a.nome || "").toLowerCase();
+      let valB = (b.nome || "").toLowerCase();
+      return (valA < valB ? -1 : 1) * fator;
+    } else {
+      // CORREÇÃO: Usar .getTime() garante que o JS compara os milissegundos das datas corretamente
+      let valA = new Date(a.data || a.data_exame).getTime();
+      let valB = new Date(b.data || b.data_exame).getTime();
+      return (valA - valB) * fator; // Sintaxe muito mais limpa e infalível para números/datas
+    }
   });
+
   direcaoOrdenacao[coluna] *= -1;
 
-  // 👈 CORREÇÃO: Força o render a usar o total de páginas real guardado globalmente
-  renderizarTabela(totalPaginasGlobal);
+  // Garante que se o totalPaginasGlobal for undefined por algum motivo, passa pelo menos 1
+  renderizarTabela(totalPaginasGlobal || 1);
 }
 
 //--- 7. PARTILHA EXTERNA ---
