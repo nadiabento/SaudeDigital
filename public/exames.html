@@ -124,48 +124,58 @@
           </div>
 
           <div class="card border-0 shadow-sm p-4">
-            <h5 class="fw-bold mb-4">Registar Novo Exame</h5>
-            <form id="formExame" enctype="multipart/form-data">
-              <div class="mb-3 position-relative">
-                <label class="form-label fw-semibold">Classe do Exame</label>
-                <input type="text" class="form-control bg-light border-0 p-3" id="classeExameInput"
-                  placeholder="Escreva a classe..." autocomplete="off" />
-                <ul id="sugestoesClasse" class="list-group shadow-sm custom-autocomplete-list"></ul>
-              </div>
+  <h5 class="fw-bold mb-4">Registar Novo Exame</h5>
+  <form id="formExame" enctype="multipart/form-data">
+    <div class="mb-3 position-relative">
+      <label class="form-label fw-semibold">Classe do Exame</label>
+      <input type="text" class="form-control bg-light border-0 p-3" id="classeExameInput"
+        placeholder="Escreva a classe..." autocomplete="off" />
+      <ul id="sugestoesClasse" class="list-group shadow-sm custom-autocomplete-list"></ul>
+    </div>
 
-              <div class="mb-3 position-relative">
-                <label class="form-label fw-semibold">Tipo de Exame</label>
-                <input type="text" class="form-control bg-light border-0 p-3" id="tipoExameInput"
-                  placeholder="Selecione primeiro a classe..." autocomplete="off" disabled />
-                <ul id="sugestoesTipo" class="list-group shadow-sm custom-autocomplete-list"></ul>
+    <div class="mb-3 position-relative">
+      <label class="form-label fw-semibold">Tipo de Exame</label>
+      <input type="text" class="form-control bg-light border-0 p-3" id="tipoExameInput"
+        placeholder="Selecione primeiro a classe..." autocomplete="off" disabled />
+      <ul id="sugestoesTipo" class="list-group shadow-sm custom-autocomplete-list"></ul>
 
-                <input type="hidden" id="idTipoSelecionado" />
-              </div>
+      <input type="hidden" id="idTipoSelecionado" />
+    </div>
 
-              <div class="mb-3">
-                <label class="form-label fw-semibold">Data de Realização</label>
-                <input type="date" class="form-control bg-light border-0 p-3" id="dataExame" required />
-              </div>
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Data de Realização</label>
+      <input type="date" class="form-control bg-light border-0 p-3" id="dataExame" required />
+    </div>
 
-              <div class="mb-4">
-                <label class="form-label fw-semibold">Observações Médicas</label>
-                <textarea class="form-control bg-light border-0 p-3" id="observacoes" rows="3"
-                  placeholder="Ex: Resultado dentro dos parâmetros normais."></textarea>
-              </div>
+    <div class="mb-4">
+      <label class="form-label fw-semibold">Observações Médicas</label>
+      <textarea class="form-control bg-light border-0 p-3" id="observacoes" rows="3"
+        placeholder="Ex: Resultado dentro dos parâmetros normais."></textarea>
+    </div>
 
-              <div class="mb-4">
-                <label class="form-label fw-semibold">Anexar Relatório (PDF)</label>
-                <div class="upload-box">
-                  <i class="bi bi-cloud-arrow-up-fill text-primary fs-1"></i>
-                  <input type="file" name="relatorio" class="form-control mt-2" accept=".pdf" />
-                </div>
-              </div>
+    <div class="row mb-4">
+      <div class="col-md-6 mb-3 mb-md-0">
+        <label class="form-label fw-semibold">Ficheiro do Exame (PDF)</label>
+        <div class="upload-box p-3 border rounded text-center bg-light">
+          <i class="bi bi-file-earmark-medical text-primary fs-2"></i>
+          <input type="file" name="resultado_file" class="form-control mt-2" accept=".pdf" />
+        </div>
+      </div>
+      
+      <div class="col-md-6">
+        <label class="form-label fw-semibold">Relatório do Médico (PDF)</label>
+        <div class="upload-box p-3 border rounded text-center bg-light">
+          <i class="bi bi-cloud-arrow-up-fill text-primary fs-2"></i>
+          <input type="file" name="relatorio" class="form-control mt-2" accept=".pdf" />
+        </div>
+      </div>
+    </div>
 
-              <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
-                <i class="bi bi-check-circle me-2"></i>Guardar Registo
-              </button>
-            </form>
-          </div>
+    <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
+      <i class="bi bi-check-circle me-2"></i>Guardar Registo
+    </button>
+  </form>
+</div>
         </div>
 
         <div class="col-lg-7">
