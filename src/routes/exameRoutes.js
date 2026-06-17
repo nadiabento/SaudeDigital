@@ -82,7 +82,7 @@ router.post(
 
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
         replacements: [userId, data_exame, observacoes || null],
-        type: sequelize.QueryTypes.INSERT,
+        type: INSERT,
       });
 
       // No MySQL/Sequelize o retorno direto é o ID auto-incrementado gerado
@@ -100,7 +100,7 @@ router.post(
           ficheiroExame,
           ficheiroRelatorio,
         ],
-        type: sequelize.QueryTypes.INSERT,
+        type: INSERT,
       });
 
       res.status(200).json({
