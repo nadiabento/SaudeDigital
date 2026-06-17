@@ -52,38 +52,46 @@ router.post(
 
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
 
-      const ficheiroExame =
-        req.files &&
-        req.files["resultado_file"] &&
-        req.files["resultado_file"][0]
-          ? req.files["resultado_file"][0].filename
-          : null;
+      // Captura dos PDFs vindos do Multer
+      const ficheiroExame = req.files?.["resultado_file"]?.[0]
+        ? req.files["resultado_file"][0].filename
+        : null;
 
-      const ficheiroRelatorio =
-        req.files && req.files["relatorio"] && req.files["relatorio"][0]
-          ? req.files["relatorio"][0].filename
-          : null;
+      const ficheiroRelatorio = req.files?.["relatorio"]?.[0]
+        ? req.files["relatorio"][0].filename
+        : null;
 
-      const sql = `INSERT INTO Exame_TipoExame (id_utilizador, id_tipo_exame, data, observacoes, resultado, relatorio) 
-                 VALUES (?, ?, ?, ?, ?, ?)`;
-
-      await db.execute(sql, [
+      // --- PASSO 1: Inserir os dados gerais na tabela pai 'Exame' ---
+      // (Ajusta os nomes das colunas 'id_utilizador', 'data', 'observacoes' se variarem na tabela Exame)
+      const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
+      const [resultadoInsercao] = await db.execute(sqlExamePai, [
         userId,
-        id_tipo_exame,
         data_exame,
-        observacoes,
+        observacoes || null,
+      ]);
+
+      // Captura o ID auto-incrementado gerado para este exame específico
+      const novoIdExame = resultadoInsercao.insertId;
+
+      // --- PASSO 2: Vincular o ID e guardar os PDFs na tabela 'Exame_TipoExame' ---
+      const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
+                        VALUES (?, ?, ?, ?)`;
+
+      await db.execute(sqlRelacao, [
+        novoIdExame,
+        id_tipo_exame,
         ficheiroExame,
         ficheiroRelatorio,
       ]);
 
       res
         .status(200)
-        .json({ mensagem: "Exame e Relatório guardados com sucesso!" });
+        .json({ mensagem: "Exame e documentos vinculados com sucesso!" });
     } catch (error) {
-      console.error("Erro detalhado no backend ao guardar exame:", error);
-      res
-        .status(500)
-        .json({ error: "Erro interno ao processar registo na Base de Dados." });
+      console.error("Erro relacional no backend:", error);
+      res.status(500).json({
+        error: "Erro ao processar o mapeamento relacional das tabelas.",
+      });
     }
   },
 );
