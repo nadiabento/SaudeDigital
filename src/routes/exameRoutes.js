@@ -52,13 +52,17 @@ router.post(
 
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
 
-      // Captura os nomes dos ficheiros de forma segura a partir do mapeamento do multer
-      const ficheiroExame = req.files?.["resultado_file"]
-        ? req.files["resultado_file"][0].filename
-        : null;
-      const ficheiroRelatorio = req.files?.["relatorio"]
-        ? req.files["relatorio"][0].filename
-        : null;
+      const ficheiroExame =
+        req.files &&
+        req.files["resultado_file"] &&
+        req.files["resultado_file"][0]
+          ? req.files["resultado_file"][0].filename
+          : null;
+
+      const ficheiroRelatorio =
+        req.files && req.files["relatorio"] && req.files["relatorio"][0]
+          ? req.files["relatorio"][0].filename
+          : null;
 
       const sql = `INSERT INTO Exame_TipoExame (id_utilizador, id_tipo_exame, data, observacoes, resultado, relatorio) 
                  VALUES (?, ?, ?, ?, ?, ?)`;
@@ -76,8 +80,10 @@ router.post(
         .status(200)
         .json({ mensagem: "Exame e Relatório guardados com sucesso!" });
     } catch (error) {
-      console.error("Erro ao guardar exames:", error);
-      res.status(500).json({ error: "Erro interno ao processar registo." });
+      console.error("Erro detalhado no backend ao guardar exame:", error);
+      res
+        .status(500)
+        .json({ error: "Erro interno ao processar registo na Base de Dados." });
     }
   },
 );
