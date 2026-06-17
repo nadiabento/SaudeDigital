@@ -47,7 +47,14 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      const userId = req.session.userId;
+      //  Garante que extraímos apenas o ID numérico, caso o userId seja um objeto
+      let userId = req.session.userId;
+      if (userId && typeof userId === "object" && userId.id_utilizador) {
+        userId = userId.id_utilizador;
+      } else if (userId && typeof userId === "object" && userId.id) {
+        userId = userId.id;
+      }
+
       const { data_exame, observacoes, id_tipo_exame } = req.body;
 
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
@@ -61,27 +68,32 @@ router.post(
         ? req.files["relatorio"][0].filename
         : null;
 
-      const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
+      // --- PASSO 1: Inserir dados na tabela 'Exame' ---
+      const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) 
+                         VALUES (:id_utilizador, :data, :observacoes)`;
 
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
-        replacements: [userId, data_exame, observacoes || null],
+        replacements: {
+          id_utilizador: userId,
+          data: data_exame,
+          observacoes: observacoes || null,
+        },
         type: "INSERT",
       });
 
-      // O Sequelize devolve o ID numérico gerado como resultado direto do INSERT
       const novoIdExame = resultadoInsercao;
 
       // --- PASSO 2: Vincular o ID e os PDFs na tabela 'Exame_TipoExame' ---
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
-                        VALUES (?, ?, ?, ?)`;
+                        VALUES (:id_exame, :id_tipo_exame, :resultado, :relatorio)`;
 
       await sequelize.query(sqlRelacao, {
-        replacements: [
-          novoIdExame,
-          id_tipo_exame,
-          ficheiroExame,
-          ficheiroRelatorio,
-        ],
+        replacements: {
+          id_exame: novoIdExame,
+          id_tipo_exame: id_tipo_exame,
+          resultado: ficheiroExame,
+          relatorio: ficheiroRelatorio,
+        },
         type: "INSERT",
       });
 
