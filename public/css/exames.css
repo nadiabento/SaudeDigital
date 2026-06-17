@@ -62,7 +62,7 @@ html, body {
 .logo-text {
   background: linear-gradient(45deg, #3b5afa, #3b5afa);
   -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+  -webkit-background-clip: text;
   transition: opacity 0.3s ease;
 }
 
@@ -145,7 +145,7 @@ html, body {
   background-color: transparent !important;
 }
 
-/* --- 5. COMPONENTES DE UI GENÉRICOS --- */
+/* --- 5. COMPONENTES DE UI GENÉRICOS E TABELA DE DUPLO PDF --- */
 .card {
   border-radius: 16px;
   border: none;
@@ -157,12 +157,48 @@ html, body {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #6c757d;
+  white-space: nowrap;
+}
+
+/* Alinhamento e dimensões das colunas de ficheiros para não esmagar os botões */
+.table th:nth-child(4), .table td:nth-child(4) {
+  width: 135px !important;
+  text-align: center;
+}
+
+.table th:nth-child(5), .table td:nth-child(5) {
+  width: 145px !important;
+  text-align: center;
 }
 
 #tabelaExames td {
   white-space: normal !important;
   word-break: break-word;
   font-size: 0.95rem;
+  padding: 14px 10px !important;
+  vertical-align: middle;
+}
+
+/* Trunca de forma elegante nomes gigantescos para proteger o layout horizontal */
+#tabelaExames td strong {
+  display: inline-block;
+  max-width: 180px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Normalização visual dos botões de PDF dentro da tabela */
+#tabelaExames .btn-sm {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  white-space: nowrap;
+  padding: 6px 12px !important;
+  border-radius: 8px !important;
+  font-size: 0.8rem !important;
 }
 
 .upload-box {
@@ -274,17 +310,27 @@ html, body {
     font-size: 0.85rem !important;
   }
 
+  /* Remove larguras fixas em mobile para permitir o scroll interno nativo */
+  .table th:nth-child(4), .table td:nth-child(4),
+  .table th:nth-child(5), .table td:nth-child(5) {
+    width: auto !important;
+  }
+
   #tabelaExames td:nth-child(2) {
     font-weight: 700;
     color: #252f40;
     min-width: 110px;
   }
 
+  #tabelaExames td strong {
+    max-width: 120px; /* Menor em mobile */
+  }
+
   #tabelaExames td:nth-child(3) {
     white-space: nowrap !important;
   }
 
-  #tabelaExames .btn-danger {
+  #tabelaExames .btn-sm {
     padding: 4px 8px !important;
     font-size: 0.75rem !important;
     border-radius: 6px !important;

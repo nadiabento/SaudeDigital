@@ -87,22 +87,30 @@ function renderizarTabela(totalPaginas) {
   tbody.innerHTML = "";
 
   if (!examesParaTabela || examesParaTabela.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="5" class="text-center text-muted py-4">Nenhum exame registado no histórico.</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center text-muted py-4">Nenhum exame registado no histórico.</td></tr>`;
     renderizarControlosPaginacao(0);
     return;
   }
 
   examesParaTabela.forEach((exame) => {
+    // --- TRATAMENTO SEGURO DA DATA (Totalmente Corrigido) ---
     let dataF = "---";
     if (exame.data) {
-      const partes = examen.data ? exame.data.split("T")[0].split("-") : [];
-      if (partes.length === 3) {
-        dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
-      } else {
+      try {
+        const dataStr =
+          typeof exame.data === "string"
+            ? exame.data
+            : new Date(exame.data).toISOString();
+        const partes = dataStr.split("T")[0].split("-");
+        if (partes.length === 3) {
+          dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
+        }
+      } catch (e) {
         dataF = exame.data;
       }
     }
 
+    // --- CORRIGIDO: de 'examen' para 'exame' ---
     const obsLimpa = exame.observacoes
       ? exame.observacoes
           .replaceAll("'", String.raw`\'`)
@@ -110,48 +118,48 @@ function renderizarTabela(totalPaginas) {
       : "";
 
     tbody.innerHTML += `
-      <tr>
-          <td>
-              <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id_exame}" onchange="verificarSelecao()">
-          </td>
-          <td><strong>${exame.nome}</strong></td>
-          <td style="white-space: nowrap;">${dataF}</td>
-          
-          <td>
-              ${
-                exame.resultado
-                  ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
-                      <i class="bi bi-file-earmark-pdf"></i> Ver Exame
-                    </a>`
-                  : '<span class="text-muted small">Sem ficheiro</span>'
-              }
-          </td>
+        <tr>
+            <td>
+                <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id_exame}" onchange="verificarSelecao()">
+            </td>
+            <td><strong>${exame.nome || "Exame Indefinido"}</strong></td>
+            <td style="white-space: nowrap;">${dataF}</td>
+            
+            <td>
+                ${
+                  exame.resultado
+                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
+                        <i class="bi bi-file-earmark-pdf"></i> Ver Exame
+                      </a>`
+                    : '<span class="text-muted small">Sem ficheiro</span>'
+                }
+            </td>
 
-          <td>
-              ${
-                exame.relatorio
-                  ? `<a href="/uploads/${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
-                      <i class="bi bi-file-pdf"></i> PDF Relatório
-                    </a>`
-                  : '<span class="text-muted small">Sem relatório</span>'
-              }
-          </td>
+            <td>
+                ${
+                  exame.relatorio
+                    ? `<a href="/uploads/${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
+                        <i class="bi bi-file-pdf"></i> PDF Relatório
+                      </a>`
+                    : '<span class="text-muted small">Sem relatório</span>'
+                }
+            </td>
 
-          <td class="text-end">
-              <div class="dropdown">
-                  <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
-                      <i class="bi bi-three-dots"></i>
-                  </button>
-                  <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                      <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id_exame}, '${exame.nome.replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
-                      <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id_exame}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
-                      <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id_exame})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
-                      <li><hr class="dropdown-divider"></li>
-                      <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id_exame})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
-                  </ul>
-              </div>
-          </td>
-      </tr>`;
+            <td class="text-end">
+                <div class="dropdown">
+                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                        <i class="bi bi-three-dots"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id_exame}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id_exame}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id_exame})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="eliminarUm(${exame.id_exame})"><i class="bi bi-trash me-2"></i> Eliminar</a></li>
+                    </ul>
+                </div>
+            </td>
+        </tr>`;
   });
 
   renderizarControlosPaginacao(totalPaginas);
