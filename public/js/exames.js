@@ -95,11 +95,12 @@ function renderizarTabela(totalPaginas) {
   examesParaTabela.forEach((exame) => {
     let dataF = "---";
     if (exame.data) {
-      const partes = exame.data.split("T")[0].split("-");
-      dataF =
-        partes.length === 3
-          ? `${partes[2]}/${partes[1]}/${partes[0]}`
-          : exame.data;
+      const partes = examen.data ? exame.data.split("T")[0].split("-") : [];
+      if (partes.length === 3) {
+        dataF = `${partes[2]}/${partes[1]}/${partes[0]}`;
+      } else {
+        dataF = exame.data;
+      }
     }
 
     const obsLimpa = exame.observacoes
@@ -142,7 +143,7 @@ function renderizarTabela(totalPaginas) {
   });
 
   renderizarControlosPaginacao(totalPaginas);
-  verificarSelecao(); // Garante o sync da barra de ações após redesenhar
+  verificarSelecao();
 }
 
 function renderizarControlosPaginacao(totalPaginas) {
@@ -187,7 +188,7 @@ function filtrarTabela() {
   const termo = document.getElementById("inputSearch").value.toLowerCase();
   const linhas = document.querySelectorAll("#tabelaExames tr");
   linhas.forEach((linha) => {
-    const texto = i.innerText.toLowerCase();
+    const texto = linha.innerText.toLowerCase();
     linha.style.display = texto.includes(termo) ? "" : "none";
   });
 }
@@ -195,9 +196,9 @@ function filtrarTabela() {
 //--- 3. SELEÇÃO E AÇÕES EM MASSA ---
 
 function toggleTodos(master) {
-  document
-    .querySelectorAll(".exame-checkbox")
-    .forEach((cb) => (cb.checked = master.checked));
+  document.querySelectorAll(".exame-checkbox").forEach((cb) => {
+    cb.checked = master.checked;
+  });
   verificarSelecao();
 }
 
