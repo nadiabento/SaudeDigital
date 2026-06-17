@@ -100,11 +100,32 @@ exports.listarHistorico = async (req, res) => {
 // --- 2. OPERAÇÕES DE CRIAÇÃO E REGISTO (POST)                          ---
 // =========================================================================
 
-// Guarda um novo exame e associa-o ao ficheiro PDF carregado pelo Multer
+// Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
   const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
-  const utilizadorId = req.session.userId || 1;
-  const nomeFicheiro = req.file ? req.file.filename : null;
+
+  // 1. EXTRAÇÃO BLINDADA DO ID DO UTILIZADOR
+  let rawUserId = req.session.userId;
+  let finalUserId = null;
+
+  if (rawUserId) {
+    if (typeof rawUserId === "object") {
+      finalUserId =
+        rawUserId.id_utilizador || rawUserId.id || rawUserId.utilizador_id;
+    } else if (
+      typeof rawUserId === "string" &&
+      rawUserId !== "[object Object]"
+    ) {
+      finalUserId = parseInt(rawUserId, 10);
+    }
+  }
+
+  if (!finalUserId || isNaN(finalUserId)) {
+    console.warn(
+      "Aviso: req.session.userId inválido ou corrompido, usando ID 1 como fallback.",
+    );
+    finalUserId = 1; // Fallback seguro para testes
+  }
 
   if (!data_exame || !id_tipo_exame) {
     return res
@@ -112,27 +133,39 @@ exports.registarExame = async (req, res) => {
       .json({ error: "A data e o tipo de exame são obrigatórios." });
   }
 
-  // Inicializa a transação do Sequelize
-  const t = await Exame.sequelize.transaction();
+  // 2. CAPTURA DOS DOIS FICHEIROS COM SEGURANÇA
+  const ficheiroExame =
+    req.files && req.files["resultado_file"] && req.files["resultado_file"][0]
+      ? req.files["resultado_file"][0].filename
+      : null;
+
+  const ficheiroRelatorio =
+    req.files && req.files["relatorio"] && req.files["relatorio"][0]
+      ? req.files["relatorio"][0].filename
+      : null;
+
+  // Inicializa a transação nativa do Sequelize (Muito mais seguro!)
+  const t = await sequelize.transaction();
 
   try {
-    // 1. Inserção na tabela principal dentro da transação
+    // 1. Inserção na tabela principal 'Exame' usando o ORM do Sequelize
     const novoExame = await Exame.create(
       {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes,
-        utilizador_id: utilizadorId,
+        utilizador_id: Number(finalUserId),
       },
       { transaction: t },
     );
 
-    // 2. Inserção na tabela ponte dentro da mesma transação
+    // 2. Inserção na tabela ponte 'Exame_TipoExame' incluindo os nomes dos dois ficheiros
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
-        id_tipo_exame: id_tipo_exame,
-        resultado: nomeFicheiro,
+        id_tipo_exame: Number(id_tipo_exame),
+        resultado: ficheiroExame, // O PDF do exame em si
+        relatorio: ficheiroRelatorio, // O PDF com o parecer do médico
       },
       { transaction: t },
     );
@@ -141,20 +174,22 @@ exports.registarExame = async (req, res) => {
 
     res
       .status(200)
-      .json({ message: "Exame e relatório guardados com sucesso!" });
+      .json({ message: "Exame e relatórios guardados com sucesso via ORM!" });
   } catch (error) {
     await t.rollback();
     console.error("Erro ao registar exame (Transaction Rollback):", error);
 
-    // Apaga o ficheiro do disco se a BD falhou
-    if (nomeFicheiro) {
-      const caminhoFicheiro = path.join(
-        __dirname,
-        "../../public/uploads/",
-        nomeFicheiro,
-      );
-      if (fs.existsSync(caminhoFicheiro)) fs.unlinkSync(caminhoFicheiro);
-    }
+    // Limpeza física dos ficheiros caso a BD falhe (Evita lixo no servidor)
+    [ficheiroExame, ficheiroRelatorio].forEach((nomeFicheiro) => {
+      if (nomeFicheiro) {
+        const caminho = path.join(
+          __dirname,
+          "../../public/uploads/",
+          nomeFicheiro,
+        );
+        if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
+      }
+    });
 
     res.status(500).json({ error: "Erro interno ao submeter o exame." });
   }

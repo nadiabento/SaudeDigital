@@ -41,88 +41,19 @@ router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 // --- ENTRADAS DE ESCRITA (POST) ---
 router.post(
   "/registar",
-  upload.fields([
-    { name: "resultado_file", maxCount: 1 },
-    { name: "relatorio", maxCount: 1 },
-  ]),
-  async (req, res) => {
-    try {
-      // EXTRAÇÃO ROBUSTA DO ID NUMÉRICO
-      let userId = req.session.userId;
-
-      // Se for um objeto ou string convertida incorretamente, extraímos a propriedade real
-      if (
-        userId &&
-        (typeof userId === "object" || String(userId) === "[object Object]")
-      ) {
-        userId =
-          userId.utilizador_id ||
-          userId.id ||
-          userId.id_utilizador ||
-          req.session.userId?.id;
+  (req, res, next) => {
+    // Configuramos o Multer para aceitar ambos os PDFs antes de chamar o controlador
+    upload.fields([
+      { name: "resultado_file", maxCount: 1 },
+      { name: "relatorio", maxCount: 1 },
+    ])(req, res, (err) => {
+      if (err) {
+        return res.status(400).json({ error: err.message });
       }
-
-      // Se mesmo assim vier como string inválida ou vazia, tentamos o fallback seguro ou travamos
-      if (!userId || String(userId) === "[object Object]") {
-        // Fallback de segurança temporário para testes se a sessão falhar: 1
-        userId = 1;
-        console.warn(
-          "Aviso: Não foi possível ler o userId da sessão. Usando ID 1 como fallback.",
-        );
-      }
-
-      const { data_exame, observacoes, id_tipo_exame } = req.body;
-
-      // Captura dos ficheiros tratados pelo Multer
-      const ficheiroExame =
-        req.files &&
-        req.files["resultado_file"] &&
-        req.files["resultado_file"][0]
-          ? req.files["resultado_file"][0].filename
-          : null;
-
-      const ficheiroRelatorio =
-        req.files && req.files["relatorio"] && req.files["relatorio"][0]
-          ? req.files["relatorio"][0].filename
-          : null;
-
-      // --- PASSO 1: Inserir dados na tabela pai 'Exame' ---
-      const sqlExamePai = `INSERT INTO Exame (utilizador_id, data_exame, observacoes) 
-                           VALUES (?, ?, ?)`;
-
-      const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
-        replacements: [Number(userId), data_exame, observacoes || null], // Força a conversão para Número
-        type: "INSERT",
-      });
-
-      // No MySQL/Sequelize o retorno direto é o ID auto-incrementado gerado
-      const novoIdExame = resultadoInsercao;
-
-      // --- PASSO 2: Vincular o ID e os PDFs na tabela intermédia 'Exame_TipoExame' ---
-      const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
-                          VALUES (?, ?, ?, ?)`;
-
-      await sequelize.query(sqlRelacao, {
-        replacements: [
-          novoIdExame,
-          Number(id_tipo_exame),
-          ficheiroExame,
-          ficheiroRelatorio,
-        ],
-        type: "INSERT",
-      });
-
-      res.status(200).json({
-        mensagem: "Exame e documentos vinculados com sucesso via Sequelize!",
-      });
-    } catch (error) {
-      console.error("Erro relacional no Sequelize:", error);
-      res.status(500).json({
-        error:
-          "Erro ao processar o mapeamento relacional das tabelas com Sequelize.",
-      });
-    }
+      next();
+    });
   },
+  exameController.registarExame, // Devolvemos o controlo ao teu controlador estruturado
 );
 
 router.post("/categorias", exameController.criarCategoria);
