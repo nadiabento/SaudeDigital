@@ -52,7 +52,7 @@ router.post(
 
       if (!userId) return res.status(401).json({ error: "Não autenticado" });
 
-      // Captura dos PDFs vindos do Multer
+      // Captura dos ficheiros do Multer
       const ficheiroExame = req.files?.["resultado_file"]?.[0]
         ? req.files["resultado_file"][0].filename
         : null;
@@ -62,35 +62,39 @@ router.post(
         : null;
 
       // --- PASSO 1: Inserir os dados gerais na tabela pai 'Exame' ---
-      // (Ajusta os nomes das colunas 'id_utilizador', 'data', 'observacoes' se variarem na tabela Exame)
       const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
-      const [resultadoInsercao] = await db.execute(sqlExamePai, [
-        userId,
-        data_exame,
-        observacoes || null,
-      ]);
 
-      // Captura o ID auto-incrementado gerado para este exame específico
-      const novoIdExame = resultadoInsercao.insertId;
+      // No Sequelize, o método correto é .query() com replacements
+      const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
+        replacements: [userId, data_exame, observacoes || null],
+        type: sequelize.QueryTypes.INSERT,
+      });
 
-      // --- PASSO 2: Vincular o ID e guardar os PDFs na tabela 'Exame_TipoExame' ---
+      // O Sequelize devolve diretamente o ID gerado (insertId) como resultado da promessa
+      const novoIdExame = resultadoInsercao;
+
+      // --- PASSO 2: Vincular o ID e guardar os PDFs na tabela intermédia 'Exame_TipoExame' ---
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
                         VALUES (?, ?, ?, ?)`;
 
-      await db.execute(sqlRelacao, [
-        novoIdExame,
-        id_tipo_exame,
-        ficheiroExame,
-        ficheiroRelatorio,
-      ]);
+      await sequelize.query(sqlRelacao, {
+        replacements: [
+          novoIdExame,
+          id_tipo_exame,
+          ficheiroExame,
+          ficheiroRelatorio,
+        ],
+        type: sequelize.QueryTypes.INSERT,
+      });
 
-      res
-        .status(200)
-        .json({ mensagem: "Exame e documentos vinculados com sucesso!" });
+      res.status(200).json({
+        mensagem: "Exame e documentos vinculados com sucesso via Sequelize!",
+      });
     } catch (error) {
-      console.error("Erro relacional no backend:", error);
+      console.error("Erro relacional no Sequelize:", error);
       res.status(500).json({
-        error: "Erro ao processar o mapeamento relacional das tabelas.",
+        error:
+          "Erro ao processar o mapeamento relacional das tabelas com Sequelize.",
       });
     }
   },
