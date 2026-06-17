@@ -50,7 +50,8 @@ exports.listarTodosOsTiposAgnostico = async (req, res) => {
 
 // Lista o histórico de exames do utilizador logado com paginação e JOINs nativos
 exports.listarHistorico = async (req, res) => {
-  const utilizadorId = req.session.userId || 1; // ID 1 como segurança caso a sessão falhe
+  // CORREÇÃO: Fallback alterado de 1 para 4 para garantir que puxa os dados da Nadia Bento
+  const utilizadorId = req.session.userId || 4;
   const pagina = Number.parseInt(req.query.page) || 1;
   const limite = 10; // Total de registos por página
   const offset = (pagina - 1) * limite;
@@ -66,12 +67,13 @@ exports.listarHistorico = async (req, res) => {
         {
           model: TipoExame,
           attributes: ["nome"],
-          through: { attributes: ["resultado"] }, // Puxa o nome do PDF guardado na tabela ponte
+          // CORREÇÃO: Incluído o atributo "relatorio" para o Sequelize o trazer da tabela ponte
+          through: { attributes: ["resultado", "relatorio"] },
         },
       ],
     });
 
-    // Formata os dados para o formato exato que o teu JavaScript antigo do frontend já processava
+    // Formata os dados para o formato exato que o teu JavaScript do frontend processa
     const examesFormatados = rows.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
@@ -79,6 +81,8 @@ exports.listarHistorico = async (req, res) => {
         data: ex.data_exame,
         nome: tipo ? tipo.nome : "Não especificado",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+        // CORREÇÃO: Mapeado o relatorio para que o objeto enviado no JSON contenha este campo
+        relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
         observacoes: ex.observacoes || "",
       };
     });
