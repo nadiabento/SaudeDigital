@@ -39,7 +39,6 @@ router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
 router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
 // --- ENTRADAS DE ESCRITA (POST) ---
-// ROTA: Registar Novo Exame utilizando SEQUELIZE (Compatibilidade com ?)
 router.post(
   "/registar",
   upload.fields([
@@ -48,15 +47,21 @@ router.post(
   ]),
   async (req, res) => {
     try {
-      // 🛡️ Extração segura do ID do utilizador da sessão
+      // EXTRAÇÃO ABSOLUTA DO ID NUMÉRICO (Evita o [object Object])
       let userId = req.session.userId;
       if (userId && typeof userId === "object") {
-        userId = userId.id_utilizador || userId.id;
+        // Tenta mapear todas as variações comuns da tua estrutura de tabelas
+        userId = userId.id_utilizador || userId.id || userId.utilizador_id;
       }
 
       const { data_exame, observacoes, id_tipo_exame } = req.body;
 
-      if (!userId) return res.status(401).json({ error: "Não autenticado" });
+      // Se mesmo após a extração não houver um ID válido ou for um objeto falhado
+      if (!userId || typeof userId === "object") {
+        return res
+          .status(401)
+          .json({ error: "Sessão inválida ou utilizador não autenticado." });
+      }
 
       // Captura dos ficheiros tratados pelo Multer
       const ficheiroExame =
@@ -74,18 +79,17 @@ router.post(
       // --- PASSO 1: Inserir dados na tabela pai 'Exame' ---
       const sqlExamePai = `INSERT INTO Exame (id_utilizador, data, observacoes) VALUES (?, ?, ?)`;
 
-      // Passamos os valores ordenados dentro de um array na propriedade replacements
       const [resultadoInsercao] = await sequelize.query(sqlExamePai, {
         replacements: [userId, data_exame, observacoes || null],
         type: "INSERT",
       });
 
-      // O Sequelize retorna o ID gerado diretamente na variável de inserção
+      // O Sequelize retorna o ID numérico gerado diretamente
       const novoIdExame = resultadoInsercao;
 
       // --- PASSO 2: Vincular o ID e os PDFs na tabela intermédia 'Exame_TipoExame' ---
       const sqlRelacao = `INSERT INTO Exame_TipoExame (id_exame, id_tipo_exame, resultado, relatorio) 
-                        VALUES (?, ?, ?, ?)`;
+                          VALUES (?, ?, ?, ?)`;
 
       await sequelize.query(sqlRelacao, {
         replacements: [
@@ -97,19 +101,15 @@ router.post(
         type: "INSERT",
       });
 
-      res
-        .status(200)
-        .json({
-          mensagem: "Exame e documentos vinculados com sucesso via Sequelize!",
-        });
+      res.status(200).json({
+        mensagem: "Exame e documentos vinculados com sucesso via Sequelize!",
+      });
     } catch (error) {
       console.error("Erro relacional no Sequelize:", error);
-      res
-        .status(500)
-        .json({
-          error:
-            "Erro ao processar o mapeamento relacional das tabelas com Sequelize.",
-        });
+      res.status(500).json({
+        error:
+          "Erro ao processar o mapeamento relacional das tabelas com Sequelize.",
+      });
     }
   },
 );
