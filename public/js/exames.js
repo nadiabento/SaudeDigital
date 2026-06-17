@@ -205,11 +205,26 @@ function mudarPagina(num) {
 }
 
 function filtrarTabela() {
-  const termo = document.getElementById("inputSearch").value.toLowerCase();
+  const termo = document
+    .getElementById("inputSearch")
+    .value.toLowerCase()
+    .trim();
   const linhas = document.querySelectorAll("#tabelaExames tr");
+
   linhas.forEach((linha) => {
-    const texto = linha.innerText.toLowerCase();
-    linha.style.display = texto.includes(termo) ? "" : "none";
+    // Procura a segunda coluna (onde está o nome do exame dentro do <strong>)
+    const colunaNome = linha.querySelector("td:nth-child(2)");
+
+    if (colunaNome) {
+      const nomeExame = colunaNome.innerText.toLowerCase();
+
+      // Compara apenas o termo com o nome do exame real
+      if (nomeExame.includes(termo)) {
+        linha.style.display = "";
+      } else {
+        linha.style.display = "none";
+      }
+    }
   });
 }
 
@@ -427,14 +442,15 @@ function configurarEventosInterface() {
       if (!idTipoExame) {
         return Swal.fire({
           title: "Atenção",
-          text: "Selecione um tipo de exame válido das sugestões.",
+          text: "Por favor, selecione um tipo de exame válido a partir das sugestões.",
           icon: "warning",
         });
       }
 
-      // Criar o FormData a partir do próprio elemento form garante que TODOS os inputs de ficheiro vão com os nomes corretos!
+      // Cria o FormData automaticamente com os ficheiros 'resultado_file' e 'relatorio' do HTML
       const formData = new FormData(form);
 
+      // Injeta os dados estruturados adicionais requeridos pelo backend
       formData.append("data_exame", dataExame);
       formData.append(
         "observacoes",
@@ -450,8 +466,8 @@ function configurarEventosInterface() {
 
         if (res.ok) {
           Swal.fire({
-            title: "Registado!",
-            text: "Dados guardados com sucesso.",
+            title: "Exame Registado!",
+            text: "Os dados e os ficheiros anexados foram guardados.",
             icon: "success",
           }).then(() => {
             location.reload();
@@ -459,13 +475,13 @@ function configurarEventosInterface() {
         } else {
           const erro = await res.json();
           Swal.fire({
-            title: "Erro",
+            title: "Erro ao registar",
             text: erro.error || "Erro na inserção.",
             icon: "error",
           });
         }
       } catch (error) {
-        console.error(error);
+        console.error("Erro na submissão:", error);
         Swal.fire({
           title: "Erro de Conexão",
           text: "Falha ao comunicar com o servidor.",
