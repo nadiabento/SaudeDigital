@@ -152,6 +152,10 @@ html, body {
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
+.table {
+  table-layout: auto !important;
+}
+
 .table-responsive {
   overflow-x: visible !important; 
   overflow-y: visible !important; 
@@ -368,19 +372,21 @@ html, body {
   #tabelaExames td:nth-child(2) {
   font-weight: 700;
   color: #252f40;
-  min-width: 200px !important;      /* Aumentado para garantir espaço para nomes longos */
+  min-width: 260px !important;      
   width: auto !important;
-  white-space: normal !important;   /* Permite que o texto se mostre todo (quebrando linha se faltar espaço) */
-}
+  white-space: normal !important;    
+  padding-right: 15px !important;    
+  }
 
   #tabelaExames td strong {
   display: block !important;
-  max-width: none !important;
-  width: max-content !important;    /* 👈 Força a célula a alargar até ao tamanho real do texto */
-  white-space: normal !important;   /* Permite que o texto passe para a linha de baixo se o ecrã encolher */
-  text-overflow: clip !important;   /* Garante a remoção total de (...) */
+  max-width: none !important;       
+  width: 100% !important;
+  white-space: normal !important;    
+  text-overflow: clip !important;    
   overflow: visible !important;
-  }
+  word-break: normal !important;     
+  } 
 
   #tabelaExames td:nth-child(3) {
     white-space: nowrap !important;
