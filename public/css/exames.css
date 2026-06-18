@@ -196,13 +196,11 @@ html, body {
   vertical-align: middle;
 }
 
-/* Trunca de forma elegante nomes gigantescos para proteger o layout horizontal */
 #tabelaExames td strong {
   display: inline-block;
-  max-width: 160px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  max-width: 100%;
+  white-space: normal; 
+  word-break: break-word; 
 }
 
 /* 💠 FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
