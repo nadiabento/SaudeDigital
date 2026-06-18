@@ -80,13 +80,13 @@ body {
 
 /* --- 4. CARTÕES DE EXAMES CLÍNICOS --- */
 .exame-card { 
-    border: 1px solid #e2e8f0; 
+    border: 1px solid #cbd5e1; 
     padding: 22px; 
     border-radius: 16px; 
     margin-bottom: 18px; 
     background-color: #ffffff;
+    display: block !important;
     transition: all 0.2s ease-in-out;
-    display: block !important; 
 }
 
 .exame-card:hover {
@@ -116,8 +116,8 @@ body {
 }
 
 .data-badge {
-    background-color: #f1f5f9;
-    color: #475569;
+    background-color: #e2e8f0; 
+    color: #1e293b; 
     padding: 5px 12px;
     border-radius: 30px;
     font-size: 0.82rem;
