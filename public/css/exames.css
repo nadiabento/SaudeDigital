@@ -372,12 +372,12 @@ html, body {
   }
 
   #tabelaExames td strong {
-    display: inline-block;
-    max-width: 280px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
+  display: block !important;
+  max-width: none !important;      /* Remove qualquer barreira de largura */
+  white-space: normal !important;   /* Força o texto a aparecer por inteiro, passar a linha se necessário */
+  text-overflow: clip !important;   /* Elimina (...) */
+  word-break: break-word !important;
+}
 
   #tabelaExames td:nth-child(3) {
     white-space: nowrap !important;
