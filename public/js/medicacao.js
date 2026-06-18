@@ -25,10 +25,10 @@ async function carregarMedicacao() {
 
   try {
     const url = modoHistorico
-    ? "/api/medicacao?historico=true"
-    : "/api/medicacao";
+      ? "/api/medicacao?historico=true"
+      : "/api/medicacao";
 
-const resposta = await fetch(url);
+    const resposta = await fetch(url);
 
     if (!resposta.ok) {
       throw new Error("Erro ao carregar medicação.");
@@ -38,9 +38,18 @@ const resposta = await fetch(url);
 
     listaMedicamentos = medicamentos;
 
-    renderizarTabelaMedicacao(listaMedicamentos);    
-    
-  
+    renderizarTabelaMedicacao(listaMedicamentos);
+  } catch (erro) {
+    console.error(erro);
+
+    tabela.innerHTML = `
+      <tr>
+        <td colspan="7" class="text-center text-danger py-4">
+          Não foi possível carregar a medicação.
+        </td>
+      </tr>
+    `;
+  }
 }
 function renderizarTabelaMedicacao(medicamentos) {
   const tabela = document.getElementById("tabela-medicacao");
@@ -82,35 +91,45 @@ function renderizarTabelaMedicacao(medicamentos) {
         <td class="text-end">
           <div class="dropdown">
             <button
-              class="btn btn-sm btn-light border"
+              class="btn btn-light btn-sm border"
               type="button"
               data-bs-toggle="dropdown"
-              aria-expanded="false"
             >
               <i class="bi bi-three-dots"></i>
             </button>
 
-            <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
               <li>
-                <button
+                <a
                   class="dropdown-item"
-                  type="button"
-                  onclick="atualizarEstadoMedicacao(${med.id}, 'Concluído')"
+                  href="javascript:void(0)"
+                  onclick="verDetalhesMedicacao(${med.id})"
                 >
-                  <i class="bi bi-check-circle me-2 text-success"></i>
-                  Concluir
-                </button>
+                  <i class="bi bi-eye me-2"></i>
+                  Ver Detalhes
+                </a>
               </li>
 
               <li>
-                <button
+                <a
                   class="dropdown-item"
-                  type="button"
-                  onclick="atualizarEstadoMedicacao(${med.id}, 'Suspenso')"
+                  href="javascript:void(0)"
+                  onclick="abrirModalEditarMedicacao(${med.id})"
                 >
-                  <i class="bi bi-pause-circle me-2 text-warning"></i>
-                  Suspender
-                </button>
+                  <i class="bi bi-pencil me-2"></i>
+                  Editar
+                </a>
+              </li>
+
+              <li>
+                <a
+                  class="dropdown-item"
+                  href="javascript:void(0)"
+                  onclick="partilharMedicacao(${med.id})"
+                >
+                  <i class="bi bi-share me-2"></i>
+                  Partilhar
+                </a>
               </li>
 
               <li>
@@ -118,14 +137,14 @@ function renderizarTabelaMedicacao(medicamentos) {
               </li>
 
               <li>
-                <button
+                <a
                   class="dropdown-item text-danger"
-                  type="button"
+                  href="javascript:void(0)"
                   onclick="eliminarMedicacao(${med.id})"
                 >
                   <i class="bi bi-trash me-2"></i>
                   Eliminar
-                </button>
+                </a>
               </li>
             </ul>
           </div>
@@ -269,7 +288,6 @@ function formatarData(data) {
   return d.toLocaleDateString("pt-PT");
 }
 
-
 const formMedicacao = document.getElementById("form-medicacao");
 
 if (formMedicacao) {
@@ -299,33 +317,64 @@ if (formMedicacao) {
     }
 
     if (!idCatalogoMedicamento) {
-  erroDiv.textContent = "Selecione um medicamento da lista de sugestões.";
-  erroDiv.classList.remove("d-none");
-  return;
-}
+      erroDiv.textContent = "Selecione um medicamento da lista de sugestões.";
+      erroDiv.classList.remove("d-none");
+      return;
+    }
 
     try {
-      const resposta = await fetch("/api/medicacao", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-          id_catalogo_medicamento: idCatalogoMedicamento,
-          medicamento: medicamento,
-          dosagem: dosagem,
-          posologia: posologia,
-          data_inicio: dataInicio,
-          data_fim: dataFim,
-          estado: estado
-        })
-      });
+      const dadosMedicacao = {
+        id_catalogo_medicamento: idCatalogoMedicamento,
+        medicamento: medicamento,
+        dosagem: dosagem,
+        posologia: posologia,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        estado: estado
+      };
 
-      const resultado = await resposta.json();
+      const risco = await verificarRiscoPrincipioAtivo(idCatalogoMedicamento);
 
-      if (!resposta.ok) {
-        throw new Error(resultado.erro || "Erro ao registar medicação.");
+      if (risco.temRisco) {
+        const resultadoAlerta = await Swal.fire({
+          title: "ATENÇÃO",
+          html: `
+            <div class="text-start">
+              <h5 class="fw-bold text-danger mb-2">Princípio ativo perigoso</h5>
+
+              <p class="mb-2">
+                Já registou um efeito secundário associado a este princípio ativo:
+              </p>
+
+              <p class="fw-bold fs-5 mb-3">
+                ${risco.substancia_ativa}
+              </p>
+
+              <p class="mb-1">
+                <strong>Sintoma registado:</strong> ${risco.sintoma}
+              </p>
+
+              <p class="mb-0">
+                <strong>Gravidade:</strong> ${risco.gravidade}
+              </p>
+            </div>
+          `,
+          icon: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#dc3545",
+          cancelButtonColor: "#6c757d",
+          confirmButtonText: "Tenho noção do risco",
+          cancelButtonText: "Cancelar registo"
+        });
+
+        if (!resultadoAlerta.isConfirmed) {
+          return;
+        }
+
+        mostrarAlertaPrincipioAtivo();
       }
+
+      const resultado = await registarMedicacaoNaBaseDados(dadosMedicacao);
 
       sucessoDiv.textContent = resultado.mensagem;
       sucessoDiv.classList.remove("d-none");
@@ -333,12 +382,14 @@ if (formMedicacao) {
       formMedicacao.reset();
 
       carregarMedicacao();
+      carregarMedicamentosParaEfeitos();
     } catch (erro) {
       erroDiv.textContent = erro.message;
       erroDiv.classList.remove("d-none");
     }
   });
 }
+
 
 const inputMedicamento = document.getElementById("medicamento");
 const inputIdCatalogoMedicamento = document.getElementById("idCatalogoMedicamento");
@@ -449,30 +500,299 @@ function esconderSugestoesMedicamentos() {
   caixaSugestoes.innerHTML = "";
 }
 
+function abrirModalEditarMedicacao(id) {
+  const med = listaMedicamentos.find(function (item) {
+    return item.id === id;
+  });
+
+  if (!med) {
+    Swal.fire({
+      title: "Erro",
+      text: "Não foi possível encontrar esta medicação.",
+      icon: "error",
+      confirmButtonColor: "#dc3545"
+    });
+    return;
+  }
+
+  document.getElementById("editMedicacaoId").value = med.id;
+  document.getElementById("editNomeMedicacao").value = med.nome_medicamento || "";
+  document.getElementById("editPosologiaMedicacao").value = med.posologia || "";
+  document.getElementById("editDataInicioMedicacao").value = converterDataParaInput(med.data_inicio);
+  document.getElementById("editDataFimMedicacao").value = med.data_fim
+    ? converterDataParaInput(med.data_fim)
+    : "";
+  document.getElementById("editEstadoMedicacao").value = med.estado || "Ativo";
+
+  new bootstrap.Modal(document.getElementById("modalEditarMedicacao")).show();
+}
+
+function converterDataParaInput(data) {
+  if (!data) {
+    return "";
+  }
+
+  const d = new Date(data);
+  return d.toISOString().split("T")[0];
+}
+
+function partilharMedicacao(id) {
+  const med = listaMedicamentos.find(function (item) {
+    return item.id === id;
+  });
+
+  if (!med) {
+    Swal.fire({
+      title: "Erro",
+      text: "Não foi possível encontrar esta medicação.",
+      icon: "error",
+      confirmButtonColor: "#dc3545"
+    });
+    return;
+  }
+
+  const texto =
+`Medicação - SaúdeDigital
+
+Medicamento: ${med.nome_medicamento}
+Substância ativa: ${med.substancia_ativa || "Não indicada"}
+Dosagem: ${med.dosagem || "-"}
+Forma farmacêutica: ${med.forma_farmaceutica || "-"}
+Posologia: ${med.posologia || "-"}
+Data de início: ${formatarData(med.data_inicio)}
+Data de fim: ${med.data_fim ? formatarData(med.data_fim) : "Tratamento crónico"}
+Estado: ${med.estado}`;
+
+  document.getElementById("textoPartilhaMedicacao").value = texto;
+
+  new bootstrap.Modal(document.getElementById("modalPartilhaMedicacao")).show();
+}
+
+function copiarTextoMedicacao() {
+  const textarea = document.getElementById("textoPartilhaMedicacao");
+  textarea.select();
+
+  navigator.clipboard.writeText(textarea.value);
+
+  const msg = document.getElementById("msgMedicacaoCopiada");
+  msg.classList.remove("d-none");
+
+  setTimeout(function () {
+    msg.classList.add("d-none");
+  }, 3000);
+}
+
+function enviarMedicacaoPorEmail() {
+  const texto = document.getElementById("textoPartilhaMedicacao").value;
+  const assunto = encodeURIComponent("Informação de Medicação - SaúdeDigital");
+  const corpo = encodeURIComponent(texto);
+
+  window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
+}
+
+function enviarMedicacaoPorWhatsApp() {
+  const texto = document.getElementById("textoPartilhaMedicacao").value;
+
+  window.open(
+    `https://api.whatsapp.com/send?text=${encodeURIComponent(texto)}`,
+    "_blank"
+  );
+}
 
 async function eliminarMedicacao(id) {
-  const confirmar = confirm("Tem a certeza que deseja eliminar esta medicação?");
+  Swal.fire({
+    title: "Tem a certeza?",
+    text: "Esta medicação será removida do seu plano terapêutico!",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, eliminar",
+    cancelButtonText: "Cancelar"
+  }).then(async function (result) {
+    if (result.isConfirmed) {
+      try {
+        const resposta = await fetch(`/api/medicacao/${id}`, {
+          method: "DELETE"
+        });
 
-  if (!confirmar) {
+        const resultado = await resposta.json();
+
+        if (!resposta.ok) {
+          throw new Error(resultado.erro || "Erro ao eliminar medicação.");
+        }
+
+        Swal.fire({
+          title: "Eliminado com sucesso!",
+          text: "A medicação foi removida do plano terapêutico.",
+          icon: "success",
+          showConfirmButton: false,
+          timer: 2000
+        });
+
+        carregarMedicacao();
+        carregarMedicamentosParaEfeitos();
+      } catch (erro) {
+        Swal.fire({
+          title: "Erro!",
+          text: erro.message,
+          icon: "error",
+          confirmButtonColor: "#dc3545"
+        });
+      }
+    }
+  });
+}
+
+function verDetalhesMedicacao(id) {
+  const med = listaMedicamentos.find(function (item) {
+    return item.id === id;
+  });
+
+  if (!med) {
+    Swal.fire({
+      title: "Erro",
+      text: "Não foi possível encontrar esta medicação.",
+      icon: "error",
+      confirmButtonColor: "#dc3545"
+    });
+    return;
+  }
+
+  const infoDias = calcularDiasRestantes(med.data_fim);
+  const corpo = document.getElementById("corpoDetalhesMedicacao");
+
+  corpo.innerHTML = `
+    <div class="mb-3">
+      <label class="text-muted small d-block">Medicamento</label>
+      <span class="fw-bold fs-5 text-dark">${med.nome_medicamento}</span>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-muted small d-block">Substância ativa</label>
+      <span class="text-dark">${med.substancia_ativa || "Não indicada"}</span>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-muted small d-block">Dosagem</label>
+      <span class="text-dark">${med.dosagem || "-"}</span>
+    </div>
+
+    <div class="mb-3">
+      <label class="text-muted small d-block">Forma farmacêutica</label>
+      <span class="text-dark">${med.forma_farmaceutica || "-"}</span>
+    </div>
+
+    <div class="mb-3 p-3 bg-light rounded-3">
+      <label class="text-muted small d-block mb-1">Posologia</label>
+      <p class="text-dark m-0">${med.posologia || "Sem posologia indicada."}</p>
+    </div>
+
+    <div class="row">
+      <div class="col-6 mb-3">
+        <label class="text-muted small d-block">Data de início</label>
+        <span class="text-dark">${formatarData(med.data_inicio)}</span>
+      </div>
+
+      <div class="col-6 mb-3">
+        <label class="text-muted small d-block">Data de fim</label>
+        <span class="text-dark">
+          ${med.data_fim ? formatarData(med.data_fim) : "Tratamento crónico"}
+        </span>
+      </div>
+    </div>
+
+    <div class="row">
+      <div class="col-6 mb-3">
+        <label class="text-muted small d-block">Dias restantes</label>
+        <span class="text-dark">${infoDias.texto}</span>
+      </div>
+
+      <div class="col-6 mb-3">
+        <label class="text-muted small d-block">Estado</label>
+        <span class="text-dark">${med.estado}</span>
+      </div>
+    </div>
+  `;
+
+  new bootstrap.Modal(document.getElementById("modalDetalhesMedicacao")).show();
+}
+
+async function guardarEdicaoMedicacao() {
+  const id = document.getElementById("editMedicacaoId").value;
+  const posologia = document.getElementById("editPosologiaMedicacao").value.trim();
+  const dataInicio = document.getElementById("editDataInicioMedicacao").value;
+  const dataFim = document.getElementById("editDataFimMedicacao").value;
+  const estado = document.getElementById("editEstadoMedicacao").value;
+
+  if (!posologia || !dataInicio || !estado) {
+    Swal.fire({
+      title: "Campos obrigatórios",
+      text: "Preencha a posologia, a data de início e o estado.",
+      icon: "warning",
+      confirmButtonColor: "#0d6efd"
+    });
+    return;
+  }
+
+  if (dataFim && dataFim < dataInicio) {
+    Swal.fire({
+      title: "Data inválida",
+      text: "A data de fim não pode ser anterior à data de início.",
+      icon: "warning",
+      confirmButtonColor: "#0d6efd"
+    });
     return;
   }
 
   try {
     const resposta = await fetch(`/api/medicacao/${id}`, {
-      method: "DELETE"
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({
+        posologia: posologia,
+        data_inicio: dataInicio,
+        data_fim: dataFim,
+        estado: estado
+      })
     });
 
     const resultado = await resposta.json();
 
     if (!resposta.ok) {
-      throw new Error(resultado.erro || "Erro ao eliminar medicação.");
+      throw new Error(resultado.erro || "Erro ao atualizar medicação.");
+    }
+
+    Swal.fire({
+      title: "Alterações guardadas!",
+      text: "A medicação foi atualizada com sucesso.",
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000
+    });
+
+    const modal = bootstrap.Modal.getInstance(
+      document.getElementById("modalEditarMedicacao")
+    );
+
+    if (modal) {
+      modal.hide();
     }
 
     carregarMedicacao();
+    carregarMedicamentosParaEfeitos();
   } catch (erro) {
-    alert(erro.message);
+    Swal.fire({
+      title: "Erro",
+      text: erro.message,
+      icon: "error",
+      confirmButtonColor: "#dc3545"
+    });
   }
 }
+
 
 function atualizarBotaoHistorico() {
   const btnHistorico = document.getElementById("btn-historico");
@@ -689,4 +1009,62 @@ if (formEfeitoSecundario) {
       erroEfeito.classList.remove("d-none");
     }
   });
+}
+
+function mostrarAlertaPrincipioAtivo() {
+  const alerta = document.getElementById("alerta-principio-ativo");
+
+  if (alerta) {
+    alerta.classList.remove("d-none");
+  }
+}
+
+async function verificarRiscoPrincipioAtivo(idCatalogoMedicamento) {
+  const resposta = await fetch(
+    `/api/medicacao/verificar-risco/${idCatalogoMedicamento}`
+  );
+
+  const textoResposta = await resposta.text();
+
+  let resultado;
+
+  try {
+    resultado = JSON.parse(textoResposta);
+  } catch {
+    throw new Error(
+      "O servidor não devolveu JSON ao verificar o risco do princípio ativo."
+    );
+  }
+
+  if (!resposta.ok) {
+    throw new Error(resultado.erro || "Erro ao verificar risco.");
+  }
+
+  return resultado;
+}
+
+async function registarMedicacaoNaBaseDados(dadosMedicacao) {
+  const resposta = await fetch("/api/medicacao", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(dadosMedicacao)
+  });
+
+  const textoResposta = await resposta.text();
+
+  let resultado;
+
+  try {
+    resultado = JSON.parse(textoResposta);
+  } catch {
+    throw new Error("O servidor não devolveu JSON ao registar medicação.");
+  }
+
+  if (!resposta.ok) {
+    throw new Error(resultado.erro || "Erro ao registar medicação.");
+  }
+
+  return resultado;
 }
