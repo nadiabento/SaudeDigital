@@ -4,7 +4,7 @@ async function carregarDados() {
   const container = document.getElementById("listaExames");
 
   try {
-    const response = await fetch(`/api/api/exames/dados-partilha/${token}`);
+    const response = await fetch(`/api/exames/dados-partilha/${token}`);
 
     // SE O LINK EXPIROU OU NÃO EXISTE: Redireciona imediatamente para o 404
     if (!response.ok) {
