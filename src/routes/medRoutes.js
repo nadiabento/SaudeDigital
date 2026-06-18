@@ -115,6 +115,74 @@ router.post("/catalogo", async (req, res) => {
   }
 });
 
+router.get("/verificar-risco/:idCatalogoMedicamento", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId;
+    const idCatalogoMedicamento = req.params.idCatalogoMedicamento;
+
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+
+    /*
+      1. Vai buscar a substância ativa do medicamento que o utilizador quer adicionar.
+      2. Procura se esse mesmo princípio ativo já apareceu em medicamentos
+         do utilizador que tenham efeitos secundários registados.
+    */
+
+    const [risco] = await db.query(
+      `
+      SELECT
+        Catalogo_Medicamentos.substancia_ativa,
+        Efeito_Secundario.sintoma,
+        Efeito_Secundario.gravidade,
+        Efeito_Secundario.data_ocorrencia,
+        Efeito_Secundario.notas
+      FROM Catalogo_Medicamentos AS catalogo_novo
+
+      INNER JOIN Catalogo_Medicamentos
+        ON Catalogo_Medicamentos.substancia_ativa = catalogo_novo.substancia_ativa
+
+      INNER JOIN Medicamento
+        ON Medicamento.id_catalogo_medicamento = Catalogo_Medicamentos.id
+
+      INNER JOIN Efeito_Secundario
+        ON Efeito_Secundario.id_medicamento = Medicamento.id
+
+      WHERE catalogo_novo.id = ?
+        AND Medicamento.id_utilizador = ?
+
+      ORDER BY Efeito_Secundario.data_ocorrencia DESC
+      LIMIT 1
+      `,
+      [idCatalogoMedicamento, idUtilizador]
+    );
+
+    if (risco.length === 0) {
+      return res.json({
+        temRisco: false
+      });
+    }
+
+    res.json({
+      temRisco: true,
+      substancia_ativa: risco[0].substancia_ativa,
+      sintoma: risco[0].sintoma,
+      gravidade: risco[0].gravidade,
+      data_ocorrencia: risco[0].data_ocorrencia,
+      notas: risco[0].notas
+    });
+  } catch (erro) {
+    console.error("Erro ao verificar risco do princípio ativo:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao verificar risco do princípio ativo."
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   console.log("GET /api/medicacao foi chamado");
 
@@ -179,8 +247,14 @@ router.get("/", async (req, res) => {
 // Regista nova medicação para o utilizador
 router.post("/", async (req, res) => {
   try {
-    const idUtilizador = req.session.userId || 1;
+    const idUtilizador = req.session.userId;
 
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+    
     const {
       id_catalogo_medicamento,
       medicamento,
@@ -264,6 +338,83 @@ router.delete("/:id", async (req, res) => {
 
     res.status(500).json({
       erro: "Erro ao eliminar a medicação.",
+    });
+  }
+});
+
+router.put("/:id", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId;
+    const idMedicamento = req.params.id;
+
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+
+    const {
+      posologia,
+      data_inicio,
+      data_fim,
+      estado
+    } = req.body;
+
+    if (!posologia || !data_inicio || !estado) {
+      return res.status(400).json({
+        erro: "Preencha a posologia, a data de início e o estado."
+      });
+    }
+
+    if (data_fim && data_fim < data_inicio) {
+      return res.status(400).json({
+        erro: "A data de fim não pode ser anterior à data de início."
+      });
+    }
+
+    const estadosPermitidos = ["Ativo", "Suspenso", "Concluído"];
+
+    if (!estadosPermitidos.includes(estado)) {
+      return res.status(400).json({
+        erro: "Estado inválido."
+      });
+    }
+
+    const [resultado] = await db.query(
+      `
+      UPDATE Medicamento
+      SET
+        posologia = ?,
+        data_inicio = ?,
+        data_fim = ?,
+        estado = ?
+      WHERE id = ?
+        AND id_utilizador = ?
+      `,
+      [
+        posologia,
+        data_inicio,
+        data_fim || null,
+        estado,
+        idMedicamento,
+        idUtilizador
+      ]
+    );
+
+    if (resultado.affectedRows === 0) {
+      return res.status(404).json({
+        erro: "Medicação não encontrada ou não pertence ao utilizador."
+      });
+    }
+
+    res.json({
+      mensagem: "Medicação atualizada com sucesso."
+    });
+  } catch (erro) {
+    console.error("Erro ao atualizar medicação:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao atualizar a medicação."
     });
   }
 });
