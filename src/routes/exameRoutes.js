@@ -13,7 +13,12 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    cb(null, Date.now() + path.extname(file.originalname));
+    const sufixoAleatorio = Math.round(Math.random() * 1e5);
+
+    cb(
+      null,
+      Date.now() + "-" + sufixoAleatorio + path.extname(file.originalname),
+    );
   },
 });
 

@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Configuração da pasta pública de uploads
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // Configuração de Sessão de Utilizador Persistente na BD
 app.use(
