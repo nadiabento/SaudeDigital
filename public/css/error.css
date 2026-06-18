@@ -3,7 +3,8 @@ body {
     font-family: 'Inter', sans-serif;
     background-color: #f8fafc;
     color: #2d3748;
-    overflow: hidden; /* Mantém os efeitos visuais dentro da janela */
+    overflow-x: hidden;
+    overflow-y: auto !important;
 }
 
 /* --- COLUNA ESQUERDA: Gradiente Dinâmico do teu Index --- */
