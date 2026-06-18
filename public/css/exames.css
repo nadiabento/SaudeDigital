@@ -153,8 +153,8 @@ html, body {
 }
 
 .table-responsive {
-  overflow-x: auto !important;
-  overflow-y: hidden !important; /* Evita scrolls verticais parasitas na tabela */
+  overflow-x: visible !important; 
+  overflow-y: visible !important; 
   background: #ffffff;
   border-radius: 12px;
 }
@@ -234,14 +234,18 @@ html, body {
 
 /* Garante que o menu suspenso das ações fica totalmente legível */
 #tabelaExames .dropdown-menu {
+  position: absolute !important;
   z-index: 1060 !important;
-  min-width: 140px;
-  padding: 6px 0;
+  margin: 0;
+  right: 0 !important; 
+  left: auto !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e9ecef !important;
 }
 
 #tabelaExames .dropdown-menu .dropdown-item {
   font-size: 0.88rem !important;
-  padding: 8px 14px !important;
+  padding: 8px 16px !important;
   white-space: nowrap !important;
   display: flex;
   align-items: center;
