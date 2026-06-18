@@ -373,7 +373,12 @@ exports.getDadosPartilha = async (req, res) => {
       { replacements: [token] },
     );
 
-    if (partilhas.length === 0) {
+    // LOG 1: Vê o que a Base de Dados realmente devolveu
+    console.log("-> Token recebido:", token);
+    console.log("-> Resultado da BD:", partilhas);
+
+    if (!partilhas || partilhas.length === 0) {
+      console.log("Erro: Token não encontrado na base de dados.");
       return res
         .status(404)
         .json({ error: "Link de partilha inválido ou inexistente." });
@@ -381,30 +386,33 @@ exports.getDadosPartilha = async (req, res) => {
 
     const partilha = partilhas[0];
 
-    // 2. Verifica se o link já expirou (Validação baseada em milissegundos puros)
+    // LOG 2: Compara as duas datas no terminal
+    console.log("-> Data de Expiração na BD:", partilha.data_expiracao);
+    console.log("-> Data Atual do Servidor:", new Date());
+
+    // 2. Verifica se o link já expirou
     if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
-      return res.status(410).json({
-        error: "Este link de partilha já expirou (Limite de 48h alcançado).",
-      });
+      console.log("Erro: O token existe mas já expirou matematicamente.");
+      return res
+        .status(410)
+        .json({ error: "Este link de partilha já expirou." });
     }
 
     // 3. Converte a string "1,2,3" de volta num array de números
     const ids = partilha.exames_ids.split(",").map((id) => Number.parseInt(id));
 
-    // 4. Procura os exames reais e inclui os dados do mapeamento N:N do Sequelize
+    // 4. Procura os exames reais
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
         {
           model: TipoExame,
           attributes: ["nome"],
-          //CORREÇÃO: Adicionado o campo "relatorio" para o Sequelize o extrair da BD
           through: { attributes: ["resultado", "relatorio"] },
         },
       ],
     });
 
-    // 5. Formata os dados incluindo o novo campo do relatório para o teu frontend mapear
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
@@ -412,14 +420,14 @@ exports.getDadosPartilha = async (req, res) => {
         data: ex.data_exame,
         observacoes: ex.observacoes || "Sem observações registadas.",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
-        //CORREÇÃO: Mapeado o campo relatorio no JSON final enviado para o médico
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
     });
 
     res.json(examesFormatados);
   } catch (error) {
-    console.error("Erro ao carregar dados da partilha:", error);
+    //  LOG 3: Se o Sequelize crashar por algum motivo (ex: nome de coluna errado)
+    console.error("CRASH NO SERVER:", error);
     res
       .status(500)
       .json({ error: "Erro interno ao carregar os dados clínicos." });
