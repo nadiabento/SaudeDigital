@@ -367,18 +367,17 @@ exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    // 1. Procura o token na tabela Partilha
-    const [partilhas] = await Exame.sequelize.query(
+    //Forçamos o tipo de query SELECT para o Sequelize saber exatamente como estruturar o Array retornado
+    const partilhas = await Exame.sequelize.query(
       "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = ? LIMIT 1",
-      { replacements: [token] },
+      {
+        replacements: [token],
+        type: Exame.sequelize.QueryTypes.SELECT, // 👈 Garante que devolve uma Array limpa de objetos
+      },
     );
 
-    // LOG 1: Vê o que a Base de Dados realmente devolveu
-    console.log("-> Token recebido:", token);
-    console.log("-> Resultado da BD:", partilhas);
-
+    // Validação ultra segura do resultado
     if (!partilhas || partilhas.length === 0) {
-      console.log("Erro: Token não encontrado na base de dados.");
       return res
         .status(404)
         .json({ error: "Link de partilha inválido ou inexistente." });
@@ -386,22 +385,28 @@ exports.getDadosPartilha = async (req, res) => {
 
     const partilha = partilhas[0];
 
-    // LOG 2: Compara as duas datas no terminal
-    console.log("-> Data de Expiração na BD:", partilha.data_expiracao);
-    console.log("-> Data Atual do Servidor:", new Date());
+    // Se a coluna na BD se chamar 'examesIds' em vez de 'exames_ids', fazemos um fallback seguro
+    const examesIdsString = partilha.exames_ids || partilha.examesIds;
+    const dataExpiracaoRaw = partilha.data_expiracao || partilha.dataExpiracao;
 
-    // 2. Verifica se o link já expirou
-    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
-      console.log("Erro: O token existe mas já expirou matematicamente.");
+    if (!examesIdsString) {
+      return res.status(500).json({
+        error:
+          "Erro na estrutura dos dados da partilha (coluna exames_ids não encontrada).",
+      });
+    }
+
+    // Validação da expiração das 48h
+    if (dataExpiracaoRaw && new Date(dataExpiracaoRaw).getTime() < Date.now()) {
       return res
         .status(410)
         .json({ error: "Este link de partilha já expirou." });
     }
 
-    // 3. Converte a string "1,2,3" de volta num array de números
-    const ids = partilha.exames_ids.split(",").map((id) => Number.parseInt(id));
+    // Converte a string "1,2,3" num array de números
+    const ids = examesIdsString.split(",").map((id) => Number.parseInt(id, 10));
 
-    // 4. Procura os exames reais
+    // Procura os exames no Sequelize
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
@@ -413,6 +418,7 @@ exports.getDadosPartilha = async (req, res) => {
       ],
     });
 
+    // Mapeamento seguro para o Frontend
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
@@ -424,12 +430,13 @@ exports.getDadosPartilha = async (req, res) => {
       };
     });
 
-    res.json(examesFormatados);
+    return res.json(examesFormatados);
   } catch (error) {
-    //  LOG 3: Se o Sequelize crashar por algum motivo (ex: nome de coluna errado)
-    console.error("CRASH NO SERVER:", error);
-    res
-      .status(500)
-      .json({ error: "Erro interno ao carregar os dados clínicos." });
+    // Se falhar, enviamos o erro na própria resposta HTTP para que o possas ler diretamente no teu navegador (no separador Network/Rede)!
+    console.error("Erro crítico apanhado:", error.message);
+    return res.status(500).json({
+      error: "Erro interno no servidor ao processar os dados.",
+      detalhes: error.message,
+    });
   }
 };
