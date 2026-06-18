@@ -62,7 +62,7 @@ html, body {
 .logo-text {
   background: linear-gradient(45deg, #3b5afa, #3b5afa);
   -webkit-background-clip: text;
-  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
   transition: opacity 0.3s ease;
 }
 
@@ -145,11 +145,18 @@ html, body {
   background-color: transparent !important;
 }
 
-/* --- 5. COMPONENTES DE UI GENÉRICOS E TABELA DE DUPLO PDF --- */
+/* --- 5. COMPONENTES DE UI GENÉRICOS E TABELA OTIMIZADA --- */
 .card {
   border-radius: 16px;
   border: none;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.table-responsive {
+  overflow-x: auto !important;
+  overflow-y: hidden !important; /* Evita scrolls verticais parasitas na tabela */
+  background: #ffffff;
+  border-radius: 12px;
 }
 
 .table thead th {
@@ -160,45 +167,60 @@ html, body {
   white-space: nowrap;
 }
 
-/* Alinhamento e dimensões das colunas de ficheiros para não esmagar os botões */
+/* Dimensões equilibradas para as colunas de duplo anexo */
 .table th:nth-child(4), .table td:nth-child(4) {
-  width: 135px !important;
+  width: 125px !important;
   text-align: center;
 }
 
 .table th:nth-child(5), .table td:nth-child(5) {
-  width: 145px !important;
+  width: 135px !important;
   text-align: center;
+}
+
+/* Proteção explícita para o fim da tabela (Ações) */
+.table th:last-child, .table td:last-child {
+  width: 65px !important;
 }
 
 #tabelaExames td {
   white-space: normal !important;
   word-break: break-word;
   font-size: 0.95rem;
-  padding: 14px 10px !important;
+  padding: 10px 8px !important; /* Padding reduzido para aumentar área horizontal útil */
   vertical-align: middle;
 }
 
 /* Trunca de forma elegante nomes gigantescos para proteger o layout horizontal */
 #tabelaExames td strong {
   display: inline-block;
-  max-width: 180px;
+  max-width: 160px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-/* Normalização visual dos botões de PDF dentro da tabela */
+/* 💠 BOTÕES COMPACTOS (Evita o colapso e o scroll do layout) */
 #tabelaExames .btn-sm {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-  width: 100%;
+  gap: 4px;
+  width: auto !important; /* Desvincula do comportamento 100% da célula */
+  min-width: 110px;       /* Garante tamanho uniforme sem overflow */
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 0.78rem !important;
+  font-weight: 600 !important;
   white-space: nowrap;
-  padding: 6px 12px !important;
-  border-radius: 8px !important;
-  font-size: 0.8rem !important;
+}
+
+#tabelaExames .btn-sm i {
+  font-size: 0.85rem;
+}
+
+.dropdown-menu {
+  z-index: 1060 !important; /* Impede interferência com controlos inferiores */
 }
 
 .upload-box {
@@ -287,18 +309,18 @@ html, body {
 /* --- 7. RESPONSIVIDADE CRÍTICA (MOBILE) --- */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%) !important; /* Esconde para fora */
+    transform: translateX(-100%) !important;
     position: fixed !important;
     z-index: 1060 !important;
     width: var(--sidebar-width) !important;
   }
 
   .sidebar.active {
-    transform: translateX(0) !important; /* Desliza para dentro */
+    transform: translateX(0) !important;
   }
 
   .main-content {
-    margin-left: 0 !important; /* Ocupa a largura toda */
+    margin-left: 0 !important;
     width: 100% !important;
     max-width: 100vw !important;
     padding: 20px 15px !important;
@@ -310,7 +332,6 @@ html, body {
     font-size: 0.85rem !important;
   }
 
-  /* Remove larguras fixas em mobile para permitir o scroll interno nativo */
   .table th:nth-child(4), .table td:nth-child(4),
   .table th:nth-child(5), .table td:nth-child(5) {
     width: auto !important;
@@ -323,7 +344,7 @@ html, body {
   }
 
   #tabelaExames td strong {
-    max-width: 120px; /* Menor em mobile */
+    max-width: 120px;
   }
 
   #tabelaExames td:nth-child(3) {
@@ -334,6 +355,7 @@ html, body {
     padding: 4px 8px !important;
     font-size: 0.75rem !important;
     border-radius: 6px !important;
+    min-width: auto;
   }
 
   .table-responsive {

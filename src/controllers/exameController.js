@@ -120,10 +120,10 @@ exports.registarExame = async (req, res) => {
     typeof rawUserId === "string" &&
     rawUserId !== "[object Object]"
   ) {
-    finalUserId = parseInt(rawUserId, 10);
+    finalUserId = Number.parseInt(rawUserId, 10);
   }
 
-  if (!finalUserId || isNaN(finalUserId)) {
+  if (!finalUserId || Number.isNaN(finalUserId)) {
     finalUserId = 4; // Fallback definitivo para a tua conta Nadia Bento
   }
 
