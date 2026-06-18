@@ -372,7 +372,11 @@ html, body {
   }
 
   #tabelaExames td strong {
-    max-width: 120px;
+    display: inline-block;
+    max-width: 280px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   #tabelaExames td:nth-child(3) {
