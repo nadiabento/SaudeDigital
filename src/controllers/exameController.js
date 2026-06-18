@@ -318,10 +318,10 @@ exports.eliminarTipoExame = async (req, res) => {
   }
 };
 
-// --- GERAR LINK DE PARTILHA COM O MÉDICO (SEQUELIZE) ---
+// --- GERAR LINK DE PARTILHA COM O MÉDICO (48 HORAS) ---
 exports.gerarPartilha = async (req, res) => {
   const { examesIds } = req.body;
-  const utilizadorId = req.session.userId || 1;
+  const utilizadorId = req.session.userId;
 
   if (!examesIds || examesIds.length === 0) {
     return res
@@ -330,24 +330,22 @@ exports.gerarPartilha = async (req, res) => {
   }
 
   try {
-    // Gera um token aleatório seguro de 32 caracteres (ex: a1b2c3d4...)
+    // Gera um token aleatório seguro de 32 caracteres
     const token = crypto.randomBytes(16).toString("hex");
 
-    // Define a expiração para daqui a 7 dias
-    const dataExpiracao = new Date();
-    dataExpiracao.setDate(dataExpiracao.getDate() + 7);
+    // Define a expiração matemática exata para daqui a 48 Horas
+    const TEMPO_48H_EM_MS = 48 * 60 * 60 * 1000;
+    const dataExpiracao = new Date(Date.now() + TEMPO_48H_EM_MS);
 
-    // Converte o array de IDs [1, 2, 3] numa string "1,2,3" para guardar na tabela Partilha
+    // Converte o array [1, 2, 3] numa string "1,2,3"
     const stringIds = examesIds.join(",");
 
-    // Faz o INSERT na tabela Partilha usando SQL Direto via Sequelize (ou Query Interface)
-    // para manter a compatibilidade com a tua tabela de Partilhas atual
+    // Faz o INSERT na tabela Partilha
     await Exame.sequelize.query(
       "INSERT INTO Partilha (token, exames_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
       { replacements: [token, stringIds, dataExpiracao, utilizadorId] },
     );
 
-    // Devolve o token criado para o conta.js/exames.js gerar o link final
     res.json({ token });
   } catch (error) {
     console.error("Erro ao gerar token de partilha:", error);
@@ -364,12 +362,12 @@ exports.visualizarPartilha = (req, res) => {
   res.sendFile(path.join(__dirname, "../../public/partilha.html"));
 };
 
-// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (SEQUELIZE) ---
+// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (INCLUINDO RELATÓRIO) ---
 exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    // 1. Procura o token na tabela Partilha usando SQL compatível com o Sequelize
+    // 1. Procura o token na tabela Partilha
     const [partilhas] = await Exame.sequelize.query(
       "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = ? LIMIT 1",
       { replacements: [token] },
@@ -383,29 +381,30 @@ exports.getDadosPartilha = async (req, res) => {
 
     const partilha = partilhas[0];
 
-    // 2. Verifica se o link já expirou (passou os 7 dias)
-    if (new Date(partilha.data_expiracao) < new Date()) {
-      return res
-        .status(410)
-        .json({ error: "Este link de partilha já expirou." });
+    // 2. Verifica se o link já expirou (Validação baseada em milissegundos puros)
+    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
+      return res.status(410).json({
+        error: "Este link de partilha já expirou (Limite de 48h alcançado).",
+      });
     }
 
-    // 3. Converte a string "1,2,3" de volta num array de números [1, 2, 3]
+    // 3. Converte a string "1,2,3" de volta num array de números
     const ids = partilha.exames_ids.split(",").map((id) => Number.parseInt(id));
 
-    // 4. Procura os exames reais e inclui os nomes dos tipos de exame (JOIN)
+    // 4. Procura os exames reais e inclui os dados do mapeamento N:N do Sequelize
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
         {
           model: TipoExame,
           attributes: ["nome"],
-          through: { attributes: ["resultado"] },
+          //CORREÇÃO: Adicionado o campo "relatorio" para o Sequelize o extrair da BD
+          through: { attributes: ["resultado", "relatorio"] },
         },
       ],
     });
 
-    // 5. Formata os dados para o ecrã do médico ler corretamente
+    // 5. Formata os dados incluindo o novo campo do relatório para o teu frontend mapear
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
@@ -413,6 +412,8 @@ exports.getDadosPartilha = async (req, res) => {
         data: ex.data_exame,
         observacoes: ex.observacoes || "Sem observações registadas.",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
+        //CORREÇÃO: Mapeado o campo relatorio no JSON final enviado para o médico
+        relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
     });
 
