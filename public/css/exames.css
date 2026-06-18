@@ -366,18 +366,21 @@ html, body {
   }
 
   #tabelaExames td:nth-child(2) {
-    font-weight: 700;
-    color: #252f40;
-    min-width: 110px;
-  }
+  font-weight: 700;
+  color: #252f40;
+  min-width: 200px !important;      /* Aumentado para garantir espaço para nomes longos */
+  width: auto !important;
+  white-space: normal !important;   /* Permite que o texto se mostre todo (quebrando linha se faltar espaço) */
+}
 
   #tabelaExames td strong {
   display: block !important;
-  max-width: none !important;      /* Remove qualquer barreira de largura */
-  white-space: normal !important;   /* Força o texto a aparecer por inteiro, passar a linha se necessário */
-  text-overflow: clip !important;   /* Elimina (...) */
-  word-break: break-word !important;
-}
+  max-width: none !important;
+  width: max-content !important;    /* 👈 Força a célula a alargar até ao tamanho real do texto */
+  white-space: normal !important;   /* Permite que o texto passe para a linha de baixo se o ecrã encolher */
+  text-overflow: clip !important;   /* Garante a remoção total de (...) */
+  overflow: visible !important;
+  }
 
   #tabelaExames td:nth-child(3) {
     white-space: nowrap !important;
