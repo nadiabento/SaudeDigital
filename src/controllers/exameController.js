@@ -113,69 +113,100 @@ exports.listarHistorico = async (req, res) => {
 
 // Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
-  // 3. RESOLVIDO: Inicialização da transação gerida pelo Sequelize ORM
+  // Inicialização da transação gerida pelo Sequelize ORM
   const t = await sequelize.transaction();
 
-  // Proteção de tipo: Garante a extração limpa do ID primitivo
+  // Extração limpa do ID do utilizador da sessão
   let idUtilizador = null;
-  if (req.session?.userId) {
+  if (req.session && req.session.userId) {
     idUtilizador =
       typeof req.session.userId === "object"
-        ? req.session.userId.id_utilizador || req.session.userId.id
+        ? req.session.userId.id_utilizador ||
+          req.session.userId.id ||
+          req.session.userId.utilizador_id
         : req.session.userId;
   }
 
+  // Se a sessão falhar, limpa preventivamente qualquer upload feito neste pedido
   if (!idUtilizador) {
-    if (req.file) fs.unlinkSync(req.file.path); // Elimina resíduo do upload
+    if (req.files) {
+      if (req.files["resultado_file"])
+        fs.unlinkSync(req.files["resultado_file"][0].path);
+      if (req.files["relatorio"]) fs.unlinkSync(req.files["relatorio"][0].path);
+    }
     return res
       .status(401)
-      .json({ error: "Sessão inválida ou expirada. Efetue login novamente." });
+      .json({ error: "Sessão expirada. Por favor, efetue login novamente." });
   }
+
+  // Extração segura dos nomes dos ficheiros guardados pelo Multer upload.fields()
+  const ficheiroExame =
+    req.files && req.files["resultado_file"]
+      ? req.files["resultado_file"][0].filename
+      : null;
+  const ficheiroRelatorio =
+    req.files && req.files["relatorio"]
+      ? req.files["relatorio"][0].filename
+      : null;
 
   try {
     const { data_exame, local_realizacao, observacoes, id_tipo_exame } =
       req.body;
 
     if (!data_exame || !id_tipo_exame) {
-      throw new Error("Campos obrigatórios em falta no payload.");
+      throw new Error("Campos obrigatórios em falta no formulário.");
     }
 
-    // Passo 1: Inserir Cabeçalho do Exame
+    // Passo 1: Inserir Cabeçalho do Exame clínico
     const novoExame = await Exame.create(
       {
         data_exame,
-        local_realizacao,
+        local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes,
         utilizador_id: idUtilizador,
       },
       { transaction: t },
     );
 
-    // Passo 2: Inserir Vínculo Documental na Tabela Ponte (Exame_TipoExame)
+    // Passo 2: Inserir Vínculo Documental com Ambos os Ficheiros na Tabela Ponte
     await ExameTipoExame.create(
       {
-        ExameId: novoExame.id,
-        TipoExameId: id_tipo_exame,
-        resultado: req.file ? req.file.filename : null,
+        id_exame: novoExame.id,
+        id_tipo_exame: Number.parseInt(id_tipo_exame, 10),
+        resultado: ficheiroExame,
+        relatorio: ficheiroRelatorio,
       },
       { transaction: t },
     );
 
-    // Se tudo correr bem, efetua o commit atómico
+    // Se as duas inserções forem bem-sucedidas, consolida os dados na BD
     await t.commit();
     return res.status(201).json({
-      message: "Registo clínico e anexo PDF consolidados com sucesso.",
+      message:
+        "Registo clínico e anexos PDF consolidados com sucesso no histórico.",
     });
   } catch (error) {
-    // 3. RESOLVIDO: Rollback automático - reverte a BD e limpa o sistema de ficheiros
+    // Em caso de falha lógica, aplica Rollback e remove os ficheiros físicos para evitar lixo no disco
     await t.rollback();
-    if (req.file && fs.existsSync(req.file.path)) {
-      fs.unlinkSync(req.file.path);
+
+    if (req.files) {
+      if (
+        req.files["resultado_file"] &&
+        fs.existsSync(req.files["resultado_file"][0].path)
+      ) {
+        fs.unlinkSync(req.files["resultado_file"][0].path);
+      }
+      if (
+        req.files["relatorio"] &&
+        fs.existsSync(req.files["relatorio"][0].path)
+      ) {
+        fs.unlinkSync(req.files["relatorio"][0].path);
+      }
     }
-    console.error("Erro transacional detetado:", error.message);
+
+    console.error("Rollback executado devido a erro crítico:", error.message);
     return res.status(500).json({
-      error:
-        "Falha na consistência dos dados. Operação abortada com segurança.",
+      error: "Falha na consistência relacional dos dados. Operação abortada.",
     });
   }
 };
@@ -381,11 +412,9 @@ exports.getDadosPartilha = async (req, res) => {
     const dataExpiracaoRaw = partilla.data_expiracao || partilla.dataExpiracao;
 
     if (!examesIdsString) {
-      return res
-        .status(500)
-        .json({
-          error: "Inconsistência estrutural nos metadados da partilha.",
-        });
+      return res.status(500).json({
+        error: "Inconsistência estrutural nos metadados da partilha.",
+      });
     }
 
     // Validação cronológica estrita da janela de 48 horas
@@ -428,10 +457,8 @@ exports.getDadosPartilha = async (req, res) => {
       "Erro crítico na extração de dados partilhados:",
       error.message,
     );
-    return res
-      .status(500)
-      .json({
-        error: "Falha interna ao processar dados de interoperabilidade.",
-      });
+    return res.status(500).json({
+      error: "Falha interna ao processar dados de interoperabilidade.",
+    });
   }
 };
