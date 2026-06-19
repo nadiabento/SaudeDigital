@@ -297,15 +297,15 @@ exports.gerarLinkPartilha = async (req, res) => {
       token,
       exames_ids: examesIds.join(","),
       data_expiracao: dataExpiracao,
-      id_utilizador: Number(utilizadorId), // Alinhado com o teu model Partilha.js
+      utilizador_id: Number(utilizadorId),
     });
 
     return res.json({ token });
   } catch (error) {
-    console.error("Erro ao processar link interoperável:", error.message);
-    return res
-      .status(500)
-      .json({ error: "Erro interno ao criar credencial de partilha." });
+    console.error("❌ Erro ao processar link interoperável:", error);
+    return res.status(500).json({
+      error: `Erro interno ao criar credencial de partilha: ${error.message}`,
+    });
   }
 };
 

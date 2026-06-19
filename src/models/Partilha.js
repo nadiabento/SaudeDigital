@@ -4,16 +4,12 @@ const sequelize = require("../config/db");
 const Partilha = sequelize.define(
   "Partilha",
   {
-    id_partilha: {
-      type: DataTypes.INTEGER,
-      primaryKey: true,
-      autoIncrement: true,
-      field: "id_partilha",
-    },
     token: {
-      type: DataTypes.STRING(32),
+      type: DataTypes.STRING(255),
+      primaryKey: true,
       allowNull: false,
-      unique: true,
+      autoIncrement: false, // Força o Sequelize a não procurar um ID numérico
+      field: "token",
     },
     exames_ids: {
       type: DataTypes.TEXT,
@@ -28,7 +24,7 @@ const Partilha = sequelize.define(
     utilizador_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "id_utilizador",
+      field: "utilizador_id", // Bate certo com o teu field 'utilizador_id' do Workbench
     },
   },
   {
