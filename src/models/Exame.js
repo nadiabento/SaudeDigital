@@ -17,7 +17,6 @@ const Exame = sequelize.define(
     local_realizacao: {
       type: DataTypes.STRING,
       allowNull: true,
-      defaultValue: "SaúdeDigital Clinic",
     },
     observacoes: {
       type: DataTypes.TEXT,
@@ -34,6 +33,7 @@ const Exame = sequelize.define(
   },
 );
 
+// Mapeamento Cirúrgico da Tabela Ponte Real
 const ExameTipoExame = sequelize.define(
   "ExameTipoExame",
   {
@@ -41,11 +41,13 @@ const ExameTipoExame = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       references: { model: "Exame", key: "id" },
+      field: "id_exame", // 🧠 Garante o mapeamento do campo exato na BD
     },
     id_tipo_exame: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       references: { model: "Tipo_Exame", key: "id" },
+      field: "id_tipo_exame",
     },
     resultado: {
       type: DataTypes.STRING,
@@ -62,13 +64,17 @@ const ExameTipoExame = sequelize.define(
   },
 );
 
+// 🛡️ Configuração Manual de Chaves Estrangeiras para anular o CamelCase do Sequelize
 Exame.belongsToMany(TipoExame, {
   through: ExameTipoExame,
   foreignKey: "id_exame",
+  otherKey: "id_tipo_exame",
 });
+
 TipoExame.belongsToMany(Exame, {
   through: ExameTipoExame,
   foreignKey: "id_tipo_exame",
+  otherKey: "id_exame",
 });
 
 module.exports = { Exame, TipoExame, ExameTipoExame };

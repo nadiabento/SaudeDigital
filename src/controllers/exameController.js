@@ -157,7 +157,7 @@ exports.registarExame = async (req, res) => {
       throw new Error("Campos obrigatórios em falta no formulário.");
     }
 
-    // Passo 1: Inserir Cabeçalho do Exame clínico
+    //Inserir Cabeçalho do Exame clínico
     const novoExame = await Exame.create(
       {
         data_exame,
@@ -168,7 +168,7 @@ exports.registarExame = async (req, res) => {
       { transaction: t },
     );
 
-    // Passo 2: Inserir Vínculo Documental com Ambos os Ficheiros na Tabela Ponte
+    // nserir Vínculo Documental com Ambos os Ficheiros na Tabela Ponte
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
