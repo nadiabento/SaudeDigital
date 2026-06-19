@@ -135,7 +135,7 @@ exports.registarExame = async (req, res) => {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes: observacoes || "",
-        utilizador_id: Number(idUtilizador),
+        utilizador_id: Number.parseInt(idUtilizador, 10),
       },
       { transaction: t },
     );
@@ -155,7 +155,10 @@ exports.registarExame = async (req, res) => {
       message: "Registo clínico consolidado com sucesso no histórico.",
     });
   } catch (error) {
+    // Faz o rollback imediato da transação para não deixar lixo na BD
     await t.rollback();
+
+    // Apaga os ficheiros PDFs temporários se eles tiverem sido feito upload pelo Multer
     if (req.files) {
       if (
         req.files["resultado_file"] &&
@@ -168,9 +171,12 @@ exports.registarExame = async (req, res) => {
       )
         fs.unlinkSync(req.files["relatorio"][0].path);
     }
-    console.error("Erro na inserção do exame:", error.message);
+
+    console.error(" ERRO CRÍTICO DETALHADO NO SEQUELIZE:", error);
+
+    // Devolve o erro para o teu frontend em formato JSON
     return res.status(500).json({
-      error: "Falha na consistência relacional dos dados. Operação abortada.",
+      error: `Falha na consistência relacional: ${error.message}`,
     });
   }
 };
