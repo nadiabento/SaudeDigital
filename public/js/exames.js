@@ -672,21 +672,57 @@ async function gerarLinkPartilha() {
     const urlCompleta = `${window.location.origin}/partilha/${dados.token}`;
 
     // 7. Exibe o link num modal interativo pronto a copiar
+    // Substitui o Swal.fire antigo dentro de gerarLinkPartilha por este:
     Swal.fire({
-      title: "¡Portal Médico Gerado!",
+      title: "Portal Médico Gerado!",
       html: `
-        <p class="text-muted small">Partilhe o link abaixo com o seu profissional de saúde:</p>
-        <div class="input-group mb-3">
-          <input type="text" id="inputLinkGerado" class="form-control text-center bg-light fw-bold" value="${urlCompleta}" readonly>
-          <button class="btn btn-primary" type="button" onclick="const input = document.getElementById('inputLinkGerado'); input.select(); document.execCommand('copy'); this.innerHTML='<i class=\'bi bi-check-lg\'></i>';">
-            Copiar
-          </button>
-        </div>
-        <p class="text-danger small mb-0"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
-      `,
+    <p class="text-muted small">Partilhe o link abaixo com o seu profissional de saúde:</p>
+    
+    <div class="input-group mb-3">
+      <input type="text" id="inputLinkGerado" class="form-control text-center bg-light fw-bold" value="${urlCompleta}" readonly>
+      <button class="btn btn-primary" type="button" id="btnCopiarModal">
+        Copiar
+      </button>
+    </div>
+    
+    <p class="text-danger small mb-3"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
+    
+    <hr class="my-3 text-muted opacity-25">
+    
+    <div class="d-grid gap-2">
+      <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent("Olá,\n\nPartilho o link seguro para os meus exames clínicos:\n" + urlCompleta + "\n\nMelhores cumprimentos.")}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
+        <i class="bi bi-envelope-at me-2"></i> Enviar por Email
+      </a>
+      <a href="https://api.whatsapp.com/send?text=${encodeURIComponent("Olá, aqui está o link seguro para os meus resultados de exames do SaúdeDigital: " + urlCompleta)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
+        <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
+      </a>
+    </div>
+  `,
       icon: "success",
       confirmButtonColor: "#3b5afa",
       confirmButtonText: "Concluído",
+      didOpen: () => {
+        // Liga o evento de cópia seguro ao botão quando o modal abre
+        const btnCopiar = document.getElementById("btnCopiarModal");
+        if (btnCopiar) {
+          btnCopiar.addEventListener("click", () => {
+            const linkText = document.getElementById("inputLinkGerado").value;
+            navigator.clipboard
+              .writeText(linkText)
+              .then(() => {
+                btnCopiar.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+                btnCopiar.className = "btn btn-success";
+                setTimeout(() => {
+                  btnCopiar.innerText = "Copiar";
+                  btnCopiar.className = "btn btn-primary";
+                }, 2000);
+              })
+              .catch((err) => {
+                console.error("Erro ao copiar:", err);
+              });
+          });
+        }
+      },
     });
   } catch (error) {
     console.error("Erro na partilha:", error);

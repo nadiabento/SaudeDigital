@@ -37,6 +37,7 @@ router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/tipos-todos", exameController.listarTodosOsTiposAgnostico);
 router.get("/historico", exameController.listarHistorico);
+router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
 
 // Aceita os dois campos de ficheiro que estão mapeados no teu HTML
 router.post(
