@@ -137,23 +137,33 @@ const authController = {
     }
   },
 
+  // 5. Função de Eliminar Conta
   eliminarConta: async (req, res) => {
     try {
-      // O id do utilizador deve vir do token/sessão descodificado no middleware
-      const usuarioId = req.usuario.id;
+      const utilizadorId = req.session.userId;
 
-      // Executa a remoção no Sequelize (se houver CASCADE na BD, apaga os exames associados)
-      const eliminado = await db.Usuario.destroy({
-        where: { id: usuarioId },
-      });
-
-      if (eliminado) {
-        return res.status(200).send("Conta eliminada com sucesso.");
-      } else {
-        return res.status(404).send("Utilizador não encontrado.");
+      if (!utilizadorId) {
+        return res
+          .status(401)
+          .json({ erro: "Sessão expirada. Inicie sessão novamente." });
       }
+
+      const sql = `DELETE FROM Utilizador WHERE id = ?`;
+
+      // Executa de forma simples. Se for mysql2 com promessas, isto funciona universalmente
+      await db.query(sql, [utilizadorId]);
+
+      // Destruir a sessão no servidor para o utilizador não ficar "logado" sem conta
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Erro ao limpar sessão pós-eliminação:", err);
+        }
+        res.clearCookie("connect.sid");
+        return res.status(200).send("Conta eliminada com sucesso.");
+      });
     } catch (error) {
-      console.error("Erro ao eliminar conta no backend:", error);
+      // Isto vai imprimir o erro exato nos logs do Render (ex: erro de chave estrangeira/Foreign Key)
+      console.error("ERRO CRÍTICO NO BANCO DE DADOS:", error.message);
       return res
         .status(500)
         .send("Erro interno do servidor ao eliminar a conta.");
