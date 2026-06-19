@@ -8,6 +8,7 @@ const Partilha = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
+      field: "id_partilha",
     },
     token: {
       type: DataTypes.STRING(32),
