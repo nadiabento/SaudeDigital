@@ -53,7 +53,7 @@ router.post(
   exameController.registarExame,
 );
 
-router.post("/gerar-partilha", exameController.gerarPartilha);
+router.post("/gerar-partilha", exameController.gerarLinkPartilha);
 router.delete("/eliminar-massa", exameController.eliminarMassa);
 
 module.exports = router;
