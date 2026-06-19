@@ -351,7 +351,7 @@ async function atualizarDadosPerfil(e) {
 function confirmarEliminarConta() {
   Swal.fire({
     title: "Tem a certeza absoluta?",
-    text: "Esta ação é irreversível! Todos os teveus exames, consultas, medicações e histórico clínico no SaúdeDigital serão destruídos permanentemente.",
+    text: "Esta ação é irreversível! Todos os teus exames, consultas, medicações e histórico clínico no SaúdeDigital serão destruídos permanentemente.",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#dc3545", // Vermelho de aviso

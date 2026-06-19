@@ -2,8 +2,6 @@
 const express = require("express");
 const router = express.Router();
 const db = require("../config/db");
-
-// Importamos o controlador que criaste no Passo 2
 const authController = require("../controllers/authController");
 
 // Rota para o Registo
@@ -46,5 +44,7 @@ router.get("/meu-perfil", async (req, res) => {
 });
 
 router.put("/atualizar-perfil", authController.atualizarPerfil);
+
+router.delete("/eliminar-conta", authController.eliminarConta);
 
 module.exports = router;

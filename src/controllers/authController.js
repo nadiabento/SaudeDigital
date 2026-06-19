@@ -136,6 +136,29 @@ const authController = {
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
+
+  eliminarConta: async (req, res) => {
+    try {
+      // O id do utilizador deve vir do token/sessão descodificado no middleware
+      const usuarioId = req.usuario.id;
+
+      // Executa a remoção no Sequelize (se houver CASCADE na BD, apaga os exames associados)
+      const eliminado = await db.Usuario.destroy({
+        where: { id: usuarioId },
+      });
+
+      if (eliminado) {
+        return res.status(200).send("Conta eliminada com sucesso.");
+      } else {
+        return res.status(404).send("Utilizador não encontrado.");
+      }
+    } catch (error) {
+      console.error("Erro ao eliminar conta no backend:", error);
+      return res
+        .status(500)
+        .send("Erro interno do servidor ao eliminar a conta.");
+    }
+  },
 };
 
 module.exports = authController;
