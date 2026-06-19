@@ -191,20 +191,19 @@ html, body {
 #tabelaExames td {
   white-space: normal !important;
   word-break: break-word;
-  font-size: 0.95rem;
-  padding: 10px 8px !important; /* Padding reduzido para poupar espaço horizontal */
   vertical-align: middle;
+  padding: 12px 10px !important;
 }
 
 #tabelaExames td strong {
-  display: block !important;
+  display: inline-block !important;
   max-width: none !important;
-  width: 100% !important;
-  color: #1a202c !important; /* Contraste profundo sobre fundo cinza/branco */
-  white-space: normal !important;
-  text-overflow: clip !important;
-  overflow: visible !important;
-  word-break: normal !important;
+  width: auto !important;
+  background: transparent !important; 
+  padding: 0 !important;
+  border: none !important;
+  color: #252f40 !important;
+  white-space: nowrap !important; 
 }
 
 /* FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
@@ -370,13 +369,10 @@ html, body {
     width: auto !important;
   }
 
-  #tabelaExames td:nth-child(2) {
-  font-weight: 700;
-  min-width: 260px !important;
+ #tabelaExames td:nth-child(2) {
+  min-width: 220px !important;
   width: auto !important;
-  white-space: normal !important;
-  padding-right: 15px !important;
-}
+  }
 
   #tabelaExames td strong {
   display: block !important;

@@ -361,46 +361,44 @@ exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    //Forçamos o tipo de query SELECT para o Sequelize saber exatamente como estruturar o Array retornado
-    const partilhas = await Exame.sequelize.query(
-      "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = ? LIMIT 1",
+    // 2. RESOLVIDO: Parametrização total contra SQL Injection Secundária via :token
+    const partilhas = await sequelize.query(
+      "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = :token LIMIT 1",
       {
-        replacements: [token],
-        type: Exame.sequelize.QueryTypes.SELECT, // 👈 Garante que devolve uma Array limpa de objetos
+        replacements: { token },
+        type: sequelize.QueryTypes.SELECT,
       },
     );
 
-    // Validação ultra segura do resultado
     if (!partilhas || partilhas.length === 0) {
       return res
         .status(404)
         .json({ error: "Link de partilha inválido ou inexistente." });
     }
 
-    const partilha = partilhas[0];
-
-    // Se a coluna na BD se chamar 'examesIds' em vez de 'exames_ids', fazemos um fallback seguro
-    const examesIdsString = partilha.exames_ids || partilha.examesIds;
-    const dataExpiracaoRaw = partilha.data_expiracao || partilha.dataExpiracao;
+    const partilla = partilhas[0];
+    const examesIdsString = partilla.exames_ids || partilla.examesIds;
+    const dataExpiracaoRaw = partilla.data_expiracao || partilla.dataExpiracao;
 
     if (!examesIdsString) {
-      return res.status(500).json({
-        error:
-          "Erro na estrutura dos dados da partilha (coluna exames_ids não encontrada).",
-      });
+      return res
+        .status(500)
+        .json({
+          error: "Inconsistência estrutural nos metadados da partilha.",
+        });
     }
 
-    // Validação da expiração das 48h
+    // Validação cronológica estrita da janela de 48 horas
     if (dataExpiracaoRaw && new Date(dataExpiracaoRaw).getTime() < Date.now()) {
       return res
         .status(410)
-        .json({ error: "Este link de partilha já expirou." });
+        .json({ error: "Este link de partilha clínica já expirou." });
     }
 
-    // Converte a string "1,2,3" num array de números
+    // Conversão segura em tempo constante para array numérico primitivo
     const ids = examesIdsString.split(",").map((id) => Number.parseInt(id, 10));
 
-    // Procura os exames no Sequelize
+    // Procura os exames autorizados recorrendo ao ORM Sequelize
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
@@ -412,13 +410,13 @@ exports.getDadosPartilha = async (req, res) => {
       ],
     });
 
-    // Mapeamento seguro para o Frontend
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
-        observacoes: ex.observacoes || "Sem observações registadas.",
+        observacoes:
+          ex.observacoes || "Sem observações registadas pelo paciente.",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
@@ -426,11 +424,14 @@ exports.getDadosPartilha = async (req, res) => {
 
     return res.json(examesFormatados);
   } catch (error) {
-    // Se falhar, enviamos o erro na própria resposta HTTP para que o possas ler diretamente no teu navegador (no separador Network/Rede)!
-    console.error("Erro crítico apanhado:", error.message);
-    return res.status(500).json({
-      error: "Erro interno no servidor ao processar os dados.",
-      detalhes: error.message,
-    });
+    console.error(
+      "Erro crítico na extração de dados partilhados:",
+      error.message,
+    );
+    return res
+      .status(500)
+      .json({
+        error: "Falha interna ao processar dados de interoperabilidade.",
+      });
   }
 };
