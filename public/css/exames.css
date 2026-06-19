@@ -258,14 +258,28 @@ html, body {
     padding: 95px 15px 20px 15px !important; /* Margem perfeita abaixo da barra móvel */
   }
 
+
+  .table-responsive {
+    overflow-x: auto !important; /* Força o scroll horizontal suave se não couber */
+    -webkit-overflow-scrolling: touch;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    margin-bottom: 1rem;
+  }
+
+  .table {
+    min-width: 600px !important; /* Força a tabela a manter uma estrutura legível com scroll */
+  }
+
   #tabelaExames td:nth-child(2) {
-    min-width: 130px !important;
+    min-width: 150px !important; /* Garante espaço para o nome do exame */
+    white-space: normal !important; /* Deixa o texto quebrar linha se for muito grande */
   }
   
   #tabelaExames a.btn-primary, 
   #tabelaExames a.btn-danger {
     min-width: auto !important;
-    padding: 6px 8px !important;
+    padding: 6px 10px !important;
     font-size: 0.75rem !important;
   }
 }
