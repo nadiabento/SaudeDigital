@@ -1,7 +1,7 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
 const Partilha = require("../models/Partilha");
-const sequelize = require("../config/db");
+const { sequelize } = require("../config/db");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
