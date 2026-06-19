@@ -33,7 +33,6 @@ const Exame = sequelize.define(
   },
 );
 
-// Mapeamento Cirúrgico da Tabela Ponte Real
 const ExameTipoExame = sequelize.define(
   "ExameTipoExame",
   {
@@ -41,7 +40,7 @@ const ExameTipoExame = sequelize.define(
       type: DataTypes.INTEGER,
       primaryKey: true,
       references: { model: "Exame", key: "id" },
-      field: "id_exame", // 🧠 Garante o mapeamento do campo exato na BD
+      field: "id_exame",
     },
     id_tipo_exame: {
       type: DataTypes.INTEGER,
@@ -64,13 +63,12 @@ const ExameTipoExame = sequelize.define(
   },
 );
 
-// 🛡️ Configuração Manual de Chaves Estrangeiras para anular o CamelCase do Sequelize
+// Vinculação explícita de chaves para anular o CamelCase automático
 Exame.belongsToMany(TipoExame, {
   through: ExameTipoExame,
   foreignKey: "id_exame",
   otherKey: "id_tipo_exame",
 });
-
 TipoExame.belongsToMany(Exame, {
   through: ExameTipoExame,
   foreignKey: "id_tipo_exame",
