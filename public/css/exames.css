@@ -157,8 +157,8 @@ html, body {
 }
 
 .table-responsive {
-  overflow-x: visible !important;
-  overflow-y: visible !important;
+  overflow-x: visible !important; 
+  overflow-y: visible !important; 
   background: #ffffff;
   border-radius: 12px;
 }
@@ -191,22 +191,19 @@ html, body {
 #tabelaExames td {
   white-space: normal !important;
   word-break: break-word;
+  font-size: 0.95rem;
+  padding: 10px 8px !important; /* Padding reduzido para poupar espaço horizontal */
   vertical-align: middle;
-  padding: 12px 10px !important;
 }
 
 #tabelaExames td strong {
-  display: inline-block !important;
-  max-width: none !important;
-  width: auto !important;
-  background: transparent !important; 
-  padding: 0 !important;
-  border: none !important;
-  color: #252f40 !important;
-  white-space: nowrap !important; 
+  display: inline-block;
+  max-width: 100%;
+  white-space: normal; 
+  word-break: break-word; 
 }
 
-/* FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
+/* 💠 FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
 #tabelaExames a.btn-primary, 
 #tabelaExames a.btn-danger {
   display: inline-flex;
@@ -214,18 +211,19 @@ html, body {
   justify-content: center;
   gap: 4px;
   width: auto !important;
-  min-width: 120px;
-  padding: 5px 12px !important;
+  min-width: 115px; /* Tamanho exato para ler "PDF Relatório" sem apertar */
+  padding: 5px 10px !important;
   border-radius: 6px !important;
   font-size: 0.8rem !important;
   font-weight: 600 !important;
+  line-height: 1.2;
   white-space: nowrap;
 }
 
-/* BOTAO DE AÇÕES (...) MAIS PEQUENO E SIMÉTRICO */
+/*BOTAO DE AÇÕES (...) MAIS PEQUENO E SIMÉTRICO */
 #tabelaExames .dropdown button.btn-light {
-  width: 32px !important;
-  height: 32px !important;
+  width: 30px !important;
+  height: 30px !important;
   min-width: auto !important;
   padding: 0 !important;
   display: inline-flex;
@@ -233,18 +231,18 @@ html, body {
   justify-content: center;
   border-radius: 6px !important;
   background-color: #f8f9fa;
-  border: 1px solid #dee2e6 !important;
+  border: 1px solid #e9ecef !important;
 }
 
 /* Garante que o menu suspenso das ações fica totalmente legível */
 #tabelaExames .dropdown-menu {
   position: absolute !important;
-  z-index: 1070 !important;
+  z-index: 1060 !important;
   margin: 0;
-  right: 0 !important;
+  right: 0 !important; 
   left: auto !important;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
-  border: 1px solid #dee2e6 !important;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
+  border: 1px solid #e9ecef !important;
 }
 
 #tabelaExames .dropdown-menu .dropdown-item {
@@ -369,9 +367,13 @@ html, body {
     width: auto !important;
   }
 
- #tabelaExames td:nth-child(2) {
-  min-width: 220px !important;
+  #tabelaExames td:nth-child(2) {
+  font-weight: 700;
+  color: #252f40;
+  min-width: 260px !important;      
   width: auto !important;
+  white-space: normal !important;    
+  padding-right: 15px !important;    
   }
 
   #tabelaExames td strong {
