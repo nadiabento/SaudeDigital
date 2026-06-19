@@ -59,7 +59,6 @@ exports.listarTodosOsTiposAgnostico = async (req, res) => {
   }
 };
 
-// Lista o histórico de exames do utilizador logado com paginação e JOINs nativos
 exports.listarHistorico = async (req, res) => {
   const utilizadorId = obterUtilizadorSessao(req);
   const pagina = Number.parseInt(req.query.page, 10) || 1;
@@ -114,9 +113,11 @@ exports.listarHistorico = async (req, res) => {
 
 // Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
+  // Inicialização da transação gerida pelo Sequelize ORM
   const t = await sequelize.transaction();
   let idUtilizador = obterUtilizadorSessao(req);
 
+  // Fallback e limpeza preventiva de ficheiros físicos
   if (!idUtilizador) {
     if (req.files) {
       if (req.files["resultado_file"])
@@ -145,32 +146,36 @@ exports.registarExame = async (req, res) => {
       throw new Error("Campos obrigatórios em falta no formulário.");
     }
 
+    // Passo 1: Inserir Cabeçalho do Exame clínico
     const novoExame = await Exame.create(
       {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
-        observacoes,
-        utilizador_id: idUtilizador,
+        observacoes: observacoes || "",
+        utilizador_id: Number(idUtilizador), // 🧠 Força tipo numérico primitivo
       },
       { transaction: t },
     );
 
+    // Passo 2: Inserir Vínculo Documental na Tabela Ponte de forma explícita
     await ExameTipoExame.create(
       {
-        id_exame: novoExame.id,
-        id_tipo_exame: Number.parseInt(id_tipo_exame, 10),
+        id_exame: Number(novoExame.id),
+        id_tipo_exame: Number.parseInt(id_tipo_exame, 10), // 🧠 Conversão estrita contra falha de herança SQL
         resultado: ficheiroExame,
         relatorio: ficheiroRelatorio,
       },
       { transaction: t },
     );
 
+    // Se as duas inserções forem bem-sucedidas, consolida os dados na BD
     await t.commit();
     return res.status(201).json({
       message:
         "Registo clínico e anexos PDF consolidados com sucesso no histórico.",
     });
   } catch (error) {
+    // Reverte a BD e limpa os ficheiros físicos para evitar lixo no disco
     await t.rollback();
 
     if (req.files) {
@@ -189,9 +194,11 @@ exports.registarExame = async (req, res) => {
     }
 
     console.error("Rollback executado devido a erro crítico:", error.message);
-    return res.status(500).json({
-      error: "Falha na consistência relacional dos dados. Operação abortada.",
-    });
+    return res
+      .status(500)
+      .json({
+        error: "Falha na consistência relacional dos dados. Operação abortada.",
+      });
   }
 };
 
