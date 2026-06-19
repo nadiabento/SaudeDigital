@@ -322,22 +322,26 @@ exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
+    // 1. Procura explícita usando o token
     const partilha = await Partilha.findOne({ where: { token } });
 
     if (!partilha) {
       return res.status(404).json({ error: "Link de partilha inválido." });
     }
 
+    // 2. Validação segura do fuso horário da data de expiração
     if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
       return res
         .status(410)
         .json({ error: "Este link de partilha clínica já expirou." });
     }
 
+    // Corta e converte a string de IDs ("1,2,3") num array de inteiros
     const ids = partilha.exames_ids
       .split(",")
       .map((id) => Number.parseInt(id, 10));
 
+    // 3. Procura os exames correspondentes
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
@@ -350,12 +354,14 @@ exports.getDadosPartilha = async (req, res) => {
       ],
     });
 
+    // 4. Formata a resposta para o teu Frontend interoperável
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TiposExames?.[0];
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
         observacoes: ex.observacoes || "Sem observações.",
+        // Garante o mapeamento seguro da tabela intermédia Exame_TipoExame
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
@@ -363,9 +369,9 @@ exports.getDadosPartilha = async (req, res) => {
 
     return res.json(examesFormatados);
   } catch (error) {
-    console.error("Erro na extração de dados partilhados:", error.message);
+    console.error("ERRO CRÍTICO NA EXTRAÇÃO DE DADOS PARTILHADOS:", error);
     return res.status(500).json({
-      error: "Falha interna ao processar dados de interoperabilidade.",
+      error: `Falha interna ao processar dados de interoperabilidade: ${error.message}`,
     });
   }
 };

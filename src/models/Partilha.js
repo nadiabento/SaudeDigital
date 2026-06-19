@@ -4,7 +4,7 @@ const sequelize = require("../config/db");
 const Partilha = sequelize.define(
   "Partilha",
   {
-    id: {
+    id_partilha: {
       type: DataTypes.INTEGER,
       primaryKey: true,
       autoIncrement: true,
@@ -18,7 +18,7 @@ const Partilha = sequelize.define(
     exames_ids: {
       type: DataTypes.TEXT,
       allowNull: false,
-      field: "exames_ids", // Força a coluna snake_case na BD
+      field: "exames_ids",
     },
     data_expiracao: {
       type: DataTypes.DATE,
