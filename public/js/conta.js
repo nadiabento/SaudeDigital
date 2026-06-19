@@ -346,3 +346,66 @@ async function atualizarDadosPerfil(e) {
     });
   }
 }
+
+// --- 5. ELIMINAÇÃO TOTAL DA CONTA (ZONA CRÍTICA) ---
+function confirmarEliminarConta() {
+  Swal.fire({
+    title: "Tem a certeza absoluta?",
+    text: "Esta ação é irreversível! Todos os teveus exames, consultas, medicações e histórico clínico no SaúdeDigital serão destruídos permanentemente.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545", // Vermelho de aviso
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, apagar tudo!",
+    cancelButtonText: "Cancelar",
+  }).then(async (result) => {
+    if (result.isConfirmed) {
+      try {
+        // Bloqueio visual de segurança enquanto apaga na BD
+        Swal.fire({
+          title: "A processar...",
+          text: "A remover o seu perfil e dados clínicos dos servidores de forma segura.",
+          allowOutsideClick: false,
+          didOpen: () => {
+            Swal.showLoading();
+          },
+        });
+
+        // Faz o pedido de DELETE para a API de autenticação do teu backend
+        const response = await fetch("/api/auth/eliminar-conta", {
+          method: "DELETE",
+        });
+
+        if (response.ok) {
+          Swal.fire({
+            title: "Conta Eliminada",
+            text: "Os seus dados foram removidos com sucesso. Esperamos ver-te de volta!",
+            icon: "success",
+            confirmButtonColor: "#0d6efd",
+          }).then(() => {
+            // Redireciona o utilizador para a página inicial de login
+            window.location.href = "index.html";
+          });
+        } else {
+          const textoErro = await response.text();
+          Swal.fire({
+            title: "Erro na Operação",
+            text:
+              textoErro ||
+              "Não foi possível eliminar a sua conta neste momento.",
+            icon: "error",
+            confirmButtonColor: "#dc3545",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao eliminar conta:", error);
+        Swal.fire({
+          title: "Erro de Conexão",
+          text: "Não foi possível comunicar com o servidor da UA.",
+          icon: "error",
+          confirmButtonColor: "#dc3545",
+        });
+      }
+    }
+  });
+}
