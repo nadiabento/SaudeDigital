@@ -1,5 +1,6 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
+const Partilha = require("../models/Partilha");
 const sequelize = require("../config/db");
 const fs = require("node:fs");
 const path = require("node:path");
@@ -10,14 +11,13 @@ const obterUtilizadorSessao = (req) => {
   if (rawId && typeof rawId === "object") {
     return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
   }
-  return Number.parseInt(rawId, 10) || 4;
+  return Number.parseInt(rawId, 10) || 4; // Fallback estável Nadia Bento
 };
 
 // =========================================================================
-// --- 1. LISTAGENS E FILTROS EM CASCATA (PÁGINA INICIAL E CONTA)        ---
+// --- 1. LISTAGENS E FILTROS EM CASCATA                                 ---
 // =========================================================================
 
-// Devolve todas as categorias ordenadas por nome (Preenche a primeira combobox)
 exports.listarCategorias = async (req, res) => {
   try {
     const categorias = await CategoriaExame.findAll({
@@ -32,7 +32,6 @@ exports.listarCategorias = async (req, res) => {
   }
 };
 
-// Devolve os subtipos filtrados pela categoria pai selecionada (Cascata dinâmica)
 exports.listarTiposPorCategoria = async (req, res) => {
   try {
     const tipos = await TipoExame.findAll({
@@ -46,7 +45,6 @@ exports.listarTiposPorCategoria = async (req, res) => {
   }
 };
 
-// Devolve todos os tipos de exames globais sem filtro de pai (Usado no conta.html)
 exports.listarTodosOsTiposAgnostico = async (req, res) => {
   try {
     const tipos = await TipoExame.findAll({ order: [["nome", "ASC"]] });
@@ -75,7 +73,7 @@ exports.listarHistorico = async (req, res) => {
       include: [
         {
           model: TipoExame,
-          as: "TiposExames", // Usa o alias unificado
+          as: "TiposExames",
           attributes: ["nome"],
           through: { attributes: ["resultado", "relatorio"] },
         },
@@ -111,23 +109,9 @@ exports.listarHistorico = async (req, res) => {
 // --- 2. OPERAÇÕES DE CRIAÇÃO E REGISTO (POST)                          ---
 // =========================================================================
 
-// Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
-  // Inicialização da transação gerida pelo Sequelize ORM
   const t = await sequelize.transaction();
   let idUtilizador = obterUtilizadorSessao(req);
-
-  // Fallback e limpeza preventiva de ficheiros físicos
-  if (!idUtilizador) {
-    if (req.files) {
-      if (req.files["resultado_file"])
-        fs.unlinkSync(req.files["resultado_file"][0].path);
-      if (req.files["relatorio"]) fs.unlinkSync(req.files["relatorio"][0].path);
-    }
-    return res
-      .status(401)
-      .json({ error: "Sessão expirada. Por favor, efetue login novamente." });
-  }
 
   const ficheiroExame =
     req.files && req.files["resultado_file"]
@@ -146,94 +130,81 @@ exports.registarExame = async (req, res) => {
       throw new Error("Campos obrigatórios em falta no formulário.");
     }
 
-    // Passo 1: Inserir Cabeçalho do Exame clínico
     const novoExame = await Exame.create(
       {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes: observacoes || "",
-        utilizador_id: Number(idUtilizador), // 🧠 Força tipo numérico primitivo
+        utilizador_id: Number(idUtilizador),
       },
       { transaction: t },
     );
 
-    // Passo 2: Inserir Vínculo Documental na Tabela Ponte de forma explícita
     await ExameTipoExame.create(
       {
         id_exame: Number(novoExame.id),
-        id_tipo_exame: Number.parseInt(id_tipo_exame, 10), // 🧠 Conversão estrita contra falha de herança SQL
+        id_tipo_exame: Number.parseInt(id_tipo_exame, 10),
         resultado: ficheiroExame,
         relatorio: ficheiroRelatorio,
       },
       { transaction: t },
     );
 
-    // Se as duas inserções forem bem-sucedidas, consolida os dados na BD
     await t.commit();
     return res.status(201).json({
-      message:
-        "Registo clínico e anexos PDF consolidados com sucesso no histórico.",
+      message: "Registo clínico consolidado com sucesso no histórico.",
     });
   } catch (error) {
-    // Reverte a BD e limpa os ficheiros físicos para evitar lixo no disco
     await t.rollback();
-
     if (req.files) {
       if (
         req.files["resultado_file"] &&
         fs.existsSync(req.files["resultado_file"][0].path)
-      ) {
+      )
         fs.unlinkSync(req.files["resultado_file"][0].path);
-      }
       if (
         req.files["relatorio"] &&
         fs.existsSync(req.files["relatorio"][0].path)
-      ) {
+      )
         fs.unlinkSync(req.files["relatorio"][0].path);
-      }
     }
-
-    console.error("Rollback executado devido a erro crítico:", error.message);
-    return res
-      .status(500)
-      .json({
-        error: "Falha na consistência relacional dos dados. Operação abortada.",
-      });
+    console.error("Erro na inserção do exame:", error.message);
+    return res.status(500).json({
+      error: "Falha na consistência relacional dos dados. Operação abortada.",
+    });
   }
 };
 
-// Cria uma nova categoria de exame (Via Modal do formulário)
 exports.criarCategoria = async (req, res) => {
   try {
     const nova = await CategoriaExame.create({ nome: req.body.nome });
-    res.status(201).json(nova);
+    return res.status(201).json(nova);
   } catch (error) {
     console.error("Erro ao criar categoria:", error);
-    res.status(500).json({ error: "Erro ao criar categoria." });
+    return res.status(500).json({ error: "Erro ao criar categoria." });
   }
 };
 
-// Cria um novo subtipo de exame (Via Modal do formulário)
 exports.criarTipo = async (req, res) => {
   try {
     const novo = await TipoExame.create({
       nome: req.body.nome,
-      id_categoria: req.body.id_categoria,
+      id_categoria: Number.parseInt(req.body.id_categoria, 10),
     });
-    res.status(201).json(novo);
+    return res.status(201).json(novo);
   } catch (error) {
     console.error("Erro ao criar tipo:", error);
-    res.status(500).json({ error: "Erro ao criar tipo de exame." });
+    return res.status(500).json({ error: "Erro ao criar tipo de exame." });
   }
 };
 
 // =========================================================================
-// --- 3. OPERAÇÕES DE EDIÇÃO E MANUTENÇÃO (PUT)                         ---
+// --- 3. OPERAÇÕES DE MANUTENÇÃO (PUT / DELETE)                         ---
 // =========================================================================
 
 exports.editarExame = async (req, res) => {
   const { data_exame, observacoes } = req.body;
-  const utilizadorId = req.session.userId || 1;
+  const utilizadorId = obterUtilizadorSessao(req);
 
   try {
     const [atualizados] = await Exame.update(
@@ -246,16 +217,12 @@ exports.editarExame = async (req, res) => {
         .status(404)
         .json({ error: "Exame não encontrado ou sem permissão." });
     }
-    res.json({ message: "Exame atualizado com sucesso!" });
+    return res.json({ message: "Exame atualizado com sucesso!" });
   } catch (error) {
     console.error("Erro ao editar exame:", error);
-    res.status(500).json({ error: "Erro ao editar o registo." });
+    return res.status(500).json({ error: "Erro ao editar o registo." });
   }
 };
-
-// =========================================================================
-// --- 4. OPERAÇÕES DE REMOÇÃO PROTEGIDA (DELETE)                        ---
-// =========================================================================
 
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
@@ -307,63 +274,34 @@ exports.eliminarMassa = async (req, res) => {
   }
 };
 
-exports.eliminarCategoria = async (req, res) => {
-  try {
-    await CategoriaExame.destroy({ where: { id: req.params.id } });
-    res.json({ message: "Categoria limpa com sucesso!" });
-  } catch (error) {
-    if (error.name === "SequelizeForeignKeyConstraintError") {
-      return res.status(400).json({
-        error:
-          "Operação travada. Existem subtipos de exames ou relatórios de pacientes mapeados nesta categoria.",
-      });
-    }
-    res.status(500).json({ error: "Erro interno no servidor." });
-  }
-};
-
-exports.eliminarTipoExame = async (req, res) => {
-  try {
-    await TipoExame.destroy({ where: { id: req.params.id } });
-    res.json({ message: "Parâmetro clínico removido." });
-  } catch (error) {
-    if (error.name === "SequelizeForeignKeyConstraintError") {
-      return res.status(400).json({
-        error:
-          "Não pode apagar este tipo de exame. Existem exames reais no histórico dos utilizadores associados a este parâmetro.",
-      });
-    }
-    res.status(500).json({ error: "Erro interno no servidor." });
-  }
-};
-
 // =========================================================================
-// --- 5. INTEROPERABILIDADE E PORTAL DE PARTILHA                        ---
+// --- 4. INTEROPERABILIDADE E PARTILHA (PORTAL DO MÉDICO)               ---
 // =========================================================================
 
 exports.gerarPartilha = async (req, res) => {
   const { examesIds } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
 
-  if (!examesIds || examesIds.length === 0) {
-    return res.status(400).json({ error: "Parâmetros de exames inválidos." });
+  if (!examesIds || !Array.isArray(examesIds) || examesIds.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Selecione pelo menos um exame válido." });
   }
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
-    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000);
+    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // Janela estrita de 48h
 
-    await sequelize.query(
-      "INSERT INTO Partilha (token, exames_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
-      {
-        replacements: [token, examesIds.join(","), dataExpiracao, utilizadorId],
-        type: sequelize.QueryTypes.INSERT,
-      },
-    );
+    await Partilha.create({
+      token,
+      exames_ids: examesIds.join(","),
+      data_expiracao: dataExpiracao,
+      utilizador_id: Number(utilizadorId),
+    });
 
     return res.json({ token });
   } catch (error) {
-    console.error("Erro ao processar link interoperável:", error);
+    console.error("Erro ao processar link interoperável:", error.message);
     return res
       .status(500)
       .json({ error: "Erro interno ao criar credencial de partilha." });
@@ -371,47 +309,29 @@ exports.gerarPartilha = async (req, res) => {
 };
 
 exports.visualizarPartilha = (req, res) => {
-  res.sendFile(path.join(__dirname, "../../public/partilha.html"));
+  return res.sendFile(path.join(__dirname, "../../public/partilha.html"));
 };
 
-// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (INCLUINDO ALIAS RETIFICADO) ---
 exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    const partilhas = await sequelize.query(
-      "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = :token LIMIT 1",
-      {
-        replacements: { token },
-        type: sequelize.QueryTypes.SELECT,
-      },
-    );
+    const partilha = await Partilha.findOne({ where: { token } });
 
-    if (!partilhas || partilhas.length === 0) {
-      return res
-        .status(404)
-        .json({ error: "Link de partilha inválido ou inexistente." });
+    if (!partilha) {
+      return res.status(404).json({ error: "Link de partilha inválido." });
     }
 
-    const partilla = partilhas[0];
-    const examesIdsString = partilla.exames_ids || partilla.examesIds;
-    const dataExpiracaoRaw = partilla.data_expiracao || partilla.dataExpiracao;
-
-    if (!examesIdsString) {
-      return res.status(500).json({
-        error: "Inconsistência estrutural nos metadados da partilha.",
-      });
-    }
-
-    if (dataExpiracaoRaw && new Date(dataExpiracaoRaw).getTime() < Date.now()) {
+    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
       return res
         .status(410)
         .json({ error: "Este link de partilha clínica já expirou." });
     }
 
-    const ids = examesIdsString.split(",").map((id) => Number.parseInt(id, 10));
+    const ids = partilha.exames_ids
+      .split(",")
+      .map((id) => Number.parseInt(id, 10));
 
-    // 🛡️ CORREÇÃO DEFINITIVA: Inclusão do alias explícito 'TiposExames' igual ao histórico
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
@@ -429,8 +349,7 @@ exports.getDadosPartilha = async (req, res) => {
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
-        observacoes:
-          ex.observacoes || "Sem observações registadas pelo paciente.",
+        observacoes: ex.observacoes || "Sem observações.",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
@@ -438,10 +357,7 @@ exports.getDadosPartilha = async (req, res) => {
 
     return res.json(examesFormatados);
   } catch (error) {
-    console.error(
-      "Erro crítico na extração de dados partilhados:",
-      error.message,
-    );
+    console.error("Erro na extração de dados partilhados:", error.message);
     return res.status(500).json({
       error: "Falha interna ao processar dados de interoperabilidade.",
     });

@@ -24,21 +24,49 @@ html, body {
    2. SIDEBAR ESTRUTURAL (COMPORTAMENTO IDÊNTICO ÀS CONSULTAS)
    ========================================================================= */
 .sidebar {
-  width: var(--sidebar-width);
+  width: var(--sidebar-width) !important;
   height: 100vh;
+  height: 100dvh;
   position: fixed !important;
   top: 0;
   left: 0;
-  background: #ffffff !important;
+  background: #ffffff;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e9ecef;
   z-index: 1050;
-  transition: all 0.3s ease;
+  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
 }
 
 .sidebar.collapsed {
-  width: var(--sidebar-width-collapsed);
+  width: var(--sidebar-width-collapsed) !important;
+}
+
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--sidebar-width-collapsed) !important;
+  width: calc(100% - var(--sidebar-width-collapsed)) !important;
+}
+
+.sidebar.collapsed .toggle-btn {
+  transform: rotate(180deg);
+}
+
+.sidebar.collapsed .hide-on-collapse,
+.sidebar.collapsed .profile-info,
+.sidebar.collapsed .logo-text {
+  display: none !important;
+}
+
+.sidebar.collapsed .sidebar-link {
+  justify-content: center !important;
+  padding: 12px 0 !important;
+  margin: 4px 12px !important;
+  text-align: center;
+}
+
+.sidebar.collapsed .sidebar-link i {
+  margin: 0 !important;
+  font-size: 1.25rem;
 }
 
 .sidebar-link {
@@ -54,13 +82,13 @@ html, body {
 }
 
 .sidebar-link:hover {
-  color: #252f40;
-  background-color: rgba(13, 110, 253, 0.08);
+  color: var(--primary-color);
+  background-color: var(--primary-light);
   transform: translateX(5px);
 }
 
 .sidebar-link.active {
-  background-color: #0d6efd !important;
+  background-color: var(--primary-color) !important;
   color: #ffffff !important;
   font-weight: 500;
   box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
@@ -83,7 +111,6 @@ html, body {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #6c757d;
 }
 
 .collapsed .toggle-btn {
@@ -115,11 +142,12 @@ html, body {
    3. CONTEÚDO PRINCIPAL DINÂMICO 
    ========================================================================= */
 .main-content {
-  margin-left: var(--sidebar-width);
+  margin-left: var(--sidebar-width) !important;
+  width: calc(100% - var(--sidebar-width)) !important; /* Força a largura dinâmica correta */
+  padding: 2rem;
   min-height: 100vh;
-  padding: 40px;
-  transition: all 0.3s ease;
-  background-color: var(--bg-light) !important;
+  background-color: var(--bg-light);
+  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out; 
 }
 
 .collapsed ~ .main-content {

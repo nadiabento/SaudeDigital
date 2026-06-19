@@ -435,10 +435,10 @@ function configurarEventosInterface() {
         });
       }
 
-      // Cria o FormData automaticamente com os ficheiros 'resultado_file' e 'relatorio' do HTML
+      // Carrega automaticamente os inputs do tipo 'file' (resultado_file e relatorio)
       const formData = new FormData(form);
 
-      // Injeta os dados estruturados adicionais requeridos pelo backend
+      // Sincroniza os nomes exatos esperados pelo req.body do backend
       formData.append("data_exame", dataExame);
       formData.append(
         "observacoes",
@@ -446,25 +446,33 @@ function configurarEventosInterface() {
       );
       formData.append("id_tipo_exame", idTipoExame);
 
+      Swal.fire({
+        title: "A guardar registo...",
+        text: "A processar metadados e anexos PDF.",
+        allowOutsideClick: false,
+        didOpen: () => Swal.showLoading(),
+      });
+
       try {
         const res = await fetch("/api/exames/registar", {
           method: "POST",
-          body: formData,
+          body: formData, // Envia o multipart/form-data limpo
         });
+
+        const dados = await res.json();
 
         if (res.ok) {
           Swal.fire({
             title: "Exame Registado!",
-            text: "Os dados e os ficheiros anexados foram guardados.",
+            text: "Os dados e os ficheiros anexados foram consolidados com sucesso.",
             icon: "success",
           }).then(() => {
             location.reload();
           });
         } else {
-          const erro = await res.json();
           Swal.fire({
             title: "Erro ao registar",
-            text: erro.error || "Erro na inserção.",
+            text: dados.error || "Erro na inserção.",
             icon: "error",
           });
         }
@@ -472,18 +480,12 @@ function configurarEventosInterface() {
         console.error("Erro na submissão:", error);
         Swal.fire({
           title: "Erro de Conexão",
-          text: "Falha ao comunicar com o servidor.",
+          text: "Falha ao comunicar com o servidor clínico.",
           icon: "error",
         });
       }
     });
   }
-
-  document.addEventListener("click", (e) => {
-    if (inputClasse && e.target !== inputClasse)
-      listaUlClasse.style.display = "none";
-    if (inputTipo && e.target !== inputTipo) listaUlTipo.style.display = "none";
-  });
 }
 
 //--- 6. MODAIS E PARÂMETROS GLOBAIS ---
