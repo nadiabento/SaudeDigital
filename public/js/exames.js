@@ -584,51 +584,104 @@ function ordenarTabela(coluna) {
 
 //--- 7. PARTILHA EXTERNA ---
 
-async function gerarLinkPartilha(id = null) {
-  let ids = [];
-  const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
+async function gerarLinkPartilha() {
+  // 1. Procura todas as checkboxes de linhas que estejam selecionadas na tabela
+  const checkboxes = document.querySelectorAll(
+    '#tabelaExames input[type="checkbox"]:checked',
+  );
 
-  if (checkboxes.length > 0) {
-    ids = Array.from(checkboxes).map((cb) => cb.value);
-  } else if (id) {
-    ids = [id];
-  }
-
-  if (ids.length === 0) {
-    Swal.fire(
-      "Atenção",
-      "Selecione pelo menos um exame para partilhar.",
-      "info",
-    );
+  if (checkboxes.length === 0) {
+    Swal.fire({
+      title: "Nenhum exame selecionado",
+      text: "Por favor, selecione pelo menos um exame na tabela para gerar um link de partilha.",
+      icon: "warning",
+      confirmButtonColor: "#3b5afa",
+    });
     return;
   }
 
+  // 2. Extrai os IDs dos exames selecionados
+  const examesIds = Array.from(checkboxes).map((cb) => cb.value);
+
+  // 3. Pede ao utilizador para definir o tempo de expiração do link
+  const { value: horasExpiracao } = await Swal.fire({
+    title: "Validade do Link",
+    text: "Durante quantas horas o médico poderá visualizar estes exames?",
+    input: "select",
+    inputOptions: {
+      1: "1 Hora",
+      2: "2 Horas",
+      24: "24 Horas",
+      48: "48 Horas",
+      168: "1 Semana",
+    },
+    inputValue: "2",
+    showCancelButton: true,
+    confirmButtonText: "Gerar Link Seguro",
+    cancelButtonText: "Cancelar",
+    confirmButtonColor: "#3b5afa",
+    inputValidator: (value) => {
+      if (!value) return "Precisa de escolher uma validade!";
+    },
+  });
+
+  if (!horasExpiracao) return; // Utilizador cancelou
+
+  // 4. Mostra um indicador de carregamento (Loading)
+  Swal.fire({
+    title: "A criar portal seguro...",
+    text: "A encriptar chaves de acesso clínico.",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+
   try {
-    const res = await fetch("/api/exames/gerar-partilha", {
+    // 5. Faz o pedido POST para a rota do teu backend
+    const response = await fetch("/api/exames/gerar-partilha", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ examesIds: ids }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        examesIds: examesIds, // Passa o array de IDs
+        horasValidade: parseInt(horasExpiracao, 10),
+      }),
     });
 
-    const dados = await res.json();
+    const dados = await response.json();
 
-    if (res.ok) {
-      const linkFinal = `${globalThis.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
-      document.getElementById("inputLinkPartilha").value = linkFinal;
-
-      const textoQuantidade =
-        ids.length > 1 ? ` (${ids.length} exames selecionados)` : "";
-      document.querySelector("#modalPartilha .modal-title").innerHTML =
-        `<i class="bi bi-share text-primary me-2"></i>Partilhar Resultados${textoQuantidade}`;
-
-      const modal = new bootstrap.Modal(
-        document.getElementById("modalPartilha"),
-      );
-      modal.show();
-      navigator.clipboard.writeText(linkFinal);
+    if (!response.ok) {
+      throw new Error(dados.error || "Erro desconhecido ao gerar link.");
     }
+
+    // 6. Constrói o link completo baseado no domínio atual (funciona em localhost e no Render)
+    const urlCompleta = `${window.location.origin}/partilha/${dados.token}`;
+
+    // 7. Exibe o link num modal interativo pronto a copiar
+    Swal.fire({
+      title: "¡Portal Médico Gerado!",
+      html: `
+        <p class="text-muted small">Partilhe o link abaixo com o seu profissional de saúde:</p>
+        <div class="input-group mb-3">
+          <input type="text" id="inputLinkGerado" class="form-control text-center bg-light fw-bold" value="${urlCompleta}" readonly>
+          <button class="btn btn-primary" type="button" onclick="const input = document.getElementById('inputLinkGerado'); input.select(); document.execCommand('copy'); this.innerHTML='<i class=\'bi bi-check-lg\'></i>';">
+            Copiar
+          </button>
+        </div>
+        <p class="text-danger small mb-0"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
+      `,
+      icon: "success",
+      confirmButtonColor: "#3b5afa",
+      confirmButtonText: "Concluído",
+    });
   } catch (error) {
     console.error("Erro na partilha:", error);
+    Swal.fire({
+      title: "Falha na Partilha",
+      text: error.message || "Não foi possível conectar ao servidor clínico.",
+      icon: "error",
+      confirmButtonColor: "#dc3545",
+    });
   }
 }
 
