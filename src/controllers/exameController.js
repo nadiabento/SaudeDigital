@@ -9,9 +9,9 @@ const crypto = require("node:crypto");
 const obterUtilizadorSessao = (req) => {
   let rawId = req.session?.userId;
   if (rawId && typeof rawId === "object") {
-    return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
+    return rawId.id_utilizador || rawId.id || rawId.utilizador_id;
   }
-  return Number.parseInt(rawId, 10) || 4;
+  return Number.parseInt(rawId, 10);
 };
 
 // =========================================================================

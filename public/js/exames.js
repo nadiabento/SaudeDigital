@@ -418,6 +418,7 @@ function configurarEventosInterface() {
   }
 
   // --- DENTRO DE configurarEventosInterface() ---
+  // --- Dentro de configurarEventosInterface() ---
   const form = document.getElementById("formExame");
   if (form) {
     form.removeAttribute("action");
@@ -429,25 +430,23 @@ function configurarEventosInterface() {
       const dataExame = document.getElementById("dataExame").value;
       const idTipoExame = document.getElementById("idTipoSelecionado").value;
 
-      if (!idTipoExame) {
+      if (!idTipoExame || idTipoExame.trim() === "") {
         return Swal.fire({
           title: "Atenção",
-          text: "Por favor, selecione um tipo de exame válido a partir das sugestões.",
+          text: "Por favor, selecione um tipo de exame válido a partir das sugestões do catálogo.",
           icon: "warning",
+          confirmButtonColor: "#3b5afa",
         });
       }
 
-      // Cria o FormData a partir do formulário (apanha os ficheiros automaticamente)
+      // Cria o FormData dinâmico a partir do formulário
       const formData = new FormData(form);
 
-      // Sincroniza os nomes exatos esperados pelo req.body do backend
-      formData.append("data_exame", dataExame);
-      formData.append(
-        "observacoes",
-        document.getElementById("observacoes").value,
-      );
-      formData.append("id_tipo_exame", idTipoExame);
-      formData.append("local_realizacao", "SaúdeDigital Clinic"); // Evita que req.body venha sem este campo
+      // Sincroniza e garante os nomes exatos esperados pelo req.body do backend
+      formData.set("data_exame", dataExame);
+      formData.set("observacoes", document.getElementById("observacoes").value);
+      formData.set("id_tipo_exame", idTipoExame);
+      formData.set("local_realizacao", "SaúdeDigital Clinic");
 
       Swal.fire({
         title: "A guardar registo...",
@@ -459,17 +458,15 @@ function configurarEventosInterface() {
       try {
         const res = await fetch("/api/exames/registar", {
           method: "POST",
-          body: formData,
+          body: formData, // O FormData define automaticamente o Content-Type como multipart/form-data
         });
 
-        // Proteção contra respostas HTML (erros 500 do servidor)
         const contentType = res.headers.get("content-type");
         let dados = {};
 
         if (contentType && contentType.includes("application/json")) {
           dados = await res.json();
         } else {
-          // Se não for JSON, lê como texto para não rebentar o fluxo do JavaScript
           const textoErro = await res.text();
           console.error("Erro bruto do servidor (HTML):", textoErro);
           throw new Error("O servidor clínico sofreu um erro interno.");
@@ -480,14 +477,16 @@ function configurarEventosInterface() {
             title: "Exame Registado!",
             text: "Os dados e os ficheiros anexados foram consolidados com sucesso.",
             icon: "success",
+            confirmButtonColor: "#3b5afa",
           }).then(() => {
             location.reload();
           });
         } else {
           Swal.fire({
             title: "Erro ao registar",
-            text: dados.error || "Erro na inserção.",
+            text: dados.error || "Erro na inserção do registo.",
             icon: "error",
+            confirmButtonColor: "#dc3545",
           });
         }
       } catch (error) {
@@ -496,6 +495,7 @@ function configurarEventosInterface() {
           title: "Erro de Conexão",
           text: error.message || "Falha ao comunicar com o servidor clínico.",
           icon: "error",
+          confirmButtonColor: "#dc3545",
         });
       }
     });
