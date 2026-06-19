@@ -1,4 +1,4 @@
-/* 1. VARIÁVEIS E CONFIGURAÇÃO GLOBAL (SINTONIZADAS COM O LAYOUT BASE) */
+/* --- 1. VARIÁVEIS E CONFIGURAÇÃO GLOBAL --- */
 :root {
   --sidebar-width: 260px;
   --sidebar-width-collapsed: 80px;
@@ -10,7 +10,7 @@
 }
 
 html, body {
-  overflow-x: hidden !important;
+  overflow-x: hidden !important; /* Proteção total contra scroll lateral */
   width: 100%;
   max-width: 100vw;
   font-family: "Inter", sans-serif;
@@ -18,7 +18,7 @@ html, body {
   background-color: var(--bg-light);
 }
 
-/* 2. SIDEBAR (RESTAURADA E PROTEGIDA CONTRA OCULTAÇÃO) */
+/* --- 2. SIDEBAR (COMPUTADOR - PADRÃO ABERTO) --- */
 .sidebar {
   width: var(--sidebar-width) !important;
   height: 100vh;
@@ -80,7 +80,7 @@ html, body {
   background-color: #e9ecef;
 }
 
-/*3. CONTEÚDO PRINCIPAL E DRAG DE ECRA */
+/* --- 3. CONTEÚDO PRINCIPAL (COMPUTADOR) --- */
 .main-content {
   margin-left: var(--sidebar-width) !important;
   padding: 2rem;
@@ -89,6 +89,7 @@ html, body {
   transition: margin-left 0.3s ease-in-out; 
 }
 
+/* Chevron de encolher */
 .toggle-btn {
   position: absolute;
   right: -15px;
@@ -104,7 +105,7 @@ html, body {
   transition: transform 0.3s ease;
 }
 
-/* --- ESTADO COLLAPSED (PC) --- */
+/* --- 4. ESTADO ENCOLHIDO (PC - COLLAPSED) --- */
 .sidebar.collapsed {
   width: var(--sidebar-width-collapsed) !important;
 }
@@ -137,14 +138,24 @@ html, body {
   font-size: 1.3rem;
 }
 
-/*4. TABELA DO HISTÓRICO (TEXTO INTEIRO + DROPDOWN CORRIGIDO) */
+.sidebar.collapsed .profile-link {
+  justify-content: center !important;
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  background-color: transparent !important;
+}
+
+/* --- 5. COMPONENTES DE UI GENÉRICOS E TABELA OTIMIZADA --- */
 .card {
   border-radius: 16px;
   border: none;
   box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
 }
 
-/* Evita que o dropdown fique preso sob a linha da tabela */
+.table {
+  table-layout: auto !important;
+}
+
 .table-responsive {
   overflow-x: visible !important;
   overflow-y: visible !important;
@@ -160,56 +171,58 @@ html, body {
   white-space: nowrap;
 }
 
+/* Dimensões estáveis para as colunas de anexos */
+.table th:nth-child(4), .table td:nth-child(4) {
+  width: 130px !important;
+  text-align: center;
+}
+
+.table th:nth-child(5), .table td:nth-child(5) {
+  width: 140px !important;
+  text-align: center;
+}
+
+/* Reserva o espaço exato e fixo para o botão de ações (...) */
+.table th:last-child, .table td:last-child {
+  width: 60px !important;
+  text-align: end;
+}
+
 #tabelaExames td {
   white-space: normal !important;
   word-break: break-word;
-  font-size: 0.95rem;
-  padding: 12px 10px !important;
   vertical-align: middle;
+  padding: 12px 10px !important;
 }
 
-/* Mostra "Hemograma Completo" por extenso sem caixas verdes parasitas */
 #tabelaExames td strong {
   display: inline-block !important;
   max-width: none !important;
   width: auto !important;
-  background: transparent !important;
+  background: transparent !important; 
   padding: 0 !important;
   border: none !important;
   color: #252f40 !important;
-  white-space: nowrap !important;
+  white-space: nowrap !important; 
 }
 
-/* Reserva o espaço horizontal correto para o texto e os anexos */
-#tabelaExames td:nth-child(2) {
-  min-width: 220px !important;
-  width: auto !important;
-}
-
-.table th:nth-child(4), .table td:nth-child(4) { width: 130px !important; text-align: center; }
-.table th:nth-child(5), .table td:nth-child(5) { width: 140px !important; text-align: center; }
-.table th:last-child, .table td:last-child { width: 60px !important; text-align: end; }
-
-/*FORMATO DOS BOTÕES DE ANEXO PDF */
+/* FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
 #tabelaExames a.btn-primary, 
-#tabelaExames a.btn-danger,
-#tabelaExames .btn-primary, 
-#tabelaExames .btn-danger {
-  display: inline-flex !important;
+#tabelaExames a.btn-danger {
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 4px;
   width: auto !important;
-  min-width: 115px;
-  padding: 5px 10px !important;
+  min-width: 120px;
+  padding: 5px 12px !important;
   border-radius: 6px !important;
   font-size: 0.8rem !important;
   font-weight: 600 !important;
-  line-height: 1.2;
   white-space: nowrap;
 }
 
-/* Botão de Ações (...) Simétrico e Dropdown flutuante */
+/* BOTAO DE AÇÕES (...) MAIS PEQUENO E SIMÉTRICO */
 #tabelaExames .dropdown button.btn-light {
   width: 32px !important;
   height: 32px !important;
@@ -223,23 +236,25 @@ html, body {
   border: 1px solid #dee2e6 !important;
 }
 
+/* Garante que o menu suspenso das ações fica totalmente legível */
 #tabelaExames .dropdown-menu {
   position: absolute !important;
   z-index: 1070 !important;
   margin: 0;
   right: 0 !important;
   left: auto !important;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1) !important;
-  border: 1px solid #e9ecef !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15) !important;
+  border: 1px solid #dee2e6 !important;
 }
 
 #tabelaExames .dropdown-menu .dropdown-item {
   font-size: 0.88rem !important;
   padding: 8px 16px !important;
   white-space: nowrap !important;
+  display: flex;
+  align-items: center;
 }
 
-/* 5. COMPONENTES DO FORMULÁRIO E FORMATAÇÕES ADICIONAIS*/
 .upload-box {
   border: 2px dashed var(--border-color);
   background-color: var(--bg-light);
@@ -287,8 +302,11 @@ html, body {
   color: #2d3748;
 }
 
-/* --- PAGINAÇÃO EM CÍRCULOS --- */
-.pagination { gap: 8px; }
+/* --- 6. PAGINAÇÃO EM CÍRCULOS --- */
+.pagination {
+  gap: 8px; 
+}
+
 .page-item .page-link {
   font-size: 0.85rem; 
   font-weight: 500;
@@ -320,7 +338,7 @@ html, body {
   box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
 }
 
-/* 6. RESPONSIVIDADE (MOBILE) */
+/* --- 7. RESPONSIVIDADE CRÍTICA (MOBILE) --- */
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%) !important;
@@ -351,22 +369,35 @@ html, body {
     width: auto !important;
   }
 
-  #tabelaExames td:nth-child(2) {
-    font-weight: 700;
-    color: #252f40;
-    min-width: 110px !important;
+ #tabelaExames td:nth-child(2) {
+  min-width: 220px !important;
+  width: auto !important;
   }
 
   #tabelaExames td strong {
-    max-width: 120px !important;
+  display: block !important;
+  max-width: none !important;       
+  width: 100% !important;
+  white-space: normal !important;    
+  text-overflow: clip !important;    
+  overflow: visible !important;
+  word-break: normal !important;     
+  } 
+
+  #tabelaExames td:nth-child(3) {
     white-space: nowrap !important;
   }
 
-  #tabelaExames .btn-primary, 
-  #tabelaExames .btn-danger {
+  #tabelaExames a.btn-primary, 
+  #tabelaExames a.btn-danger {
     padding: 4px 8px !important;
     font-size: 0.75rem !important;
     border-radius: 6px !important;
-    min-width: auto !important;
+    min-width: auto;
+  }
+
+  .table-responsive {
+    overflow-x: auto !important;
+    width: 100%;
   }
 }
