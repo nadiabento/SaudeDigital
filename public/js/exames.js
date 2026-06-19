@@ -669,7 +669,7 @@ async function gerarLinkPartilha() {
     }
 
     // 6. Constrói o link completo baseado no domínio atual (funciona em localhost e no Render)
-    const urlCompleta = `${window.location.origin}/partilha/${dados.token}`;
+    const urlCompleta = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
 
     // 7. Exibe o link num modal interativo pronto a copiar
     // Substitui o Swal.fire antigo dentro de gerarLinkPartilha por este:
