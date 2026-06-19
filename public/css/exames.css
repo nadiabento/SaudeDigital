@@ -241,45 +241,72 @@ html, body {
    ========================================================================= */
 @media (max-width: 991px) {
   .sidebar {
-    transform: translateX(-100%) !important; /* Esconde o menu para fora do ecrã */
+    transform: translateX(-100%) !important;
     position: fixed !important;
     height: 100vh !important;
     z-index: 1200 !important;
   }
   
   .sidebar.active {
-    transform: translateX(0) !important; /* Desliza suavemente para dentro ao clicar */
+    transform: translateX(0) !important;
   }
 
   .main-content {
-    margin-left: 0 !important; /* Ocupa o ecrã inteiro no telemóvel */
+    margin-left: 0 !important;
     width: 100% !important;
     max-width: 100vw !important;
-    padding: 95px 15px 20px 15px !important; /* Margem perfeita abaixo da barra móvel */
+    padding: 95px 15px 20px 15px !important;
   }
 
-
+  /* 📑 CORREÇÃO DO CONTAINER DA TABELA (Resolve o desvio para a direita) */
   .table-responsive {
-    overflow-x: auto !important; /* Força o scroll horizontal suave se não couber */
+    display: block;
+    width: 100% !important;
+    overflow-x: auto !important; /* Cria um sub-ecrã deslizante apenas para a tabela */
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border-color);
     border-radius: 8px;
-    margin-bottom: 1rem;
+    margin-bottom: 1.5rem;
+    box-sizing: border-box;
   }
 
-  .table {
-    min-width: 600px !important; /* Força a tabela a manter uma estrutura legível com scroll */
+  /* Define a largura interna da tabela sem esticar o card exterior */
+  .table-responsive .table {
+    min-width: 650px !important; 
+    margin-bottom: 0 !important;
+  }
+
+  /* Centra o conteúdo e os cabeçalhos das células no mobile */
+  #tabelaExames td, 
+  .table thead th {
+    padding: 10px 8px !important;
+    text-align: left;
+    vertical-align: middle;
   }
 
   #tabelaExames td:nth-child(2) {
-    min-width: 150px !important; /* Garante espaço para o nome do exame */
-    white-space: normal !important; /* Deixa o texto quebrar linha se for muito grande */
+    min-width: 160px !important;
+    white-space: normal !important;
   }
-  
+
+  #paginacaoContainer {
+    width: 100% !important;
+    display: flex !important;
+    justify-content: center !important; /* Força os botões 1, 2, Próximo a ficar no centro */
+    margin-top: 1rem !important;
+    clear: both;
+  }
+
+  .pagination {
+    margin: 0 auto !important;
+  }
+
+  /* Ajuste dos mini botões de PDF para não quebrarem layout */
   #tabelaExames a.btn-primary, 
   #tabelaExames a.btn-danger {
     min-width: auto !important;
-    padding: 6px 10px !important;
+    display: inline-flex !important;
+    padding: 6px 8px !important;
     font-size: 0.75rem !important;
   }
 }
