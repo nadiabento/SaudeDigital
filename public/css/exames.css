@@ -236,6 +236,28 @@ html, body {
   box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); 
 }
 
+/* Botão WhatsApp: Estado Normal */
+.btn-outline-success {
+  color: #198754 !important; /* Cor verde do texto */
+  background-color: transparent !important;
+  border-color: #198754 !important;
+  transition: all 0.2s ease-in-out !important;
+}
+
+/* Botão WhatsApp: Efeito Hover (Fundo Verde, Letras Brancas) */
+.btn-outline-success:hover, 
+.btn-outline-success:active, 
+.btn-outline-success:focus {
+  background-color: #198754 !important; /* Fundo Verde */
+  color: #ffffff !important;             /* Letras Brancas */
+  border-color: #198754 !important;
+}
+
+/* Garante que o ícone do WhatsApp também fica branco no hover */
+.btn-outline-success:hover i {
+  color: #ffffff !important;
+}
+
 /* =========================================================================
    5. RESPONSIVIDADE ADAPTADA AO GATILHO DAS CONSULTAS (991px / 768px)
    ========================================================================= */
