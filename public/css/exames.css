@@ -1,4 +1,6 @@
-/* --- 1. VARIÁVEIS E CONFIGURAÇÃO GLOBAL --- */
+/* =========================================================================
+   1. VARIÁVEIS E CONFIGURAÇÃO GLOBAL (SAÚDEDIGITAL BASE)
+   ========================================================================= */
 :root {
   --primary-color: #0d6efd;
   --primary-light: #e7f0ff;
@@ -21,20 +23,25 @@ body {
   overflow-x: hidden;
 }
 
-/* --- 2. SIDEBAR (COMPUTADOR - PADRÃO ABERTO) --- */
+/* =========================================================================
+   2. SIDEBAR ESTRUTURAL (DESENHO ESTÁVEL DA NÁDIA)
+   ========================================================================= */
 .sidebar {
-  width: var(--sidebar-width) !important;
+  width: var(--sidebar-width);
   height: 100vh;
-  height: 100dvh;
   position: fixed !important;
   top: 0;
   left: 0;
-  background: #ffffff;
+  background: #ffffff !important;
   display: flex;
   flex-direction: column;
   border-right: 1px solid #e9ecef;
   z-index: 1050;
-  transition: transform 0.3s ease-in-out, width 0.3s ease-in-out;
+  transition: all 0.3s ease;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-width-collapsed);
 }
 
 .sidebar-link {
@@ -62,38 +69,7 @@ body {
   box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
 }
 
-.logo-text {
-  background: linear-gradient(45deg, #3b5afa, #3b5afa);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  transition: opacity 0.3s ease;
-}
-
-.profile-section {
-  border-top: 1px solid rgba(0, 0, 0, 0.05);
-  background: rgba(193, 192, 192, 0.15);
-}
-
-.profile-link {
-  background-color: #f8f9fa;
-  transition: background-color 0.2s ease;
-}
-
-.profile-link:hover {
-  background-color: #e9ecef;
-}
-
-/* --- 3. CONTEÚDO PRINCIPAL (COMPUTADOR) --- */
-.main-content {
-  margin-left: var(--sidebar-width) !important; /* Cria o espaço para a sidebar não sobrepor */
-  width: calc(100% - var(--sidebar-width)) !important;
-  min-height: 100vh;
-  padding: 30px !important;
-  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out;
-  background-color: var(--bg-light);
-}
-
-/* Chevron de encolher */
+/* Mecânica do Chevron Redondo (PC) */
 .toggle-btn {
   position: absolute;
   right: -15px;
@@ -113,22 +89,13 @@ body {
   color: #6c757d;
 }
 
-/* --- 4. ESTADO ENCOLHIDO (PC - COLLAPSED) --- */
-.sidebar.collapsed {
-  width: var(--sidebar-width-collapsed);
-}
-
-.sidebar.collapsed ~ .main-content {
-  margin-left: var(--sidebar-width-collapsed) !important;
-  width: calc(100% - var(--sidebar-width-collapsed));
-}
 .sidebar.collapsed .toggle-btn {
   transform: rotate(180deg);
 }
 
 .sidebar.collapsed .hide-on-collapse,
-.sidebar.collapsed .profile-info,
-.sidebar.collapsed .logo-text {
+.sidebar.collapsed .logo-text,
+.sidebar.collapsed .profile-info {
   display: none !important;
 }
 
@@ -143,14 +110,26 @@ body {
   margin: 0 !important;
 }
 
-.sidebar.collapsed .profile-link {
-  justify-content: center !important;
-  padding-left: 0 !important;
-  padding-right: 0 !important;
-  background-color: transparent !important;
+/* =========================================================================
+   3. CONTEÚDO PRINCIPAL (DIFERENCIAL DE EMPURRE CRÍTICO)
+   ========================================================================= */
+.main-content {
+  width: calc(100% - var(--sidebar-width));
+  margin-left: var(--sidebar-width) !important;
+  min-height: 100vh;
+  padding: 40px;
+  background-color: var(--bg-light) !important;
+  transition: all 0.3s ease;
 }
 
-/* --- 5. COMPONENTES DE UI GENÉRICOS E TABELA OTIMIZADA --- */
+.sidebar.collapsed ~ .main-content {
+  margin-left: var(--sidebar-width-collapsed) !important;
+  width: calc(100% - var(--sidebar-width-collapsed));
+}
+
+/* =========================================================================
+   4. COMPONENTES DE INTERFACE E RENDILHADO DO HISTÓRICO
+   ========================================================================= */
 .card {
   border-radius: 16px;
   border: none;
@@ -158,39 +137,10 @@ body {
   background-color: #ffffff !important;
 }
 
-.table {
-  table-layout: auto !important;
-}
-
 .table-responsive {
   overflow-x: auto !important;
   overflow-y: visible !important;
   border-radius: 12px;
-}
-
-.table thead th {
-  font-size: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: #6c757d;
-  white-space: nowrap;
-}
-
-/* Dimensões estáveis para as colunas de anexos */
-.table th:nth-child(4), .table td:nth-child(4) {
-  width: 130px !important;
-  text-align: center;
-}
-
-.table th:nth-child(5), .table td:nth-child(5) {
-  width: 140px !important;
-  text-align: center;
-}
-
-/* Reserva o espaço exato e fixo para o botão de ações (...) */
-.table th:last-child, .table td:last-child {
-  width: 60px !important;
-  text-align: end;
 }
 
 #tabelaExames td {
@@ -212,7 +162,18 @@ body {
   white-space: nowrap !important;
 }
 
-/* FORMATAÇÃO EXCLUSIVA PARA OS BOTÕES DE PDF (VER EXAME / RELATÓRIO) */
+#tabelaExames td:nth-child(2) {
+  min-width: 220px !important;
+  width: auto !important;
+}
+
+#tabelaExames .dropdown-menu {
+  position: absolute;
+  z-index: 9999;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+/* Botões PDF unificados */
 #tabelaExames a.btn-primary, 
 #tabelaExames a.btn-danger {
   display: inline-flex;
@@ -220,7 +181,7 @@ body {
   justify-content: center;
   gap: 4px;
   width: auto !important;
-  min-width: 115px; /* Tamanho exato para ler "PDF Relatório" sem apertar */
+  min-width: 115px;
   padding: 5px 10px !important;
   border-radius: 6px !important;
   font-size: 0.8rem !important;
@@ -229,134 +190,23 @@ body {
   white-space: nowrap;
 }
 
-/*BOTAO DE AÇÕES (...) MAIS PEQUENO E SIMÉTRICO */
-#tabelaExames .dropdown button.btn-light {
-  width: 30px !important;
-  height: 30px !important;
-  min-width: auto !important;
-  padding: 0 !important;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 6px !important;
-  background-color: #f8f9fa;
-  border: 1px solid #e9ecef !important;
-}
-
-/* Garante que o menu suspenso das ações fica totalmente legível */
-#tabelaExames .dropdown-menu {
-  position: absolute;
-  z-index: 9999;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-}
-
-#tabelaExames .dropdown-menu .dropdown-item {
-  font-size: 0.88rem !important;
-  padding: 8px 16px !important;
-  white-space: nowrap !important;
-  display: flex;
-  align-items: center;
-}
-
-.upload-box {
-  border: 2px dashed var(--border-color);
-  background-color: var(--bg-light);
-  padding: 20px;
-  border-radius: 12px;
-  transition: all 0.3s ease;
-  text-align: center;
-}
-
-.upload-box:hover {
-  border-color: var(--primary-color);
-  background-color: #fff;
-  cursor: pointer;
-}
-
-.card-atalhos {
-  border-radius: 12px;
-  background-color: transparent;
-}
-
-.btn-atalho {
-  background-color: #ffffff;
-  border-radius: 10px;
-  border: 1px solid #f0f0f0 !important;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  width: 100%;
-}
-
-.btn-atalho:hover {
-  background-color: #f8fbff;
-  border-color: var(--primary-color) !important;
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px rgba(13, 110, 253, 0.1);
-}
-
-.btn-atalho span {
-  font-size: 0.85rem;
-  font-weight: 600;
-  margin-top: 8px;
-  color: #2d3748;
-}
-
-/* --- 6. PAGINAÇÃO EM CÍRCULOS --- */
-.pagination {
-  gap: 8px; 
-}
-
-.page-item .page-link {
-  font-size: 0.85rem; 
-  font-weight: 500;
-  color: #6c757d;
-  border: 1px solid var(--border-color);
-  transition: all 0.2s ease-in-out;
-}
-
-.page-item:not(:first-child):not(:last-child) .page-link {
-  width: 32px; 
-  height: 32px;
-  padding: 0;
-  border-radius: 50% !important;
-  display: flex;
-  align-items: center; 
-  justify-content: center;
-}
-
-.page-item:first-child .page-link,
-.page-item:last-child .page-link {
-  border-radius: 50px !important;
-  padding: 5px 14px;
-}
-
-.page-item.active .page-link {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  color: white !important;
-  box-shadow: 0 3px 8px rgba(13, 110, 253, 0.3);
-}
-
-/* --- 7. RESPONSIVIDADE CRÍTICA (MOBILE) --- */
+/* =========================================================================
+   5. RESPONSIVIDADE EM DISPOSITIVOS MÓVEIS (FIX TELEMÓVEL)
+   ========================================================================= */
 @media (max-width: 768px) {
   .sidebar {
-    transform: translateX(-100%) !important; /* Esconde a barra em mobile */
-    position: fixed !important;
+    transform: translateX(-100%) !important;
   }
-
+  
   .sidebar.active {
-    transform: translateX(0) !important; /* Mostra quando ativa */
+    transform: translateX(0) !important;
+    width: var(--sidebar-width) !important;
   }
 
   .main-content {
-    margin-left: 0 !important; /* Em mobile ocupa o ecrã inteiro */
+    margin-top: 70px !important;
+    padding: 20px !important;
+    margin-left: 0 !important;
     width: 100% !important;
-    max-width: 100vw !important;
-    padding: 20px 15px !important;
-    margin-top: 60px !important; /* Espaço para a navbar/topo mobile */
   }
 }
