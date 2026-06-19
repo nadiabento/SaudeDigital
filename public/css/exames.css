@@ -213,17 +213,31 @@ html, body {
    ========================================================================= */
 @media (max-width: 991px) {
   .sidebar {
-    transform: translateX(-100%);
+    transform: translateX(-100%) !important; /* Oculta totalmente o menu no mobile */
+    position: fixed !important;
+    height: 100vh !important;
+    z-index: 1060 !important;
   }
+  
   .sidebar.active {
-    transform: translateX(0);
-    width: var(--sidebar-width);
+    transform: translateX(0) !important; /* Abre como gaveta fluida ao clicar */
   }
 
   .main-content {
-    margin-top: 70px !important;
-    padding: 20px !important;
-    margin-left: 0 !important;
+    margin-left: 0 !important; /* Ocupa a largura total do telemóvel */
     width: 100% !important;
+    max-width: 100vw !important;
+    padding: 90px 15px 20px 15px !important; /* Espaço para a barra de topo fixo */
+  }
+
+  #tabelaExames td:nth-child(2) {
+    min-width: 130px !important;
+  }
+  
+  #tabelaExames a.btn-primary, 
+  #tabelaExames a.btn-danger {
+    min-width: auto !important;
+    padding: 6px 8px !important;
+    font-size: 0.75rem !important;
   }
 }

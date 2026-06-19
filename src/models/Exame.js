@@ -68,7 +68,7 @@ Exame.belongsToMany(TipoExame, {
   through: ExameTipoExame,
   foreignKey: "id_exame",
   otherKey: "id_tipo_exame",
-  as: "TiposExames",
+  as: "TiposExames", // Alias crucial consumido pelo teu exameController.js
 });
 
 TipoExame.belongsToMany(Exame, {
