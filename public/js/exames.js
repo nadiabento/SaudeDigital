@@ -75,6 +75,8 @@ async function atualizarTiposExame(idCategoria) {
       inputTipo.value = "";
       inputTipo.disabled = false;
       inputTipo.placeholder = "Escreva o tipo de exame...";
+
+      document.getElementById("idTipoSelecionado").value = "";
     }
   } catch (error) {
     console.error("Erro tipos:", error);
