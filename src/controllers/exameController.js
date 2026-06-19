@@ -11,7 +11,7 @@ const obterUtilizadorSessao = (req) => {
   if (rawId && typeof rawId === "object") {
     return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
   }
-  return Number.parseInt(rawId, 10) || 4; // Fallback estável Nadia Bento
+  return Number.parseInt(rawId, 10);
 };
 
 // =========================================================================
@@ -20,10 +20,10 @@ const obterUtilizadorSessao = (req) => {
 
 exports.listarCategorias = async (req, res) => {
   try {
-    const categorias = await CategoriaExame.findAll({
+    const categories = await CategoriaExame.findAll({
       order: [["nome", "ASC"]],
     });
-    return res.json(categorias);
+    return res.json(categories);
   } catch (error) {
     console.error("Erro ao listar categorias:", error);
     return res
@@ -155,10 +155,8 @@ exports.registarExame = async (req, res) => {
       message: "Registo clínico consolidado com sucesso no histórico.",
     });
   } catch (error) {
-    // Faz o rollback imediato da transação para não deixar lixo na BD
     await t.rollback();
 
-    // Apaga os ficheiros PDFs temporários se eles tiverem sido feito upload pelo Multer
     if (req.files) {
       if (
         req.files["resultado_file"] &&
@@ -173,8 +171,6 @@ exports.registarExame = async (req, res) => {
     }
 
     console.error(" ERRO CRÍTICO DETALHADO NO SEQUELIZE:", error);
-
-    // Devolve o erro para o teu frontend em formato JSON
     return res.status(500).json({
       error: `Falha na consistência relacional: ${error.message}`,
     });
@@ -223,7 +219,7 @@ exports.editarExame = async (req, res) => {
         .status(404)
         .json({ error: "Exame não encontrado ou sem permissão." });
     }
-    return res.json({ message: "Exame atualizado com sucesso!" });
+    return res.json({ message: "Exame updated com sucesso!" });
   } catch (error) {
     console.error("Erro ao editar exame:", error);
     return res.status(500).json({ error: "Erro ao editar o registo." });
@@ -244,14 +240,12 @@ exports.eliminarMassa = async (req, res) => {
   try {
     const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
 
-    await ExameTipoExame.destroy(
-      { where: { id_exame: ids } },
-      { transaction: t },
-    );
-    await Exame.destroy(
-      { where: { id: ids, utilizador_id: utilizadorId } },
-      { transaction: t },
-    );
+    // Correção dos parâmetros do destroy com transação
+    await ExameTipoExame.destroy({ where: { id_exame: ids }, transaction: t });
+    await Exame.destroy({
+      where: { id: ids, utilizador_id: utilizadorId },
+      transaction: t,
+    });
 
     await t.commit();
 
@@ -284,7 +278,8 @@ exports.eliminarMassa = async (req, res) => {
 // --- 4. INTEROPERABILIDADE E PARTILHA (PORTAL DO MÉDICO)               ---
 // =========================================================================
 
-exports.gerarPartilha = async (req, res) => {
+// 🎯 CORREÇÃO CRÍTICA: Nome alterado para bater certo com a chamada do teu 'exameRoutes.js'
+exports.gerarLinkPartilha = async (req, res) => {
   const { examesIds } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
 
@@ -296,13 +291,13 @@ exports.gerarPartilha = async (req, res) => {
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
-    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // Janela estrita de 48h
+    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48h
 
     await Partilha.create({
       token,
       exames_ids: examesIds.join(","),
       data_expiracao: dataExpiracao,
-      utilizador_id: Number(utilizadorId),
+      id_utilizador: Number(utilizadorId), // Alinhado com o teu model Partilha.js
     });
 
     return res.json({ token });
@@ -322,26 +317,22 @@ exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    // 1. Procura explícita usando o token
     const partilha = await Partilha.findOne({ where: { token } });
 
     if (!partilha) {
       return res.status(404).json({ error: "Link de partilha inválido." });
     }
 
-    // 2. Validação segura do fuso horário da data de expiração
     if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
       return res
         .status(410)
         .json({ error: "Este link de partilha clínica já expirou." });
     }
 
-    // Corta e converte a string de IDs ("1,2,3") num array de inteiros
     const ids = partilha.exames_ids
       .split(",")
       .map((id) => Number.parseInt(id, 10));
 
-    // 3. Procura os exames correspondentes
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
@@ -354,14 +345,12 @@ exports.getDadosPartilha = async (req, res) => {
       ],
     });
 
-    // 4. Formata a resposta para o teu Frontend interoperável
     const examesFormatados = exames.map((ex) => {
       const tipo = ex.TiposExames?.[0];
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
         observacoes: ex.observacoes || "Sem observações.",
-        // Garante o mapeamento seguro da tabela intermédia Exame_TipoExame
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
       };
@@ -369,7 +358,7 @@ exports.getDadosPartilha = async (req, res) => {
 
     return res.json(examesFormatados);
   } catch (error) {
-    console.error("ERRO CRÍTICO NA EXTRAÇÃO DE DADOS PARTILHADOS:", error);
+    console.error("❌ ERRO CRÍTICO NA EXTRAÇÃO DE DADOS PARTILHADOS:", error);
     return res.status(500).json({
       error: `Falha interna ao processar dados de interoperabilidade: ${error.message}`,
     });

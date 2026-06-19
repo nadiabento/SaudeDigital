@@ -28,7 +28,7 @@ const Partilha = sequelize.define(
     utilizador_id: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: "utilizador_id",
+      field: "id_utilizador",
     },
   },
   {
