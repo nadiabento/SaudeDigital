@@ -20,25 +20,28 @@ html, body {
   overflow-x: hidden;
 }
 
-.exame-card, .card-sombra-moderna {
-  background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.05); /* Borda quase invisível para dar definição */
-  border-radius: 16px;                  /* Cantos arredondados modernos */
+.exame-card, .card-sombra-moderna, .btn-atalho {
+  background: #ffffff !important;
+  border: 1px solid rgba(0, 0, 0, 0.05) !important; /* Definição fina */
+  border-radius: 16px !important;                  /* Cantos arredondados iguais */
+  color: #252f40 !important;                       /* Cor do texto escura e limpa */
   
+  /* Sombra Premium Idêntica à imagem */
   box-shadow: 
     0 4px 6px -1px rgba(0, 0, 0, 0.05), 
     0 10px 15px -3px rgba(0, 0, 0, 0.08),
-    0 0 1px 0 rgba(0, 0, 0, 0.1);
+    0 0 1px 0 rgba(0, 0, 0, 0.1) !important;
     
-  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Transição suave ao passar o rato */
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
 }
 
 /* Efeito opcional: quando o utilizador passa o rato por cima, o card "flutua" ligeiramente */
-.exame-card:hover, .card-sombra-moderna:hover {
-  transform: translateY(-2px);
+.exame-card:hover, .card-sombra-moderna:hover, .btn-atalho:hover {
+  transform: translateY(-3px) !important;
+  background: #ffffff !important;
   box-shadow: 
     0 10px 20px -5px rgba(0, 0, 0, 0.08), 
-    0 20px 25px -5px rgba(0, 0, 0, 0.12);
+    0 20px 25px -5px rgba(0, 0, 0, 0.12) !important;
 }
 
 /* =========================================================================
