@@ -46,18 +46,6 @@ exports.listarTiposPorCategoria = async (req, res) => {
   }
 };
 
-exports.listarTodosOsTiposAgnostico = async (req, res) => {
-  try {
-    const tipos = await TipoExame.findAll({ order: [["nome", "ASC"]] });
-    return res.json(tipos);
-  } catch (error) {
-    console.error("Erro ao listar tipos globais:", error);
-    return res
-      .status(500)
-      .json({ error: "Erro interno ao mapear catálogo clínico." });
-  }
-};
-
 // Devolve todos os tipos de exames globais sem filtro de pai (Usado no conta.html)
 exports.listarTodosOsTiposAgnostico = async (req, res) => {
   try {
@@ -88,7 +76,7 @@ exports.listarHistorico = async (req, res) => {
       include: [
         {
           model: TipoExame,
-          as: "TiposExames", // Usa o alias correto aqui
+          as: "TiposExames", // Usa o alias unificado
           attributes: ["nome"],
           through: { attributes: ["resultado", "relatorio"] },
         },
@@ -96,7 +84,7 @@ exports.listarHistorico = async (req, res) => {
     });
 
     const exames = rows.map((ex) => {
-      const tipo = ex.TiposExames?.[0]; // Captura pelo alias unificado
+      const tipo = ex.TiposExames?.[0];
       return {
         id: ex.id,
         data: ex.data_exame,
@@ -129,7 +117,6 @@ exports.registarExame = async (req, res) => {
   const t = await sequelize.transaction();
   let idUtilizador = obterUtilizadorSessao(req);
 
-  // Fallback e limpeza preventiva de ficheiros físicos
   if (!idUtilizador) {
     if (req.files) {
       if (req.files["resultado_file"])
@@ -168,7 +155,6 @@ exports.registarExame = async (req, res) => {
       { transaction: t },
     );
 
-    // Persistência estável mapeada com chaves primárias numéricas
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
@@ -208,6 +194,7 @@ exports.registarExame = async (req, res) => {
     });
   }
 };
+
 // Cria uma nova categoria de exame (Via Modal do formulário)
 exports.criarCategoria = async (req, res) => {
   try {
@@ -237,7 +224,6 @@ exports.criarTipo = async (req, res) => {
 // --- 3. OPERAÇÕES DE EDIÇÃO E MANUTENÇÃO (PUT)                         ---
 // =========================================================================
 
-// Atualiza os dados editáveis de um exame existente
 exports.editarExame = async (req, res) => {
   const { data_exame, observacoes } = req.body;
   const utilizadorId = req.session.userId || 1;
@@ -264,7 +250,6 @@ exports.editarExame = async (req, res) => {
 // --- 4. OPERAÇÕES DE REMOÇÃO PROTEGIDA (DELETE)                        ---
 // =========================================================================
 
-// Eliminação em massa a partir dos checkboxes do histórico principal (com remoção física do PDF)
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
@@ -290,7 +275,6 @@ exports.eliminarMassa = async (req, res) => {
 
     await t.commit();
 
-    // Eliminação física pós-commit para evitar inconsistências
     vinculos.forEach((v) => {
       [v.resultado, v.relatorio].forEach((ficheiro) => {
         if (ficheiro) {
@@ -316,7 +300,6 @@ exports.eliminarMassa = async (req, res) => {
   }
 };
 
-// Elimina uma Categoria de Exame (Proteção nativa de Chave Estrangeira do Sequelize)
 exports.eliminarCategoria = async (req, res) => {
   try {
     await CategoriaExame.destroy({ where: { id: req.params.id } });
@@ -332,7 +315,6 @@ exports.eliminarCategoria = async (req, res) => {
   }
 };
 
-// Elimina um Tipo de Exame (Proteção contra perda de histórico clínico)
 exports.eliminarTipoExame = async (req, res) => {
   try {
     await TipoExame.destroy({ where: { id: req.params.id } });
@@ -348,7 +330,10 @@ exports.eliminarTipoExame = async (req, res) => {
   }
 };
 
-// --- GERAR LINK DE PARTILHA COM O MÉDICO (48 HORAS) ---
+// =========================================================================
+// --- 5. INTEROPERABILIDADE E PORTAL DE PARTILHA                        ---
+// =========================================================================
+
 exports.gerarPartilha = async (req, res) => {
   const { examesIds } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
@@ -359,7 +344,7 @@ exports.gerarPartilha = async (req, res) => {
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
-    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // Janela estrita de 48h
+    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000);
 
     await sequelize.query(
       "INSERT INTO Partilha (token, exames_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
@@ -378,19 +363,15 @@ exports.gerarPartilha = async (req, res) => {
   }
 };
 
-// --- SERVIR O FICHEIRO HTML PARA O MÉDICO ---
 exports.visualizarPartilha = (req, res) => {
-  // Envia o ficheiro HTML da partilha que está na tua pasta public
-  // Ajusta o caminho ("../../public/partilha.html") se o teu HTML tiver outro nome ou pasta
   res.sendFile(path.join(__dirname, "../../public/partilha.html"));
 };
 
-// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (INCLUINDO RELATÓRIO) ---
+// --- DEVOLVER OS DADOS DOS EXAMES DO TOKEN (INCLUINDO ALIAS RETIFICADO) ---
 exports.getDadosPartilha = async (req, res) => {
   const { token } = req.params;
 
   try {
-    // 2. RESOLVIDO: Parametrização total contra SQL Injection Secundária via :token
     const partilhas = await sequelize.query(
       "SELECT exames_ids, data_expiracao FROM Partilha WHERE token = :token LIMIT 1",
       {
@@ -415,22 +396,21 @@ exports.getDadosPartilha = async (req, res) => {
       });
     }
 
-    // Validação cronológica estrita da janela de 48 horas
     if (dataExpiracaoRaw && new Date(dataExpiracaoRaw).getTime() < Date.now()) {
       return res
         .status(410)
         .json({ error: "Este link de partilha clínica já expirou." });
     }
 
-    // Conversão segura em tempo constante para array numérico primitivo
     const ids = examesIdsString.split(",").map((id) => Number.parseInt(id, 10));
 
-    // Procura os exames autorizados recorrendo ao ORM Sequelize
+    // 🛡️ CORREÇÃO DEFINITIVA: Inclusão do alias explícito 'TiposExames' igual ao histórico
     const exames = await Exame.findAll({
       where: { id: ids },
       include: [
         {
           model: TipoExame,
+          as: "TiposExames",
           attributes: ["nome"],
           through: { attributes: ["resultado", "relatorio"] },
         },
@@ -438,7 +418,7 @@ exports.getDadosPartilha = async (req, res) => {
     });
 
     const examesFormatados = exames.map((ex) => {
-      const tipo = ex.TipoExames?.[0];
+      const tipo = ex.TiposExames?.[0];
       return {
         nome: tipo ? tipo.nome : "Exame Clínico",
         data: ex.data_exame,
