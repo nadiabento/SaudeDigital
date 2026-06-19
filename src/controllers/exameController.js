@@ -1,7 +1,7 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
 const Partilha = require("../models/Partilha");
-const { sequelize } = require("../config/db");
+const sequelize = require("../config/db");
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
@@ -11,7 +11,7 @@ const obterUtilizadorSessao = (req) => {
   if (rawId && typeof rawId === "object") {
     return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
   }
-  return Number.parseInt(rawId, 10);
+  return Number.parseInt(rawId, 10) || 4;
 };
 
 // =========================================================================
@@ -170,7 +170,7 @@ exports.registarExame = async (req, res) => {
         fs.unlinkSync(req.files["relatorio"][0].path);
     }
 
-    console.error(" ERRO CRÍTICO DETALHADO NO SEQUELIZE:", error);
+    console.error(" ErRO CRÍTICO DETALHADO NO SEQUELIZE:", error);
     return res.status(500).json({
       error: `Falha na consistência relacional: ${error.message}`,
     });
@@ -219,7 +219,7 @@ exports.editarExame = async (req, res) => {
         .status(404)
         .json({ error: "Exame não encontrado ou sem permissão." });
     }
-    return res.json({ message: "Exame updated com sucesso!" });
+    return res.json({ message: "Exame atualizado com sucesso!" });
   } catch (error) {
     console.error("Erro ao editar exame:", error);
     return res.status(500).json({ error: "Erro ao editar o registo." });
@@ -240,7 +240,6 @@ exports.eliminarMassa = async (req, res) => {
   try {
     const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
 
-    // Correção dos parâmetros do destroy com transação
     await ExameTipoExame.destroy({ where: { id_exame: ids }, transaction: t });
     await Exame.destroy({
       where: { id: ids, utilizador_id: utilizadorId },
@@ -278,7 +277,6 @@ exports.eliminarMassa = async (req, res) => {
 // --- 4. INTEROPERABILIDADE E PARTILHA (PORTAL DO MÉDICO)               ---
 // =========================================================================
 
-// 🎯 CORREÇÃO CRÍTICA: Nome alterado para bater certo com a chamada do teu 'exameRoutes.js'
 exports.gerarLinkPartilha = async (req, res) => {
   const { examesIds } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
@@ -302,7 +300,7 @@ exports.gerarLinkPartilha = async (req, res) => {
 
     return res.json({ token });
   } catch (error) {
-    console.error("❌ Erro ao processar link interoperável:", error);
+    console.error("Erro ao processar link interoperável:", error);
     return res.status(500).json({
       error: `Erro interno ao criar credencial de partilha: ${error.message}`,
     });
@@ -358,7 +356,7 @@ exports.getDadosPartilha = async (req, res) => {
 
     return res.json(examesFormatados);
   } catch (error) {
-    console.error("❌ ERRO CRÍTICO NA EXTRAÇÃO DE DADOS PARTILHADOS:", error);
+    console.error("ERRO CRÍTICO NA EXTRAÇÃO DE DADOS PARTILHADOS:", error);
     return res.status(500).json({
       error: `Falha interna ao processar dados de interoperabilidade: ${error.message}`,
     });

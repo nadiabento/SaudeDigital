@@ -85,20 +85,17 @@ async function carregarDados() {
 
 function verPDF(file, nome) {
   const frame = document.getElementById("framePDF");
-  if (frame) {
-    frame.src = `/uploads/${file}`;
-    document.getElementById("tituloExame").innerText = nome;
-    const myModal = new bootstrap.Modal(document.getElementById("modalPDF"));
-    myModal.show();
-  }
-}
+  const titulo = document.getElementById("tituloExame");
+  const modalEl = document.getElementById("modalPDF");
 
-function verPDF(file, nome) {
-  const frame = document.getElementById("framePDF");
-  frame.src = `/uploads/${file}`;
-  document.getElementById("tituloExame").innerText = nome;
-  const myModal = new bootstrap.Modal(document.getElementById("modalPDF"));
-  myModal.show();
+  if (frame && titulo && modalEl) {
+    frame.src = `/uploads/${file}`;
+    titulo.innerText = nome;
+    const myModal = new bootstrap.Modal(modalEl);
+    myModal.show();
+  } else {
+    console.warn("Elementos do modal PDF não foram encontrados no DOM.");
+  }
 }
 
 // Inicializa a função ao carregar o ficheiro
