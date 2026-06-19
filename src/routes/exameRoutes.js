@@ -1,9 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const exameController = require("../controllers/exameController");
+const examenController = require("../controllers/exameController");
 const multer = require("multer");
 const path = require("node:path");
 const fs = require("node:fs");
+const sequelize = require("../config/db"); // Importação necessária para queries parametrizadas
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -12,50 +13,80 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    const hash = crypto.randomBytes(8).toString("hex");
+    const sufixoAleatorio = Math.round(Math.random() * 1e5);
     cb(
       null,
-      `${Date.now()}-${hash}${path.extname(file.originalname).toLowerCase()}`,
+      Date.now() + "-" + sufixoAleatorio + path.extname(file.originalname),
     );
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Mitigação estrita contra DoS (5MB)
+  limits: { fileSize: 5 * 1024 * 1024 }, // Proteção contra DoS (5MB max)
   fileFilter: (req, file, cb) => {
     if (path.extname(file.originalname).toLowerCase() === ".pdf") {
-      return cb(null, true);
+      cb(null, true);
+    } else {
+      cb(new Error("Apenas são permitidos ficheiros PDF."));
     }
-    return cb(
-      new Error(
-        "Segurança de Mime-Type: Apenas ficheiros PDF são autorizados!",
-      ),
-      false,
-    );
   },
 });
 
-router.get("/categorias", exameController.listarCategorias);
-router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
-router.get("/tipos-todos", exameController.listarTodosOsTiposAgnostico);
-router.get("/historico", exameController.listarHistorico);
+router.get("/categorias", examenController.listarCategorias);
+router.get("/tipos/:id_categoria", examenController.listarTiposPorCategoria);
+router.get("/tipos-todos", examenController.listarTodosOsTiposAgnostico);
+router.get("/historico", examenController.listarHistorico);
 
 router.post(
   "/registar",
   (req, res, next) => {
-    upload.fields([
-      { name: "resultado_file", maxCount: 1 },
-      { name: "relatorio", maxCount: 1 },
-    ])(req, res, (err) => {
-      if (err) return res.status(400).json({ error: err.message });
-      return next();
+    upload.single("resultado")(req, res, (err) => {
+      if (err instanceof multer.MulterError) {
+        return res
+          .status(400)
+          .json({ error: `Erro no upload: ${err.message}` });
+      } else if (err) {
+        return res.status(400).json({ error: err.message });
+      }
+      next();
     });
   },
-  exameController.registarExame,
+  examenController.registarExame,
 );
 
-router.post("/gerar-partilha", exameController.gerarPartilha);
-router.delete("/eliminar-massa", exameController.eliminarMassa);
+router.post("/gerar-partilha", examenController.gerarPartilha);
+
+// --- OPERAÇÃO DE MANUTENÇÃO PARAMETRIZADA CONTRA INJEÇÃO SECUNDÁRIA ---
+router.delete("/categorias/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    // 2. RESOLVIDO: Injeção evitada através de tokens nomeados (:id)
+    const dependentes = await sequelize.query(
+      "SELECT id FROM Tipo_Exame WHERE id_categoria = :id LIMIT 1",
+      { replacements: { id }, type: sequelize.QueryTypes.SELECT },
+    );
+
+    if (dependentes.length > 0) {
+      return res.status(400).json({
+        error:
+          "Eliminação recusada! Esta categoria possui vínculos dependentes ativos.",
+      });
+    }
+
+    await sequelize.query("DELETE FROM Categoria_Exame WHERE id = :id", {
+      replacements: { id },
+    });
+
+    res.json({ message: "Categoria removida com sucesso." });
+  } catch (error) {
+    console.error("Erro na rota de eliminação:", error);
+    res
+      .status(500)
+      .json({ error: "Erro interno ao tentar remover a categoria." });
+  }
+});
+
+router.delete("/eliminar-massa", examenController.eliminarMassa);
 
 module.exports = router;

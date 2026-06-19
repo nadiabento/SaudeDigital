@@ -19,13 +19,16 @@ body:has(#formAtualizarPerfil)::after {
 
 /* --- ESTILO DO BOTÃO VOLTAR (AJUSTADO PARA FUNDO CLARO) --- */
 .transition-link {
-    color: #475569 !important; /* Tom cinza escuro para ter contraste no fundo branco */
-    transition: color 0.2s ease, transform 0.2s ease !important;
+    color: #334155 !important;
+    font-weight: 600;
 }
 
-.transition-link:hover {
-    color: #2563eb !important; /* Fica azul primário ao passar o rato */
-    transform: translateX(-3px);
+.transition-link:hover, 
+.transition-link:focus {
+    color: #2563eb !important; /* Destaque visual azul percetível */
+    text-decoration: underline !important;
+    outline: 2px solid #2563eb;
+    outline-offset: 4px;
 }
 
 /* 2. OS MEUS DADOS PESSOAIS E GESTÃO DE CATÁLOGOS */
@@ -65,12 +68,14 @@ body:has(#formAtualizarPerfil)::after {
 
 /* 3. ADAPTAÇÃO DO CABEÇALHO PARA TEXTO ESCURO */
 .page-header h2 {
-    color: #1e293b !important; /* Slate escuro para perfeita leitura */
+    color: #0f172a !important;
     font-weight: 700;
 }
 
-.page-header p {
-    color: #64748b !important; /* Subtítulo num cinza intermédio elegante */
+.page-header p, 
+.text-muted, 
+.form-label {
+    color: #475569 !important; /* Substituído o cinzento claro por Slate-600 (Rácio estável de 4.63:1) */
 }
 
 .page-header .block-icon {
@@ -97,6 +102,11 @@ body:has(#formAtualizarPerfil)::after {
     border: 1px solid #dee2e6 !important;
     border-radius: 8px !important;
     z-index: 99999 !important;
+}
+
+.badge-clinico-escuro {
+    background-color: #1e293b !important;
+    color: #ffffff !important; /* Texto branco em fundo escuro garantindo leitura inclusiva */
 }
 
 @media (max-width: 991px) {

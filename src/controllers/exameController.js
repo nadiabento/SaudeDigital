@@ -113,60 +113,72 @@ exports.listarHistorico = async (req, res) => {
 
 // Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
-  const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
-  const utilizadorId = obterUtilizadorSessao(req);
+  // 3. RESOLVIDO: Inicialização da transação gerida pelo Sequelize ORM
+  const t = await sequelize.transaction();
 
-  if (!data_exame || !id_tipo_exame) {
-    return res
-      .status(400)
-      .json({ error: "Data e parâmetro clínico são obrigatórios." });
+  // Proteção de tipo: Garante a extração limpa do ID primitivo
+  let idUtilizador = null;
+  if (req.session?.userId) {
+    idUtilizador =
+      typeof req.session.userId === "object"
+        ? req.session.userId.id_utilizador || req.session.userId.id
+        : req.session.userId;
   }
 
-  const ficheiroExame = req.files?.["resultado_file"]?.[0]?.filename || null;
-  const ficheiroRelatorio = req.files?.["relatorio"]?.[0]?.filename || null;
+  if (!idUtilizador) {
+    if (req.file) fs.unlinkSync(req.file.path); // Elimina resíduo do upload
+    return res
+      .status(401)
+      .json({ error: "Sessão inválida ou expirada. Efetue login novamente." });
+  }
 
-  // Implementação Estrita de Transação ACID (sequelize.transaction)
-  const t = await sequelize.transaction();
   try {
+    const { data_exame, local_realizacao, observacoes, id_tipo_exame } =
+      req.body;
+
+    if (!data_exame || !id_tipo_exame) {
+      throw new Error("Campos obrigatórios em falta no payload.");
+    }
+
+    // Passo 1: Inserir Cabeçalho do Exame
     const novoExame = await Exame.create(
       {
         data_exame,
-        local_realizacao: local_realizacao || "SaúdeDigital Clinic",
+        local_realizacao,
         observacoes,
-        utilizador_id: utilizadorId,
+        utilizador_id: idUtilizador,
       },
       { transaction: t },
     );
 
+    // Passo 2: Inserir Vínculo Documental na Tabela Ponte (Exame_TipoExame)
     await ExameTipoExame.create(
       {
-        id_exame: novoExame.id,
-        id_tipo_exame: Number.parseInt(id_tipo_exame, 10),
-        resultado: ficheiroExame,
-        relatorio: ficheiroRelatorio,
+        ExameId: novoExame.id,
+        TipoExameId: id_tipo_exame,
+        resultado: req.file ? req.file.filename : null,
       },
       { transaction: t },
     );
 
+    // Se tudo correr bem, efetua o commit atómico
     await t.commit();
-    return res
-      .status(200)
-      .json({ message: "Exame e relatórios registados com sucesso!" });
-  } catch (error) {
-    await t.rollback();
-    console.error("Rollback executado. Limpando uploads do disco...", error);
-    [ficheiroExame, ficheiroRelatorio].forEach((f) => {
-      if (f) {
-        const caminho = path.join(__dirname, "../../public/uploads/", f);
-        if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
-      }
+    return res.status(201).json({
+      message: "Registo clínico e anexo PDF consolidados com sucesso.",
     });
-    return res
-      .status(500)
-      .json({ error: "Falha crítica de persistência relacional." });
+  } catch (error) {
+    // 3. RESOLVIDO: Rollback automático - reverte a BD e limpa o sistema de ficheiros
+    await t.rollback();
+    if (req.file && fs.existsSync(req.file.path)) {
+      fs.unlinkSync(req.file.path);
+    }
+    console.error("Erro transacional detetado:", error.message);
+    return res.status(500).json({
+      error:
+        "Falha na consistência dos dados. Operação abortada com segurança.",
+    });
   }
 };
-
 // Cria uma nova categoria de exame (Via Modal do formulário)
 exports.criarCategoria = async (req, res) => {
   try {
