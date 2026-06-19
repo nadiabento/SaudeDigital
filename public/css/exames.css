@@ -20,6 +20,27 @@ html, body {
   overflow-x: hidden;
 }
 
+.exame-card, .card-sombra-moderna {
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.05); /* Borda quase invisível para dar definição */
+  border-radius: 16px;                  /* Cantos arredondados modernos */
+  
+  box-shadow: 
+    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+    0 10px 15px -3px rgba(0, 0, 0, 0.08),
+    0 0 1px 0 rgba(0, 0, 0, 0.1);
+    
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Transição suave ao passar o rato */
+}
+
+/* Efeito opcional: quando o utilizador passa o rato por cima, o card "flutua" ligeiramente */
+.exame-card:hover, .card-sombra-moderna:hover {
+  transform: translateY(-2px);
+  box-shadow: 
+    0 10px 20px -5px rgba(0, 0, 0, 0.08), 
+    0 20px 25px -5px rgba(0, 0, 0, 0.12);
+}
+
 /* =========================================================================
    2. SIDEBAR ESTRUTURAL (COMPORTAMENTO IDÊNTICO ÀS CONSULTAS)
    ========================================================================= */
