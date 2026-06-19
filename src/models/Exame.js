@@ -63,16 +63,19 @@ const ExameTipoExame = sequelize.define(
   },
 );
 
-// Vinculação explícita de chaves para anular o CamelCase automático
+// Definição estrita com 'as' para unificar a leitura do histórico no Controller
 Exame.belongsToMany(TipoExame, {
   through: ExameTipoExame,
   foreignKey: "id_exame",
   otherKey: "id_tipo_exame",
+  as: "TiposExames",
 });
+
 TipoExame.belongsToMany(Exame, {
   through: ExameTipoExame,
   foreignKey: "id_tipo_exame",
   otherKey: "id_exame",
+  as: "Exames",
 });
 
 module.exports = { Exame, TipoExame, ExameTipoExame };

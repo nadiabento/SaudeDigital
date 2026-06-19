@@ -10,7 +10,7 @@ const obterUtilizadorSessao = (req) => {
   if (rawId && typeof rawId === "object") {
     return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
   }
-  return Number.parseInt(rawId, 10) || 4; // Fallback seguro Nadia Bento
+  return Number.parseInt(rawId, 10) || 4;
 };
 
 // =========================================================================
@@ -46,6 +46,18 @@ exports.listarTiposPorCategoria = async (req, res) => {
   }
 };
 
+exports.listarTodosOsTiposAgnostico = async (req, res) => {
+  try {
+    const tipos = await TipoExame.findAll({ order: [["nome", "ASC"]] });
+    return res.json(tipos);
+  } catch (error) {
+    console.error("Erro ao listar tipos globais:", error);
+    return res
+      .status(500)
+      .json({ error: "Erro interno ao mapear catálogo clínico." });
+  }
+};
+
 // Devolve todos os tipos de exames globais sem filtro de pai (Usado no conta.html)
 exports.listarTodosOsTiposAgnostico = async (req, res) => {
   try {
@@ -76,6 +88,7 @@ exports.listarHistorico = async (req, res) => {
       include: [
         {
           model: TipoExame,
+          as: "TiposExames", // Usa o alias correto aqui
           attributes: ["nome"],
           through: { attributes: ["resultado", "relatorio"] },
         },
@@ -83,7 +96,7 @@ exports.listarHistorico = async (req, res) => {
     });
 
     const exames = rows.map((ex) => {
-      const tipo = ex.TipoExames?.[0];
+      const tipo = ex.TiposExames?.[0]; // Captura pelo alias unificado
       return {
         id: ex.id,
         data: ex.data_exame,
@@ -113,21 +126,10 @@ exports.listarHistorico = async (req, res) => {
 
 // Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
-  // Inicialização da transação gerida pelo Sequelize ORM
   const t = await sequelize.transaction();
+  let idUtilizador = obterUtilizadorSessao(req);
 
-  // Extração limpa do ID do utilizador da sessão
-  let idUtilizador = null;
-  if (req.session && req.session.userId) {
-    idUtilizador =
-      typeof req.session.userId === "object"
-        ? req.session.userId.id_utilizador ||
-          req.session.userId.id ||
-          req.session.userId.utilizador_id
-        : req.session.userId;
-  }
-
-  // Se a sessão falhar, limpa preventivamente qualquer upload feito neste pedido
+  // Fallback e limpeza preventiva de ficheiros físicos
   if (!idUtilizador) {
     if (req.files) {
       if (req.files["resultado_file"])
@@ -139,7 +141,6 @@ exports.registarExame = async (req, res) => {
       .json({ error: "Sessão expirada. Por favor, efetue login novamente." });
   }
 
-  // Extração segura dos nomes dos ficheiros guardados pelo Multer upload.fields()
   const ficheiroExame =
     req.files && req.files["resultado_file"]
       ? req.files["resultado_file"][0].filename
@@ -157,7 +158,6 @@ exports.registarExame = async (req, res) => {
       throw new Error("Campos obrigatórios em falta no formulário.");
     }
 
-    //Inserir Cabeçalho do Exame clínico
     const novoExame = await Exame.create(
       {
         data_exame,
@@ -168,7 +168,7 @@ exports.registarExame = async (req, res) => {
       { transaction: t },
     );
 
-    // nserir Vínculo Documental com Ambos os Ficheiros na Tabela Ponte
+    // Persistência estável mapeada com chaves primárias numéricas
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
@@ -179,14 +179,12 @@ exports.registarExame = async (req, res) => {
       { transaction: t },
     );
 
-    // Se as duas inserções forem bem-sucedidas, consolida os dados na BD
     await t.commit();
     return res.status(201).json({
       message:
         "Registo clínico e anexos PDF consolidados com sucesso no histórico.",
     });
   } catch (error) {
-    // Em caso de falha lógica, aplica Rollback e remove os ficheiros físicos para evitar lixo no disco
     await t.rollback();
 
     if (req.files) {
