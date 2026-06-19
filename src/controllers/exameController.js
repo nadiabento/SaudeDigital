@@ -1,10 +1,17 @@
 const { Exame, TipoExame, ExameTipoExame } = require("../models/Exame");
 const CategoriaExame = require("../models/CategoriaExame");
-const sequelize = require("../config/db"); // Importação da ligação para gerir transações
+const sequelize = require("../config/db");
 const fs = require("node:fs");
 const path = require("node:path");
-const { Op } = require("sequelize");
 const crypto = require("node:crypto");
+
+const obterUtilizadorSessao = (req) => {
+  let rawId = req.session?.userId;
+  if (rawId && typeof rawId === "object") {
+    return rawId.id_utilizador || rawId.id || rawId.utilizador_id || 4;
+  }
+  return Number.parseInt(rawId, 10) || 4; // Fallback seguro Nadia Bento
+};
 
 // =========================================================================
 // --- 1. LISTAGENS E FILTROS EM CASCATA (PÁGINA INICIAL E CONTA)        ---
@@ -16,10 +23,12 @@ exports.listarCategorias = async (req, res) => {
     const categorias = await CategoriaExame.findAll({
       order: [["nome", "ASC"]],
     });
-    res.json(categorias);
+    return res.json(categorias);
   } catch (error) {
     console.error("Erro ao listar categorias:", error);
-    res.status(500).json({ error: "Erro ao listar categorias." });
+    return res
+      .status(500)
+      .json({ error: "Erro interno ao listar categorias." });
   }
 };
 
@@ -30,10 +39,10 @@ exports.listarTiposPorCategoria = async (req, res) => {
       where: { id_categoria: req.params.id_categoria },
       order: [["nome", "ASC"]],
     });
-    res.json(tipos);
+    return res.json(tipos);
   } catch (error) {
-    console.error("Erro ao listar tipos por categoria:", error);
-    res.status(500).json({ error: "Erro ao listar tipos por categoria." });
+    console.error("Erro ao listar tipos:", error);
+    return res.status(500).json({ error: "Erro interno ao listar subtipos." });
   }
 };
 
@@ -41,25 +50,26 @@ exports.listarTiposPorCategoria = async (req, res) => {
 exports.listarTodosOsTiposAgnostico = async (req, res) => {
   try {
     const tipos = await TipoExame.findAll({ order: [["nome", "ASC"]] });
-    res.json(tipos);
+    return res.json(tipos);
   } catch (error) {
     console.error("Erro ao listar tipos globais:", error);
-    res.status(500).json({ error: "Erro ao listar tipos globais." });
+    return res
+      .status(500)
+      .json({ error: "Erro interno ao mapear catálogo clínico." });
   }
 };
 
 // Lista o histórico de exames do utilizador logado com paginação e JOINs nativos
 exports.listarHistorico = async (req, res) => {
-  // CORREÇÃO: Fallback alterado de 1 para 4 para garantir que puxa os dados da Nadia Bento
-  const utilizadorId = req.session.userId || 4;
-  const pagina = Number.parseInt(req.query.page) || 1;
-  const limite = 10; // Total de registos por página
+  const utilizadorId = obterUtilizadorSessao(req);
+  const pagina = Number.parseInt(req.query.page, 10) || 1;
+  const limite = 10;
   const offset = (pagina - 1) * limite;
 
   try {
     const { rows, count } = await Exame.findAndCountAll({
       where: { utilizador_id: utilizadorId },
-      distinct: true, // Garante a contagem real de cabeçalhos sem duplicar pelo JOIN N:N
+      distinct: true,
       order: [["data_exame", "DESC"]],
       limit: limite,
       offset: offset,
@@ -67,36 +77,33 @@ exports.listarHistorico = async (req, res) => {
         {
           model: TipoExame,
           attributes: ["nome"],
-          // CORREÇÃO: Incluído o atributo "relatorio" para o Sequelize o trazer da tabela ponte
           through: { attributes: ["resultado", "relatorio"] },
         },
       ],
     });
 
-    // Formata os dados para o formato exato que o teu JavaScript do frontend processa
-    const examesFormatados = rows.map((ex) => {
+    const exames = rows.map((ex) => {
       const tipo = ex.TipoExames?.[0];
       return {
         id: ex.id,
         data: ex.data_exame,
         nome: tipo ? tipo.nome : "Não especificado",
         resultado: tipo?.ExameTipoExame ? tipo.ExameTipoExame.resultado : null,
-        // CORREÇÃO: Mapeado o relatorio para que o objeto enviado no JSON contenha este campo
         relatorio: tipo?.ExameTipoExame ? tipo.ExameTipoExame.relatorio : null,
         observacoes: ex.observacoes || "",
       };
     });
 
-    res.json({
-      exames: examesFormatados,
+    return res.json({
+      exames,
       totalPaginas: Math.ceil(count / limite),
       paginaAtual: pagina,
     });
   } catch (error) {
-    console.error("Erro ao carregar histórico com Sequelize:", error);
-    res
+    console.error("Erro no histórico clínico:", error);
+    return res
       .status(500)
-      .json({ error: "Erro interno ao carregar o histórico clínico." });
+      .json({ error: "Erro interno ao carregar dados do repositório." });
   }
 };
 
@@ -107,55 +114,34 @@ exports.listarHistorico = async (req, res) => {
 // Guarda um novo exame e associa-o aos ficheiros PDF carregados pelo Multer
 exports.registarExame = async (req, res) => {
   const { data_exame, local_realizacao, observacoes, id_tipo_exame } = req.body;
-
-  // Extração segura do teu ID Nadia Bento (ID 4)
-  let rawUserId = req.session.userId;
-  let finalUserId = null;
-
-  if (rawUserId && typeof rawUserId === "object") {
-    finalUserId =
-      rawUserId.id_utilizador || rawUserId.id || rawUserId.utilizador_id;
-  } else if (
-    rawUserId &&
-    typeof rawUserId === "string" &&
-    rawUserId !== "[object Object]"
-  ) {
-    finalUserId = Number.parseInt(rawUserId, 10);
-  }
-
-  if (!finalUserId || Number.isNaN(finalUserId)) {
-    finalUserId = 4; // Fallback definitivo para a tua conta Nadia Bento
-  }
+  const utilizadorId = obterUtilizadorSessao(req);
 
   if (!data_exame || !id_tipo_exame) {
     return res
       .status(400)
-      .json({ error: "A data e o tipo de exame são obrigatórios." });
+      .json({ error: "Data e parâmetro clínico são obrigatórios." });
   }
 
-  // Captura dos dois PDFs vindos do upload.fields das rotas
   const ficheiroExame = req.files?.["resultado_file"]?.[0]?.filename || null;
   const ficheiroRelatorio = req.files?.["relatorio"]?.[0]?.filename || null;
 
-  const t = await Exame.sequelize.transaction();
-
+  // Implementação Estrita de Transação ACID (sequelize.transaction)
+  const t = await sequelize.transaction();
   try {
-    // 1. Criar cabeçalho na tabela Exame
     const novoExame = await Exame.create(
       {
         data_exame,
         local_realizacao: local_realizacao || "SaúdeDigital Clinic",
         observacoes,
-        utilizador_id: finalUserId,
+        utilizador_id: utilizadorId,
       },
       { transaction: t },
     );
 
-    // 2. Criar vínculo na tabela Exame_TipoExame com ambos os PDFs
     await ExameTipoExame.create(
       {
         id_exame: novoExame.id,
-        id_tipo_exame: Number(id_tipo_exame),
+        id_tipo_exame: Number.parseInt(id_tipo_exame, 10),
         resultado: ficheiroExame,
         relatorio: ficheiroRelatorio,
       },
@@ -163,22 +149,21 @@ exports.registarExame = async (req, res) => {
     );
 
     await t.commit();
-    res
+    return res
       .status(200)
-      .json({ message: "Exame e relatórios guardados com sucesso!" });
+      .json({ message: "Exame e relatórios registados com sucesso!" });
   } catch (error) {
     await t.rollback();
-    console.error("Erro ao registar exame (Transaction Rollback):", error);
-
-    // Elimina os ficheiros criados do disco se a BD falhar
+    console.error("Rollback executado. Limpando uploads do disco...", error);
     [ficheiroExame, ficheiroRelatorio].forEach((f) => {
       if (f) {
         const caminho = path.join(__dirname, "../../public/uploads/", f);
         if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
       }
     });
-
-    res.status(500).json({ error: "Erro interno ao submeter o exame." });
+    return res
+      .status(500)
+      .json({ error: "Falha crítica de persistência relacional." });
   }
 };
 
@@ -241,48 +226,52 @@ exports.editarExame = async (req, res) => {
 // Eliminação em massa a partir dos checkboxes do histórico principal (com remoção física do PDF)
 exports.eliminarMassa = async (req, res) => {
   const { ids } = req.body;
-  const utilizadorId = req.session.userId || 1;
+  const utilizadorId = obterUtilizadorSessao(req);
 
-  if (!ids || ids.length === 0) {
-    return res.status(400).json({ error: "Nenhum registo selecionado." });
+  if (!ids || !Array.isArray(ids) || ids.length === 0) {
+    return res
+      .status(400)
+      .json({ error: "Nenhum registo selecionado para eliminação." });
   }
 
+  const t = await sequelize.transaction();
   try {
-    // 1. Procurar os nomes dos ficheiros PDF associados a estes exames
     const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
 
-    vinculos.forEach((vinculo) => {
-      if (vinculo.resultado) {
-        const caminhoFicheiro = path.join(
-          __dirname,
-          "../../public/uploads/",
-          vinculo.resultado,
-        );
+    await ExameTipoExame.destroy(
+      { where: { id_exame: ids } },
+      { transaction: t },
+    );
+    await Exame.destroy(
+      { where: { id: ids, utilizador_id: utilizadorId } },
+      { transaction: t },
+    );
 
-        // CORREÇÃO: Envolver a remoção física num bloco try/catch secundário
-        // Impede que um ficheiro bloqueado ou em falta deite o servidor abaixo
-        try {
-          if (fs.existsSync(caminhoFicheiro)) {
-            fs.unlinkSync(caminhoFicheiro);
-          }
-        } catch (fileError) {
-          console.error(
-            `Aviso: Não foi possível apagar o ficheiro ${vinculo.resultado}:`,
-            fileError,
+    await t.commit();
+
+    // Eliminação física pós-commit para evitar inconsistências
+    vinculos.forEach((v) => {
+      [v.resultado, v.relatorio].forEach((ficheiro) => {
+        if (ficheiro) {
+          const caminho = path.join(
+            __dirname,
+            "../../public/uploads/",
+            ficheiro,
           );
-          // O fluxo continua sem crashar a aplicação
+          if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
         }
-      }
+      });
     });
 
-    // 2. Apagar da base de dados respeitando as chaves estrangeiras
-    await ExameTipoExame.destroy({ where: { id_exame: ids } });
-    await Exame.destroy({ where: { id: ids, utilizador_id: utilizadorId } });
-
-    res.json({ message: "Registos clínicos eliminados com sucesso!" });
+    return res.json({
+      message: "Registos e documentos expurgados com sucesso.",
+    });
   } catch (error) {
+    await t.rollback();
     console.error("Erro na remoção em massa:", error);
-    res.status(500).json({ error: "Erro ao processar a eliminação em massa." });
+    return res
+      .status(500)
+      .json({ error: "Erro interno no processamento de remoção." });
   }
 };
 
@@ -321,37 +310,30 @@ exports.eliminarTipoExame = async (req, res) => {
 // --- GERAR LINK DE PARTILHA COM O MÉDICO (48 HORAS) ---
 exports.gerarPartilha = async (req, res) => {
   const { examesIds } = req.body;
-  const utilizadorId = req.session.userId;
+  const utilizadorId = obterUtilizadorSessao(req);
 
   if (!examesIds || examesIds.length === 0) {
-    return res
-      .status(400)
-      .json({ error: "Nenhum exame selecionado para partilhar." });
+    return res.status(400).json({ error: "Parâmetros de exames inválidos." });
   }
 
   try {
-    // Gera um token aleatório seguro de 32 caracteres
     const token = crypto.randomBytes(16).toString("hex");
+    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // Janela estrita de 48h
 
-    // Define a expiração matemática exata para daqui a 48 Horas
-    const TEMPO_48H_EM_MS = 48 * 60 * 60 * 1000;
-    const dataExpiracao = new Date(Date.now() + TEMPO_48H_EM_MS);
-
-    // Converte o array [1, 2, 3] numa string "1,2,3"
-    const stringIds = examesIds.join(",");
-
-    // Faz o INSERT na tabela Partilha
-    await Exame.sequelize.query(
+    await sequelize.query(
       "INSERT INTO Partilha (token, exames_ids, data_expiracao, utilizador_id) VALUES (?, ?, ?, ?)",
-      { replacements: [token, stringIds, dataExpiracao, utilizadorId] },
+      {
+        replacements: [token, examesIds.join(","), dataExpiracao, utilizadorId],
+        type: sequelize.QueryTypes.INSERT,
+      },
     );
 
-    res.json({ token });
+    return res.json({ token });
   } catch (error) {
-    console.error("Erro ao gerar token de partilha:", error);
-    res
+    console.error("Erro ao processar link interoperável:", error);
+    return res
       .status(500)
-      .json({ error: "Erro interno ao criar o link de partilha." });
+      .json({ error: "Erro interno ao criar credencial de partilha." });
   }
 };
 

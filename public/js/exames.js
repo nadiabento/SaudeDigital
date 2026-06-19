@@ -6,8 +6,10 @@ let tiposGlobais = [];
 let examesParaTabela = [];
 let direcaoOrdenacao = { exame: 1, data: 1 };
 let paginaAtual = 1;
-let totalPaginasGlobal = 1; // 👈 CORREÇÃO: Variável global para não perder os controlos de página
+let totalPaginasGlobal = 1;
 const examesPorPagina = 10;
+
+const itensSelecionados = new Set();
 
 // --- CONFIGURAÇÃO INICIAL ---
 window.onload = () => {
@@ -233,48 +235,40 @@ function filtrarTabela() {
 function toggleTodos(master) {
   document.querySelectorAll(".exame-checkbox").forEach((cb) => {
     cb.checked = master.checked;
+    const id = Number.parseInt(cb.value, 10);
+    master.checked ? itensSelecionados.add(id) : itensSelecionados.delete(id);
   });
   verificarSelecao();
 }
 
 function verificarSelecao() {
   const checkboxes = document.querySelectorAll(".exame-checkbox");
-  const marcados = Array.from(checkboxes).filter((cb) => cb.checked).length;
-  const totalCheckboxes = checkboxes.length;
+  let marcados = 0;
 
-  // 1. Sincroniza o visto do cabeçalho (se todos estiverem marcados, põe visto no checkAll)
+  checkboxes.forEach((cb) => {
+    const id = Number.parseInt(cb.value, 10);
+    if (cb.checked) {
+      itensSelecionados.add(id);
+      marcados++;
+    } else {
+      itensSelecionados.delete(id);
+    }
+  });
+
   const checkAll = document.getElementById("checkAll");
-  if (checkAll) {
-    checkAll.checked = marcados === totalCheckboxes && totalCheckboxes > 0;
-  }
+  if (checkAll)
+    checkAll.checked = marcados === checkboxes.length && checkboxes.length > 0;
 
-  // 2. Controla a exibição da barra de ações externa (#acoesMassa)
   const barraAcoes = document.getElementById("acoesMassa");
   if (barraAcoes) {
-    if (marcados > 0) {
+    if (itensSelecionados.size > 0) {
       barraAcoes.classList.remove("d-none");
-      barraAcoes.style.display = "flex"; // Mantém o flexbox para alinhar os botões
+      barraAcoes.style.display = "flex";
     } else {
       barraAcoes.classList.add("d-none");
       barraAcoes.style.display = "none";
     }
   }
-
-  // 3. Bloqueia ou desbloqueia as ações do menu de 3 pontos se houver mais do que 1 selecionado
-  const acoesIndividuais = document.querySelectorAll(".btn-acao-individual");
-  const bloquearIndividuais = marcados > 1;
-
-  acoesIndividuais.forEach((item) => {
-    if (bloquearIndividuais) {
-      item.classList.add("disabled");
-      item.style.opacity = "0.4";
-      item.style.pointerEvents = "none";
-    } else {
-      item.classList.remove("disabled");
-      item.style.opacity = "1";
-      item.style.pointerEvents = "auto";
-    }
-  });
 }
 
 //--- 4. ELIMINAÇÃO EM MASSA INTERLIGADA ---
@@ -314,56 +308,50 @@ async function eliminarUm(id) {
 }
 
 async function eliminarSelecionados() {
-  const checkboxes = document.querySelectorAll(".exame-checkbox:checked");
-  const ids = Array.from(checkboxes).map((cb) => cb.value);
-
-  if (ids.length === 0) return;
+  const idsParaEliminar = Array.from(itensSelecionados);
+  if (idsParaEliminar.length === 0) return;
 
   Swal.fire({
-    title: `Eliminar ${ids.length} exames?`,
-    text: "Esta ação removerá todos os registos e ficheiros selecionados permanentemente!",
+    title: `Deseja eliminar ${idsParaEliminar.length} exames?`,
+    text: "Esta ação é irreversível e expurgará os relatórios associados!",
     icon: "warning",
     showCancelButton: true,
     confirmButtonColor: "#dc3545",
     cancelButtonColor: "#6c757d",
-    confirmButtonText: "Sim, eliminar tudo",
+    confirmButtonText: "Sim, eliminar",
     cancelButtonText: "Cancelar",
-  }).then(async (result) => {
-    if (result.isConfirmed) {
-      try {
-        await executarEliminacao(ids);
-        Swal.fire({
-          title: "Registos Removidos!",
-          text: `Foram eliminados ${ids.length} exames com sucesso do seu histórico.`,
-          icon: "success",
-          showConfirmButton: false,
-          timer: 2500,
-        });
-      } catch (error) {
-        console.error("Erro ao eliminar vários:", error);
-        Swal.fire({
-          title: "Erro na operação",
-          text: "Problema de integridade ao tentar eliminar os registos selecionados.",
-          icon: "error",
-          confirmButtonColor: "#dc3545",
-        });
-      }
-    }
+  }).then((result) => {
+    if (result.isConfirmed) executarEliminacao(idsParaEliminar);
   });
 }
 
 async function executarEliminacao(ids) {
-  const res = await fetch("/api/exames/eliminar-massa", {
-    method: "DELETE",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ ids }),
-  });
-  if (res.ok) {
+  try {
+    const res = await fetch("/api/exames/eliminar-massa", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids }),
+    });
+
+    if (!res.ok) {
+      const apiErro = await res.json();
+      throw new Error(
+        apiErro.error || "Falha ao processar pedido no servidor.",
+      );
+    }
+
+    itensSelecionados.clear();
     const checkMaster = document.getElementById("checkAll");
     if (checkMaster) checkMaster.checked = false;
+
+    Swal.fire(
+      "Eliminado!",
+      "Os registos foram permanentemente removidos.",
+      "success",
+    );
     carregarHistorico(paginaAtual);
-  } else {
-    throw new Error("Erro na eliminação do servidor");
+  } catch (error) {
+    Swal.fire("Erro Crítico", error.message, "error");
   }
 }
 

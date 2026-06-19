@@ -17,6 +17,7 @@ const Exame = sequelize.define(
     local_realizacao: {
       type: DataTypes.STRING,
       allowNull: true,
+      defaultValue: "SaúdeDigital Clinic",
     },
     observacoes: {
       type: DataTypes.TEXT,
@@ -33,16 +34,25 @@ const Exame = sequelize.define(
   },
 );
 
-// Mapeamento da Tabela Ponte (Exame_TipoExame) com atributos extras
 const ExameTipoExame = sequelize.define(
   "ExameTipoExame",
   {
+    id_exame: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      references: { model: "Exame", key: "id" },
+    },
+    id_tipo_exame: {
+      type: DataTypes.INTEGER,
+      primaryKey: true,
+      references: { model: "Tipo_Exame", key: "id" },
+    },
     resultado: {
-      type: DataTypes.STRING, // Guarda o PDF do Exame
+      type: DataTypes.STRING,
       allowNull: true,
     },
     relatorio: {
-      type: DataTypes.STRING, //
+      type: DataTypes.STRING,
       allowNull: true,
     },
   },
@@ -52,7 +62,6 @@ const ExameTipoExame = sequelize.define(
   },
 );
 
-// Configuração de N para N (BelongsToMany)
 Exame.belongsToMany(TipoExame, {
   through: ExameTipoExame,
   foreignKey: "id_exame",
@@ -62,5 +71,4 @@ TipoExame.belongsToMany(Exame, {
   foreignKey: "id_tipo_exame",
 });
 
-// Exportamos os modelos e a tabela ponte estruturada
 module.exports = { Exame, TipoExame, ExameTipoExame };

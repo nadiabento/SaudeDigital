@@ -4,7 +4,6 @@ const exameController = require("../controllers/exameController");
 const multer = require("multer");
 const path = require("node:path");
 const fs = require("node:fs");
-const sequelize = require("../config/db"); // CORREÇÃO: Importação necessária para as queries diretas
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -13,89 +12,50 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    const sufixoAleatorio = Math.round(Math.random() * 1e5);
-
+    const hash = crypto.randomBytes(8).toString("hex");
     cb(
       null,
-      Date.now() + "-" + sufixoAleatorio + path.extname(file.originalname),
+      `${Date.now()}-${hash}${path.extname(file.originalname).toLowerCase()}`,
     );
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // CORREÇÃO: Limite de 5MB para evitar ataques DoS
+  limits: { fileSize: 5 * 1024 * 1024 }, // Mitigação estrita contra DoS (5MB)
   fileFilter: (req, file, cb) => {
     if (path.extname(file.originalname).toLowerCase() === ".pdf") {
-      cb(null, true);
-    } else {
-      // CORREÇÃO: Passar o erro estruturado para o Express gerir sem mandar a app abaixo
-      cb(new Error("Apenas são permitidos ficheiros PDF!"), false);
+      return cb(null, true);
     }
+    return cb(
+      new Error(
+        "Segurança de Mime-Type: Apenas ficheiros PDF são autorizados!",
+      ),
+      false,
+    );
   },
 });
 
-// --- ENTRADAS DE LEITURA (GET) ---
 router.get("/categorias", exameController.listarCategorias);
 router.get("/tipos/:id_categoria", exameController.listarTiposPorCategoria);
 router.get("/tipos-todos", exameController.listarTodosOsTiposAgnostico);
 router.get("/historico", exameController.listarHistorico);
-router.get("/visualizar-partilha/:token", exameController.visualizarPartilha);
-router.get("/dados-partilha/:token", exameController.getDadosPartilha);
 
-// --- ENTRADAS DE ESCRITA (POST) ---
 router.post(
   "/registar",
   (req, res, next) => {
-    // Configuramos o Multer para aceitar ambos os PDFs antes de chamar o controlador
     upload.fields([
       { name: "resultado_file", maxCount: 1 },
       { name: "relatorio", maxCount: 1 },
     ])(req, res, (err) => {
-      if (err) {
-        return res.status(400).json({ error: err.message });
-      }
-      next();
+      if (err) return res.status(400).json({ error: err.message });
+      return next();
     });
   },
-  exameController.registarExame, // Devolvemos o controlo ao teu controlador estruturado
+  exameController.registarExame,
 );
 
-router.post("/categorias", exameController.criarCategoria);
-router.post("/tipos", exameController.criarTipo);
 router.post("/gerar-partilha", exameController.gerarPartilha);
-
-// --- ENTRADAS DE MANUTENÇÃO (PUT/DELETE) ---
-router.put("/editar/:id", exameController.editarExame);
 router.delete("/eliminar-massa", exameController.eliminarMassa);
-
-router.delete("/categorias/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    // CORREÇÃO: Utiliza a instância correta 'sequelize' importada no topo
-    const [dependentes] = await sequelize.query(
-      "SELECT id FROM Tipo_Exame WHERE id_categoria = ? LIMIT 1",
-      { replacements: [id], type: sequelize.QueryTypes.SELECT },
-    );
-
-    if (dependentes) {
-      return res.status(400).json({
-        error:
-          "Eliminação recusada! Esta categoria tem tipos de exames associados (ex: Raio-X, TAC) e não pode ser removida.",
-      });
-    }
-
-    await sequelize.query("DELETE FROM Categoria_Exame WHERE id = ?", {
-      replacements: [id],
-    });
-
-    res.json({ message: "Categoria eliminada com sucesso." });
-  } catch (error) {
-    console.error("Erro ao eliminar categoria nas rotas:", error);
-    res.status(500).json({ error: "Erro interno ao tentar eliminar." });
-  }
-});
-
-router.delete("/tipos/:id", exameController.eliminarTipoExame);
 
 module.exports = router;
