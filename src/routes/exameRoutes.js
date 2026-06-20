@@ -22,9 +22,10 @@ const storage = new CloudinaryStorage({
   params: {
     folder: "saudedigital_exames",
     resource_type: "image",
+    type: "upload",
     public_id: (req, file) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
-      return file.fieldname + "-" + uniqueSuffix;
+      return `${file.fieldname}-${uniqueSuffix}`;
     },
   },
 });
