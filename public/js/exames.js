@@ -12,7 +12,9 @@ const examesPorPagina = 10;
 const itensSelecionados = new Set();
 
 // --- CONFIGURAÇÃO INICIAL ---
+// --- CONFIGURAÇÃO INICIAL ---
 window.onload = () => {
+  carregarUtilizadorLogado();
   carregarCategorias();
   carregarHistorico();
   configurarEventosInterface();
@@ -24,6 +26,38 @@ window.onload = () => {
     if (el) el.setAttribute("max", hojeFormatado);
   });
 };
+
+// --- BUSCA O UTILIZADOR AUTENTICADO E ATUALIZA A SIDEBAR ---
+async function carregarUtilizadorLogado() {
+  try {
+    // Faz a chamada à rota que devolve a sessão do utilizador logado no server.js
+    const response = await fetch("/api/usuario-logado");
+
+    if (!response.ok) throw new Error("Sessão não encontrada");
+
+    const dados = await response.json();
+
+    if (dados && dados.nome) {
+      // 1. Atualiza o HTML da sidebar textualmente
+      const elUserName = document.getElementById("userName");
+      if (elUserName) elUserName.innerText = dados.nome;
+
+      // 2. Guarda no localStorage para sincronizar com os botões de Email e WhatsApp
+      localStorage.setItem("userName", dados.nome);
+    } else {
+      falhaAoCarregarNome();
+    }
+  } catch (error) {
+    console.error("Erro ao carregar sessão do utilizador:", error);
+    falhaAoCarregarNome();
+  }
+}
+
+function falhaAoCarregarNome() {
+  const elUserName = document.getElementById("userName");
+  if (elUserName) elUserName.innerText = "Utilizador";
+  localStorage.setItem("userName", "Utilizador");
+}
 
 // --- 1. COMUNICAÇÃO COM A API (GET) ---
 

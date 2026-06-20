@@ -167,6 +167,32 @@ app.get("/api/vitals", async (req, res) => {
   }
 });
 
+// --- ROTA PARA OBTER O NOME DO UTILIZADOR LOGADO (SIDEBAR) ---
+app.get("/api/usuario-logado", async (req, res) => {
+  try {
+    const userId = req.session.userId;
+    if (!userId) {
+      return res.status(401).json({ erro: "Não autenticado" });
+    }
+
+    // Procura o nome do utilizador na tabela correspondente (ajuste 'Utilizador' se a sua tabela tiver outro nome)
+    const [utilizador] = await db.execute(
+      "SELECT nome FROM Utilizador WHERE id = ?",
+      [userId],
+    );
+
+    if (utilizador.length > 0) {
+      // Devolve o nome em formato JSON para o script do front-end consumir
+      res.status(200).json({ nome: utilizador[0].nome });
+    } else {
+      res.status(404).json({ erro: "Utilizador não encontrado" });
+    }
+  } catch (error) {
+    console.error("Erro ao obter utilizador logado:", error);
+    res.status(500).json({ erro: "Erro interno do servidor clínico" });
+  }
+});
+
 app.delete("/api/vitals/:id", async (req, res) => {
   try {
     if (!req.session.userId)
