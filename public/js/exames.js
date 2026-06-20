@@ -139,7 +139,6 @@ function renderizarTabela(totalPaginas) {
               }
           </td>
 
-          // Célula do Relatório Médico (Linha ~104):
           <td>
               ${
                 exame.relatorio
