@@ -11,7 +11,8 @@
   --sidebar-width-collapsed: 85px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
@@ -20,27 +21,33 @@ html, body {
   overflow-x: hidden;
 }
 
-.exame-card, .card-sombra-moderna, .btn-atalho {
+.exame-card,
+.card-sombra-moderna,
+.btn-atalho {
   background: #ffffff !important;
   border: 1px solid rgba(0, 0, 0, 0.05) !important; /* Definição fina */
-  border-radius: 16px !important;                  /* Cantos arredondados iguais */
-  color: #252f40 !important;                       /* Cor do texto escura e limpa */
-  
+  border-radius: 16px !important; /* Cantos arredondados iguais */
+  color: #252f40 !important; /* Cor do texto escura e limpa */
+
   /* Sombra Premium Idêntica à imagem */
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 10px 15px -3px rgba(0, 0, 0, 0.08),
     0 0 1px 0 rgba(0, 0, 0, 0.1) !important;
-    
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease !important;
 }
 
 /* Efeito opcional: quando o utilizador passa o rato por cima, o card "flutua" ligeiramente */
-.exame-card:hover, .card-sombra-moderna:hover, .btn-atalho:hover {
+.exame-card:hover,
+.card-sombra-moderna:hover,
+.btn-atalho:hover {
   transform: translateY(-3px) !important;
   background: #ffffff !important;
-  box-shadow: 
-    0 10px 20px -5px rgba(0, 0, 0, 0.08), 
+  box-shadow:
+    0 10px 20px -5px rgba(0, 0, 0, 0.08),
     0 20px 25px -5px rgba(0, 0, 0, 0.12) !important;
 }
 
@@ -59,7 +66,9 @@ html, body {
   flex-direction: column;
   border-right: 1px solid #e9ecef;
   z-index: 1050;
-  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition:
+    width 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
 }
 
 .sidebar.collapsed {
@@ -167,11 +176,15 @@ html, body {
    ========================================================================= */
 .main-content {
   margin-left: var(--sidebar-width) !important;
-  width: calc(100% - var(--sidebar-width)) !important; /* Força a largura dinâmica correta */
+  width: calc(
+    100% - var(--sidebar-width)
+  ) !important; /* Força a largura dinâmica correta */
   padding: 2rem;
   min-height: 100vh;
   background-color: var(--bg-light);
-  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out; 
+  transition:
+    margin-left 0.3s ease-in-out,
+    width 0.3s ease-in-out;
 }
 
 .collapsed ~ .main-content {
@@ -225,7 +238,7 @@ html, body {
 }
 
 /* Botões de Mídia PDF */
-#tabelaExames a.btn-primary, 
+#tabelaExames a.btn-primary,
 #tabelaExames a.btn-danger {
   display: inline-flex;
   align-items: center;
@@ -242,22 +255,22 @@ html, body {
 }
 
 /* Paginação */
-.pagination { 
-  border-radius: 12px; 
-  overflow: hidden; 
+.pagination {
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.page-link { 
-  padding: 10px 18px; 
-  color: #0d6efd; 
-  border: 1px solid #dee2e6; 
-  transition: all 0.2s ease; 
+.page-link {
+  padding: 10px 18px;
+  color: #0d6efd;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
 }
 
-.page-item.active .page-link { 
-  background-color: #0d6efd; 
-  border-color: #0d6efd; 
-  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); 
+.page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
 }
 
 /* Botão WhatsApp: Estado Normal */
@@ -269,11 +282,11 @@ html, body {
 }
 
 /* Botão WhatsApp: Efeito Hover (Fundo Verde, Letras Brancas) */
-.btn-outline-success:hover, 
-.btn-outline-success:active, 
+.btn-outline-success:hover,
+.btn-outline-success:active,
 .btn-outline-success:focus {
   background-color: #198754 !important; /* Fundo Verde */
-  color: #ffffff !important;             /* Letras Brancas */
+  color: #ffffff !important; /* Letras Brancas */
   border-color: #198754 !important;
 }
 
@@ -292,7 +305,7 @@ html, body {
     height: 100vh !important;
     z-index: 1200 !important;
   }
-  
+
   .sidebar.active {
     transform: translateX(0) !important;
   }
@@ -318,12 +331,12 @@ html, body {
 
   /* Define a largura interna da tabela sem esticar o card exterior */
   .table-responsive .table {
-    min-width: 650px !important; 
+    min-width: 650px !important;
     margin-bottom: 0 !important;
   }
 
   /* Centra o conteúdo e os cabeçalhos das células no mobile */
-  #tabelaExames td, 
+  #tabelaExames td,
   .table thead th {
     padding: 10px 8px !important;
     text-align: left;
@@ -348,7 +361,7 @@ html, body {
   }
 
   /* Ajuste dos mini botões de PDF para não quebrarem layout */
-  #tabelaExames a.btn-primary, 
+  #tabelaExames a.btn-primary,
   #tabelaExames a.btn-danger {
     min-width: auto !important;
     display: inline-flex !important;
@@ -361,30 +374,41 @@ html, body {
    6. CORREÇÃO DOS DROPDOWNS EM TABELAS CURTAS (SAÚDEDIGITAL)
    ========================================================================= */
 
-/* 1. Remove a barreira de posicionamento das células da tabela */
-.table-responsive,
-.table-responsive tbody,
-.table-responsive tr,
-.table-responsive td {
-    position: static !important;
-}
-
-/* 2. Permite que o dropdown se posicione em relação à linha */
-.table-responsive .dropdown {
-    position: relative !important;
-}
-
-/* 3. Cria uma folga invisível no fundo da tabela para o menu abrir */
+/* 1. Remove o corte vertical na tabela mantendo apenas o scroll horizontal se necessário */
 .table-responsive {
-    padding-bottom: 110px !important;
-    margin-bottom: -110px !important;
+  overflow-x: auto !important;
+  overflow-y: visible !important; /* Garante que o conteúdo saia para baixo */
 }
 
-/* 4. Alinha o menu à direita e garante que fica por cima de tudo */
-.table-responsive .dropdown-menu {
-    position: absolute !important;
-    top: 100% !important;
-    right: 0 !important;
-    left: auto !important;
-    z-index: 1060 !important;
+/* 2. Garante que a célula do botão NÃO tenha position static, 
+      mas sim relative para o dropdown se guiar por ela */
+#tabelaExames td:last-child {
+  position: relative !important;
+}
+
+/* 3. Alinha o menu perfeitamente abaixo do botão de três pontos */
+#tabelaExames .dropdown-menu {
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 1060 !important;
+  margin-top: 2px !important;
+  display: none; /* Deixe o Bootstrap controlar o 'show' */
+}
+
+/* Quando o menu do Bootstrap abre, ele ganha a classe .show */
+#tabelaExames .dropdown-menu.show {
+  display: block !important;
+}
+
+/* 4. Em vez de padding/margin negativo na tabela inteira, 
+      adicionamos um espaço controlado apenas na última linha (se for tabela curta) */
+#tabelaExames tr:last-child {
+  height: 140px !important; /* Cria o espaço exato para o menu abrir sem sumir */
+}
+
+#tabelaExames tr:last-child td {
+  vertical-align: top !important; /* Mantém o texto alinhado acima no espaço extra */
+  padding-top: 12px !important;
 }
