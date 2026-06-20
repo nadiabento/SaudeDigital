@@ -356,3 +356,35 @@ html, body {
     font-size: 0.75rem !important;
   }
 }
+
+/* =========================================================================
+   6. CORREÇÃO DOS DROPDOWNS EM TABELAS CURTAS (SAÚDEDIGITAL)
+   ========================================================================= */
+
+/* 1. Remove a barreira de posicionamento das células da tabela */
+.table-responsive,
+.table-responsive tbody,
+.table-responsive tr,
+.table-responsive td {
+    position: static !important;
+}
+
+/* 2. Permite que o dropdown se posicione em relação à linha */
+.table-responsive .dropdown {
+    position: relative !important;
+}
+
+/* 3. Cria uma folga invisível no fundo da tabela para o menu abrir */
+.table-responsive {
+    padding-bottom: 110px !important;
+    margin-bottom: -110px !important;
+}
+
+/* 4. Alinha o menu à direita e garante que fica por cima de tudo */
+.table-responsive .dropdown-menu {
+    position: absolute !important;
+    top: 100% !important;
+    right: 0 !important;
+    left: auto !important;
+    z-index: 1060 !important;
+}
