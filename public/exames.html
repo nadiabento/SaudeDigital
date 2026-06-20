@@ -17,9 +17,11 @@
 
 <body class="bg-light">
   <!-- Botão Hamburguer para Mobile -->
-  <nav class="navbar navbar-expand-lg navbar-dark bg-white border-bottom position-fixed top-0 w-100 d-lg-none" style="z-index: 1100; height: 70px;">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-white border-bottom position-fixed top-0 w-100 d-lg-none"
+    style="z-index: 1100; height: 70px;">
     <div class="container-fluid px-3">
-      <span class="navbar-brand logo-text fw-bold text-primary fs-4" style="background: linear-gradient(45deg, #3b5afa, #3b5afa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SaúdeDigital</span>
+      <span class="navbar-brand logo-text fw-bold text-primary fs-4"
+        style="background: linear-gradient(45deg, #3b5afa, #3b5afa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SaúdeDigital</span>
       <button class="btn btn-light border px-2 py-1" type="button" onclick="toggleSidebar()" aria-label="Abrir Menu">
         <i class="bi bi-list fs-3 text-dark"></i>
       </button>
@@ -35,7 +37,7 @@
 
       <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
         <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
-        <h4 class="logo-text fw-bold mb-0 hide-on-collapse" style="background: linear-gradient(45deg, #3b5afa, #3b5afa); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">SaúdeDigital</h4>
+        <h4 class="logo-text fw-bold mb-0 hide-on-collapse" style="color: #101616;">SaúdeDigital</h4>
       </div>
 
       <div class="nav flex-column px-2">
@@ -72,23 +74,23 @@
         </a>
       </div>
 
-       <div class="profile-section mt-auto w-100">
-            <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
+      <div class="profile-section mt-auto w-100">
+        <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
 
-                <div class="profile-img-container flex-shrink-0">
-                    <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
-                        class="rounded-circle"
-                        style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
-                </div>
+          <div class="profile-img-container flex-shrink-0">
+            <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
+              class="rounded-circle" style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;"
+              alt="Perfil">
+          </div>
 
-                <div class="ms-3 profile-info hide-on-collapse">
-                    <h6 id="userName" class="mb-1"
-                        style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
-                        A carregar...</h6>
-                    <small class="text-muted" style="font-size: 0.85rem;">A Minha Conta</small>
-                </div>
-            </a>
-        </div>
+          <div class="ms-3 profile-info hide-on-collapse">
+            <h6 id="userName" class="mb-1"
+              style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
+              A carregar...</h6>
+            <small class="text-muted" style="font-size: 0.85rem;">A Minha Conta</small>
+          </div>
+        </a>
+      </div>
     </nav>
 
     <!-- Conteúdo Principal -->
@@ -161,7 +163,7 @@
                     <input type="file" name="resultado_file" class="form-control mt-2" accept=".pdf" />
                   </div>
                 </div>
-                
+
                 <div class="col-md-6">
                   <label class="form-label fw-semibold">Relatório do Médico (PDF)</label>
                   <div class="upload-box p-3 border rounded text-center bg-light">
@@ -218,16 +220,19 @@
                     <th class="text-end">Ações</th>
                   </tr>
                 </thead>
-                
+
                 <tr id="barraAcoesMassa" style="display: none; background-color: #e7f0ff !important;">
                   <td colspan="6" class="py-3 px-4">
-                      <div class="d-flex align-items-center justify-content-between">
-                        <span class="fw-semibold text-primary"><i class="bi bi-info-circle me-2"></i>Ações em massa para os itens selecionados</span>
-                        <div>
-                            <button class="btn btn-sm btn-outline-primary me-2" onclick="partilharVarios()"><i class="bi bi-share me-1"></i> Partilhar</button>
-                            <button class="btn btn-sm btn-danger" onclick="eliminarVarios()"><i class="bi bi-trash me-1"></i> Eliminar</button>
-                        </div>
+                    <div class="d-flex align-items-center justify-content-between">
+                      <span class="fw-semibold text-primary"><i class="bi bi-info-circle me-2"></i>Ações em massa para
+                        os itens selecionados</span>
+                      <div>
+                        <button class="btn btn-sm btn-outline-primary me-2" onclick="partilharVarios()"><i
+                            class="bi bi-share me-1"></i> Partilhar</button>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarVarios()"><i
+                            class="bi bi-trash me-1"></i> Eliminar</button>
                       </div>
+                    </div>
                   </td>
                 </tr>
 
@@ -408,9 +413,9 @@
     </div>
   </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-  
+
   <script>
     function toggleSidebar() {
       const sidebar = document.getElementById('sidebar');
@@ -423,8 +428,9 @@
       }
     }
   </script>
-  
+
   <script src="js/main.js"></script>
   <script src="js/exames.js"></script>
 </body>
+
 </html>
