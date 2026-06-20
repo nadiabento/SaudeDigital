@@ -21,8 +21,7 @@ const storage = new CloudinaryStorage({
   cloudinary: cloudinary,
   params: {
     folder: "saudedigital_exames",
-    resource_type: "raw",
-    format: async (req, file) => "pdf",
+    resource_type: "image",
     public_id: (req, file) => {
       const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
       return file.fieldname + "-" + uniqueSuffix;
