@@ -202,7 +202,7 @@ body {
 }
 
 .table-responsive {
-  overflow-x: auto !important;
+  overflow-x: visible !important;
   overflow-y: visible !important;
   border-radius: 8px;
 }
@@ -317,11 +317,12 @@ body {
     padding: 95px 15px 20px 15px !important;
   }
 
-  /* 📑 CORREÇÃO DO CONTAINER DA TABELA (Resolve o desvio para a direita) */
+  /* O scroll horizontal é ativado estritamente para resoluções mobile */
   .table-responsive {
     display: block;
     width: 100% !important;
-    overflow-x: auto !important; /* Cria um sub-ecrã deslizante apenas para a tabela */
+    overflow-x: auto !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -371,44 +372,28 @@ body {
 }
 
 /* =========================================================================
-   6. CORREÇÃO DOS DROPDOWNS EM TABELAS CURTAS (SAÚDEDIGITAL)
+   6. CORREÇÃO DE ACÇÕES DROPDOWN EXTRAS (SAÚDEDIGITAL)
    ========================================================================= */
 
-/* 1. Remove o corte vertical na tabela mantendo apenas o scroll horizontal se necessário */
-.table-responsive {
-  overflow-x: auto !important;
-  overflow-y: visible !important; /* Garante que o conteúdo saia para baixo */
+/* 1. Desativa a âncora restritiva de renderização nas tabelas */
+.table-responsive,
+.table-responsive tbody,
+.table-responsive tr,
+.table-responsive td {
+  position: static !important;
 }
 
-/* 2. Garante que a célula do botão NÃO tenha position static, 
-      mas sim relative para o dropdown se guiar por ela */
-#tabelaExames td:last-child {
+/* 2. Deixa o container nativo do dropdown controlar o eixo x e y */
+.table-responsive .dropdown {
   position: relative !important;
 }
 
-/* 3. Alinha o menu perfeitamente abaixo do botão de três pontos */
-#tabelaExames .dropdown-menu {
+/* 3. Posiciona o menu flutuante perfeitamente alinhado fora do datatable */
+.table-responsive .dropdown-menu {
   position: absolute !important;
   top: 100% !important;
   right: 0 !important;
   left: auto !important;
-  z-index: 1060 !important;
+  z-index: 1070 !important; /* Superior ao cabeçalho e linhas */
   margin-top: 2px !important;
-  display: none; /* Deixe o Bootstrap controlar o 'show' */
-}
-
-/* Quando o menu do Bootstrap abre, ele ganha a classe .show */
-#tabelaExames .dropdown-menu.show {
-  display: block !important;
-}
-
-/* 4. Em vez de padding/margin negativo na tabela inteira, 
-      adicionamos um espaço controlado apenas na última linha (se for tabela curta) */
-#tabelaExames tr:last-child {
-  height: 140px !important; /* Cria o espaço exato para o menu abrir sem sumir */
-}
-
-#tabelaExames tr:last-child td {
-  vertical-align: top !important; /* Mantém o texto alinhado acima no espaço extra */
-  padding-top: 12px !important;
 }
