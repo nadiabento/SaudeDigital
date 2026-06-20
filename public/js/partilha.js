@@ -47,17 +47,17 @@ async function carregarDados() {
                   <div class="d-flex gap-2 flex-wrap">
                       ${
                         ex.resultado
-                          ? `<button class="btn btn-sm btn-primary shadow-sm fw-semibold px-3 py-2" onclick="verPDF('${ex.resultado}', '${ex.nome}')">
-                              <i class="bi bi-file-earmark-pdf-fill me-1"></i>Ver Exame
-                             </button>`
+                          ? `<a href="${ex.resultado}" target="_blank" class="btn btn-sm btn-primary shadow-sm fw-semibold px-3 py-2">
+                                <i class="bi bi-file-earmark-pdf-fill me-1"></i>Ver Exame
+                              </a>`
                           : '<span class="text-muted small align-self-center">Sem ficheiro anexo</span>'
                       }
 
                       ${
                         ex.relatorio
-                          ? `<button class="btn btn-sm btn-danger shadow-sm fw-semibold px-3 py-2" style="background-color: #dc3545 !important; border-color: #dc3545 !important;" onclick="verPDF('${ex.relatorio}', 'Relatório - ${ex.nome}')">
+                          ? `<a href="${ex.relatorio}" target="_blank" class="btn btn-sm btn-danger shadow-sm fw-semibold px-3 py-2" style="background-color: #dc3545 !important; border-color: #dc3545 !important;">
                               <i class="bi bi-file-pdf-fill me-1"></i>Ver Relatório
-                             </button>`
+                            </a>`
                           : '<span class="text-muted small align-self-center">Sem relatório médico</span>'
                       }
                   </div>

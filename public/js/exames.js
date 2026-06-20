@@ -132,8 +132,8 @@ function renderizarTabela(totalPaginas) {
            <td>
               ${
                 exame.resultado
-                  ? `<a href="${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
-                      <i class="bi bi-file-earmark-pdf"></i> Ver Exame
+                  ? `<a href="${exame.resultado}" target="_blank" class="btn btn-sm btn-primary ...">
+                        <i class="bi bi-file-earmark-pdf"></i> Ver Exame
                     </a>`
                   : '<span class="text-muted small">Sem ficheiro</span>'
               }
