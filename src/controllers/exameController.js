@@ -108,19 +108,14 @@ exports.listarHistorico = async (req, res) => {
 // =========================================================================
 // --- 2. OPERAÇÕES DE CRIAÇÃO E REGISTO (POST)                          ---
 // =========================================================================
-
 exports.registarExame = async (req, res) => {
   const t = await sequelize.transaction();
   let idUtilizador = obterUtilizadorSessao(req);
 
-  const ficheiroExame =
-    req.files && req.files["resultado_file"]
-      ? req.files["resultado_file"][0].filename
-      : null;
-  const ficheiroRelatorio =
-    req.files && req.files["relatorio"]
-      ? req.files["relatorio"][0].filename
-      : null;
+  const ficheiroExame = req.files?.["resultado_file"]?.[0]?.path || null;
+
+  const ficheiroRelatorio = req.files?.["relatorio"]?.[0]?.path || null;
+  null;
 
   try {
     const { data_exame, local_realizacao, observacoes, id_tipo_exame } =

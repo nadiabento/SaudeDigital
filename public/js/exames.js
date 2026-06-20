@@ -129,25 +129,26 @@ function renderizarTabela(totalPaginas) {
             <td><strong>${exame.nome || "Exame Indefinido"}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
             
-            <td>
-                ${
-                  exame.resultado
-                    ? `<a href="/uploads/${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
-                        <i class="bi bi-file-earmark-pdf"></i> Ver Exame
-                      </a>`
-                    : '<span class="text-muted small">Sem ficheiro</span>'
-                }
-            </td>
+           <td>
+              ${
+                exame.resultado
+                  ? `<a href="${exame.resultado}" target="_blank" class="btn btn-sm btn-primary text-white fw-bold border-0 py-1 px-2 small">
+                      <i class="bi bi-file-earmark-pdf"></i> Ver Exame
+                    </a>`
+                  : '<span class="text-muted small">Sem ficheiro</span>'
+              }
+          </td>
 
-            <td>
-                ${
-                  exame.relatorio
-                    ? `<a href="/uploads/${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
-                        <i class="bi bi-file-pdf"></i> PDF Relatório
-                      </a>`
-                    : '<span class="text-muted small">Sem relatório</span>'
-                }
-            </td>
+          // Célula do Relatório Médico (Linha ~104):
+          <td>
+              ${
+                exame.relatorio
+                  ? `<a href="${exame.relatorio}" target="_blank" class="btn btn-sm btn-danger text-white fw-bold border-0 py-1 px-2 small" style="background-color: #dc3545 !important;">
+                      <i class="bi bi-file-pdf"></i> PDF Relatório
+                    </a>`
+                  : '<span class="text-muted small">Sem relatório</span>'
+              }
+          </td>
 
             <td class="text-end">
                 <div class="dropdown">

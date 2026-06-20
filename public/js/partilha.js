@@ -89,7 +89,7 @@ function verPDF(file, nome) {
   const modalEl = document.getElementById("modalPDF");
 
   if (frame && titulo && modalEl) {
-    frame.src = `/uploads/${file}`;
+    frame.src = file;
     titulo.innerText = nome;
     const myModal = new bootstrap.Modal(modalEl);
     myModal.show();

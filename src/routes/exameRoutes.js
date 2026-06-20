@@ -6,24 +6,32 @@ const path = require("node:path");
 const fs = require("node:fs");
 const crypto = require("node:crypto");
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const dir = "public/uploads/";
-    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    const hash = crypto.randomBytes(4).toString("hex");
-    cb(
-      null,
-      Date.now() + "-" + hash + path.extname(file.originalname).toLowerCase(),
-    );
+// COMPONENTES DO CLOUDINARY
+const cloudinary = require("cloudinary").v2;
+const { CloudinaryStorage } = require("multer-storage-cloudinary");
+
+//CONFIGURAÇÃO REAL DA TUA CONTA CLOUDINARY (Insere o teu API Secret após clicares em "View API Keys")
+cloudinary.config({
+  cloud_name: "dqg9adey1",
+  api_key: "114693438458876",
+  api_secret: "U4PKh1e7f6SuhlOfnNc_r29EJYk",
+});
+
+const storage = new CloudinaryStorage({
+  cloudinary: cloudinary,
+  params: {
+    folder: "saudedigital_exames",
+    format: async (req, file) => "pdf",
+    public_id: (req, file) => {
+      const uniqueSuffix = Date.now() + "-" + Math.round(Math.random() * 1e9);
+      return file.fieldname + "-" + uniqueSuffix;
+    },
   },
 });
 
 const upload = multer({
   storage: storage,
-  limits: { fileSize: 5 * 1024 * 1024 }, // Limitação DoS (5MB)
+  limits: { fileSize: 5 * 1024 * 1024 },
   fileFilter: (req, file, cb) => {
     if (path.extname(file.originalname).toLowerCase() === ".pdf") {
       cb(null, true);
