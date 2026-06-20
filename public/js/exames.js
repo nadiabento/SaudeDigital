@@ -464,7 +464,7 @@ function configurarEventosInterface() {
         const contentType = res.headers.get("content-type");
         let dados = {};
 
-        if (contentType && contentType.includes("application/json")) {
+        if (contentType?.includes("application/json")) {
           dados = await res.json();
         } else {
           const textoErro = await res.text();
@@ -600,8 +600,26 @@ function ordenarTabela(coluna) {
 
 //--- 7. PARTILHA EXTERNA ---
 
+async function lidarComCopiaDoModal(btn) {
+  const input = document.getElementById("inputLinkGerado");
+  if (!input) return;
+
+  try {
+    await navigator.clipboard.writeText(input.value);
+
+    btn.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
+    btn.className = "btn btn-success";
+
+    setTimeout(() => {
+      btn.innerText = "Copiar";
+      btn.className = "btn btn-primary";
+    }, 2000);
+  } catch (err) {
+    console.error("Erro ao copiar:", err);
+  }
+}
+
 async function gerarLinkPartilha() {
-  // 1. Procura todas as checkboxes de linhas que estejam selecionadas na tabela
   const checkboxes = document.querySelectorAll(
     '#tabelaExames input[type="checkbox"]:checked',
   );
@@ -616,10 +634,8 @@ async function gerarLinkPartilha() {
     return;
   }
 
-  // 2. Extrai os IDs dos exames selecionados
   const examesIds = Array.from(checkboxes).map((cb) => cb.value);
 
-  // 3. Pede ao utilizador para definir o tempo de expiração do link
   const { value: horasExpiracao } = await Swal.fire({
     title: "Validade do Link",
     text: "Durante quantas horas o médico poderá visualizar estes exames?",
@@ -641,9 +657,8 @@ async function gerarLinkPartilha() {
     },
   });
 
-  if (!horasExpiracao) return; // Utilizador cancelou
+  if (!horasExpiracao) return;
 
-  // 4. Mostra um indicador de carregamento (Loading)
   Swal.fire({
     title: "A criar portal seguro...",
     text: "A encriptar chaves de acesso clínico.",
@@ -652,77 +667,49 @@ async function gerarLinkPartilha() {
   });
 
   try {
-    // 5. Faz o pedido POST para a rota do teu backend
     const response = await fetch("/api/exames/gerar-partilha", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        examesIds: examesIds, // Passa o array de IDs
-        horasValidade: parseInt(horasExpiracao, 10),
+        examesIds: examesIds,
+        horasValidade: Number.parseInt(horasExpiracao, 10),
       }),
     });
 
     const dados = await response.json();
-
-    if (!response.ok) {
+    if (!response.ok)
       throw new Error(dados.error || "Erro desconhecido ao gerar link.");
-    }
 
-    // 6. Constrói o link completo baseado no domínio atual (funciona em localhost e no Render)
-    const urlCompleta = `${window.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
+    const urlCompleta = `${globalThis.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
 
-    // 7. Exibe o link num modal interativo pronto a copiar
-    // Substitui o Swal.fire antigo dentro de gerarLinkPartilha por este:
     Swal.fire({
       title: "Portal Médico Gerado!",
       html: `
-    <p class="text-muted small">Partilhe o link abaixo com o seu profissional de saúde:</p>
-    
-    <div class="input-group mb-3">
-      <input type="text" id="inputLinkGerado" class="form-control text-center bg-light fw-bold" value="${urlCompleta}" readonly>
-      <button class="btn btn-primary" type="button" id="btnCopiarModal">
-        Copiar
-      </button>
-    </div>
-    
-    <p class="text-danger small mb-3"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
-    
-    <hr class="my-3 text-muted opacity-25">
-    
-    <div class="d-grid gap-2">
-      <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent("Olá,\n\nPartilho o link seguro para os meus exames clínicos:\n" + urlCompleta + "\n\nMelhores cumprimentos.")}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
-        <i class="bi bi-envelope-at me-2"></i> Enviar por Email
-      </a>
-      <a href="https://api.whatsapp.com/send?text=${encodeURIComponent("Olá, aqui está o link seguro para os meus resultados de exames do SaúdeDigital: " + urlCompleta)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
-        <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
-      </a>
-    </div>
-  `,
+        <p class="text-muted small">Partilhe o link abaixo com o seu profissional de saúde:</p>
+        <div class="input-group mb-3">
+          <input type="text" id="inputLinkGerado" class="form-control text-center bg-light fw-bold" value="${urlCompleta}" readonly>
+          <button class="btn btn-primary" type="button" id="btnCopiarModal">Copiar</button>
+        </div>
+        <p class="text-danger small mb-3"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
+        <hr class="my-3 text-muted opacity-25">
+        <div class="d-grid gap-2">
+          <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent("Olá,\n\nPartilho o link seguro para os meus exames clínicos:\n" + urlCompleta + "\n\nMelhores cumprimentos.")}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
+            <i class="bi bi-envelope-at me-2"></i> Enviar por Email
+          </a>
+          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent("Olá, aqui está o link seguro para os meus resultados de exames do SaúdeDigital: " + urlCompleta)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
+            <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
+          </a>
+        </div>`,
       icon: "success",
       confirmButtonColor: "#3b5afa",
       confirmButtonText: "Concluído",
       didOpen: () => {
-        // Liga o evento de cópia seguro ao botão quando o modal abre
         const btnCopiar = document.getElementById("btnCopiarModal");
+        // 👇 Chamada direta para a função isolada, quebrando o aninhamento profundo!
         if (btnCopiar) {
-          btnCopiar.addEventListener("click", () => {
-            const linkText = document.getElementById("inputLinkGerado").value;
-            navigator.clipboard
-              .writeText(linkText)
-              .then(() => {
-                btnCopiar.innerHTML = '<i class="bi bi-check-lg"></i> Copiado!';
-                btnCopiar.className = "btn btn-success";
-                setTimeout(() => {
-                  btnCopiar.innerText = "Copiar";
-                  btnCopiar.className = "btn btn-primary";
-                }, 2000);
-              })
-              .catch((err) => {
-                console.error("Erro ao copiar:", err);
-              });
-          });
+          btnCopiar.addEventListener("click", () =>
+            lidarComCopiaDoModal(btnCopiar),
+          );
         }
       },
     });
