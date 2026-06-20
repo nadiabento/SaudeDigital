@@ -151,7 +151,7 @@ function renderizarTabela(totalPaginas) {
 
             <td class="text-end">
                 <div class="dropdown">
-                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown">
+                    <button class="btn btn-light btn-sm border" type="button" data-bs-toggle="dropdown" data-bs-popper="static">
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
