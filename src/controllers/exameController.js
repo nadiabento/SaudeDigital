@@ -278,7 +278,8 @@ exports.eliminarMassa = async (req, res) => {
 // =========================================================================
 
 exports.gerarLinkPartilha = async (req, res) => {
-  const { examesIds } = req.body;
+  // 1. Extrai os IDs dos exames e as horas escolhidas que vêm do teu Frontend
+  const { examesIds, horasValidade } = req.body; //
   const utilizadorId = obterUtilizadorSessao(req);
 
   if (!examesIds || !Array.isArray(examesIds) || examesIds.length === 0) {
@@ -289,7 +290,12 @@ exports.gerarLinkPartilha = async (req, res) => {
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
-    const dataExpiracao = new Date(Date.now() + 48 * 60 * 60 * 1000); // 48h
+    // 2. Transforma o valor que vem do frontend num número inteiro seguro
+    // Se por alguma razão o frontend não enviar o valor, assume 2 horas como padrão (fallback)
+    const horas = Number.parseInt(horasValidade, 10) || 2;
+
+    // Hora atual + (Número de horas escolhidas * 60 minutos * 60 segundos * 1000 milissegundos)
+    const dataExpiracao = new Date(Date.now() + horas * 60 * 60 * 1000);
 
     await Partilha.create({
       token,
