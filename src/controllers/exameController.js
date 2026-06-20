@@ -214,7 +214,7 @@ exports.editarExame = async (req, res) => {
         .status(404)
         .json({ error: "Exame não encontrado ou sem permissão." });
     }
-    return res.json({ message: "Exame atualizado com sucesso!" });
+    return res.json({ message: "Exame updated com sucesso!" });
   } catch (error) {
     console.error("Erro ao editar exame:", error);
     return res.status(500).json({ error: "Erro ao editar o registo." });
@@ -233,31 +233,20 @@ exports.eliminarMassa = async (req, res) => {
 
   const t = await sequelize.transaction();
   try {
-    const vinculos = await ExameTipoExame.findAll({ where: { id_exame: ids } });
-
+    // 1. Remove os vínculos na tabela intermédia com segurança atómica
     await ExameTipoExame.destroy({ where: { id_exame: ids }, transaction: t });
+
+    // 2. Remove os registos principais de exames
     await Exame.destroy({
       where: { id: ids, utilizador_id: utilizadorId },
       transaction: t,
     });
 
+    // 3. Consolida a transação na base de dados (Aiven)
     await t.commit();
 
-    vinculos.forEach((v) => {
-      [v.resultado, v.relatorio].forEach((ficheiro) => {
-        if (ficheiro) {
-          const caminho = path.join(
-            __dirname,
-            "../../public/uploads/",
-            ficheiro,
-          );
-          if (fs.existsSync(caminho)) fs.unlinkSync(caminho);
-        }
-      });
-    });
-
     return res.json({
-      message: "Registos e documentos expurgados com sucesso.",
+      message: "Registos expurgados com sucesso da base de dados.",
     });
   } catch (error) {
     await t.rollback();
