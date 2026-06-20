@@ -22,33 +22,49 @@ function formatarData(dataISO) {
   return new Date(dataISO).toLocaleDateString("pt-PT");
 }
 
-// Inicialização e UI Geral
-document.addEventListener("DOMContentLoaded", () => {
+// Inicialização, UI Geral e Login ---
+document.addEventListener("DOMContentLoaded", async () => {
+  // 1. GESTÃO DE SESSÃO E RENDERIZAÇÃO DO UTILIZADOR
   const nomeTitulo = document.getElementById("nomeUtilizadorLogado");
-  const nomeGuardado = localStorage.getItem("userName");
-
-  if (nomeTitulo && nomeGuardado) {
-    nomeTitulo.textContent = `Olá, ${nomeGuardado}`;
-  }
-
   const elNomeSidebar = document.getElementById("userName");
   const elAvatarSidebar = document.getElementById("userAvatar");
 
+  let nomeGuardado = localStorage.getItem("userName");
+
+  // Fallback: Se o localStorage falhar ou for limpo, pergunta à API do servidor
+  if (!nomeGuardado) {
+    try {
+      const response = await fetch("/api/usuario-logado");
+      if (response.ok) {
+        const dados = await response.json();
+        if (dados && dados.nome) {
+          nomeGuardado = dados.nome;
+          localStorage.setItem("userName", nomeGuardado);
+        }
+      }
+    } catch (error) {
+      console.error("Erro ao resgatar sessão do utilizador:", error);
+    }
+  }
+
+  // Injeta os dados do utilizador na interface se existirem
   if (nomeGuardado) {
+    if (nomeTitulo) nomeTitulo.textContent = `Olá, ${nomeGuardado}`;
     if (elNomeSidebar) elNomeSidebar.textContent = nomeGuardado;
     if (elAvatarSidebar) {
       elAvatarSidebar.src = `https://ui-avatars.com/api/?name=${encodeURIComponent(nomeGuardado)}&background=0d6efd&color=fff&bold=true`;
     }
+  } else {
+    if (elNomeSidebar) elNomeSidebar.textContent = "Utilizador";
   }
 
+  // 2. INICIALIZAÇÃO DE TOOLTIPS DO BOOTSTRAP
   const tooltipTriggerList = [].slice.call(
     document.querySelectorAll('[data-bs-toggle="tooltip"]'),
   );
   tooltipTriggerList.map((t) => new bootstrap.Tooltip(t));
-});
 
-// --- LÓGICA DE LOGIN ---
-document.addEventListener("DOMContentLoaded", () => {
+  // 3. LÓGICA DO FORMULÁRIO DE LOGIN
   const loginForm = document.getElementById("loginForm");
   const messageDiv = document.getElementById("message");
 
