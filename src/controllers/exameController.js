@@ -281,6 +281,8 @@ exports.gerarLinkPartilha = async (req, res) => {
     // Hora atual + (Número de horas escolhidas * 60 minutos * 60 segundos * 1000 milissegundos)
     const dataExpiracao = new Date(Date.now() + horas * 60 * 60 * 1000);
 
+    console.log("gerarLinkPartilha data: ", Date.now(), horas, dataExpiracao);
+
     await Partilha.create({
       token,
       exames_ids: examesIds.join(","),
