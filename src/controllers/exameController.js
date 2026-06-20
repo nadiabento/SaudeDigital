@@ -307,8 +307,29 @@ exports.gerarLinkPartilha = async (req, res) => {
   }
 };
 
-exports.visualizarPartilha = (req, res) => {
-  return res.sendFile(path.join(__dirname, "../../public/partilha.html"));
+exports.visualizarPartilha = async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    // 1. Procura a credencial de partilha na Base de Dados
+    const partilha = await Partilha.findOne({ where: { token } });
+
+    // 2. Se o token não existir, redireciona logo para o 404.html na raiz
+    if (!partilha) {
+      return res.redirect("/404.html");
+    }
+
+    // 3. Se o tempo já tiver passado, redireciona também para o 404.html
+    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
+      return res.redirect("/404.html");
+    }
+
+    // 4. Se estiver tudo correto e dentro do tempo, serve a página do portal
+    return res.sendFile(path.join(__dirname, "../../public/partilha.html"));
+  } catch (error) {
+    console.error("Erro ao validar visualização de partilha:", error);
+    return res.redirect("/404.html");
+  }
 };
 
 exports.getDadosPartilha = async (req, res) => {
