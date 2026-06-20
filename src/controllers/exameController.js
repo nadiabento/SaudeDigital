@@ -309,8 +309,11 @@ exports.visualizarPartilha = async (req, res) => {
       return res.redirect("/404.html");
     }
 
+    const dataAtual = new Date();
+    const dataExpiracao = new Date(partilha.data_expiracao);
+
     // 3. Se o tempo já tiver passado, redireciona também para o 404.html
-    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
+    if (dataAtual > dataExpiracao) {
       return res.redirect("/404.html");
     }
 
