@@ -1,9 +1,9 @@
 const express = require("express");
 const session = require("express-session");
 const fs = require("fs");
-const path = require("path"); // Apenas uma importação limpa aqui
+const path = require("path");
 
-// 1. IMPORTAÇÃO CORRETA E INICIALIZAÇÃO DA CLASSE DO MYSQLSTORE
+// 1. IMPORTAÇÃO E INICIALIZAÇÃO DA CLASSE DO MYSQLSTORE
 const MySQLStore = require("express-mysql-session")(session);
 
 const db = require("./src/config/db");
@@ -43,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
 
 // Configuração da pasta pública de uploads
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use("/uploads", express.static(path.join(__dirname, "public/uploads")));
 
 // Configuração de Sessão de Utilizador Persistente na BD
 app.use(
@@ -112,8 +112,7 @@ app.get("/api/dashboard/resumo", async (req, res) => {
 app.post("/api/dashboard/sinais-vitais", async (req, res) => {
   try {
     const userId = req.session.userId;
-    const { data_registo, tipo_metrica, valor_primario, valor_secundario } =
-      req.body;
+    const { data_registo, tipo_metrica, valor_primario, valor_secundario } = req.body;
 
     if (!userId) return res.status(401).json({ erro: "Não autenticado" });
 
@@ -155,8 +154,7 @@ app.get("/api/dashboard/historico-vitals", async (req, res) => {
 // --- ROTA CRUD PARA SINAIS VITAIS ---
 app.get("/api/vitals", async (req, res) => {
   try {
-    if (!req.session.userId)
-      return res.status(401).json({ erro: "Não autenticado" });
+    if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
     const [results] = await db.execute(
       "SELECT * FROM Sinal_Vital WHERE id_utilizador = ? ORDER BY data_registo DESC",
       [req.session.userId],
@@ -169,8 +167,7 @@ app.get("/api/vitals", async (req, res) => {
 
 app.delete("/api/vitals/:id", async (req, res) => {
   try {
-    if (!req.session.userId)
-      return res.status(401).json({ erro: "Não autenticado" });
+    if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
     await db.execute(
       "DELETE FROM Sinal_Vital WHERE id = ? AND id_utilizador = ?",
       [req.params.id, req.session.userId],
@@ -183,8 +180,7 @@ app.delete("/api/vitals/:id", async (req, res) => {
 
 app.post("/api/vitals", async (req, res) => {
   try {
-    if (!req.session.userId)
-      return res.status(401).json({ erro: "Não autenticado" });
+    if (!req.session.userId) return res.status(401).json({ erro: "Não autenticado" });
     const { id, data, tipo, valor1, valor2 } = req.body;
     if (id) {
       await db.execute(

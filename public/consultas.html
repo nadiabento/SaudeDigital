@@ -10,75 +10,75 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
+    <link href="https://cdn.jsdelivr.net/npm/tom-select/dist/css/tom-select.bootstrap5.min.css" rel="stylesheet">
+
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/exames.css" />
     <link rel="stylesheet" href="css/consultas.css" />
   </head>
   <body class="bg-light">
+
     <nav class="navbar navbar-light bg-light border-bottom d-md-none fixed-top shadow-sm">
         <div class="container-fluid">
             <span class="navbar-brand logo-text fw-bold">SaúdeDigital</span>
             <button class="navbar-toggler" type="button" onclick="toggleSidebar()">
-        <span class="navbar-toggler-icon"></span>
-      </button>
+              <span class="navbar-toggler-icon"></span>
+            </button>
         </div>
     </nav>
 
-  
-    <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
-      <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
-        <i class="bi bi-chevron-left"></i>
-      </button>
+    <div class="d-flex">
+      <nav id="sidebar" class="sidebar d-flex flex-column flex-shrink-0 position-fixed">
+        <button class="toggle-btn d-none d-md-flex" onclick="toggleSidebar()">
+          <i class="bi bi-chevron-left"></i>
+        </button>
 
-      <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
-        <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
+        <div class="p-4 d-flex align-items-center justify-content-center justify-content-md-start">
+          <i class="bi bi-heart-pulse-fill fs-4 text-primary me-md-2"></i>
+          <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
+        </div>
 
-        <h4 class="logo-text fw-bold mb-0 hide-on-collapse">SaúdeDigital</h4>
-      </div>
+        <div class="nav flex-column px-2">
+          <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
+            <i class="bi bi-house-door me-3"></i>
+            <span class="hide-on-collapse">Resumo Geral</span>
+          </a>
+          <a href="consultas.html" class="sidebar-link active text-decoration-none p-3">
+            <i class="bi bi-calendar-event me-3"></i>
+            <span class="hide-on-collapse">Consultas</span>
+          </a>
+          <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
+            <i class="bi bi-capsule me-3"></i>
+            <span class="hide-on-collapse">Medicação</span>
+          </a>
+          <a href="exames.html" class="sidebar-link text-decoration-none p-3">
+            <i class="bi bi-file-earmark-medical me-3"></i>
+            <span class="hide-on-collapse">Exames</span>
+          </a>
+          <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
+            <i class="bi bi-exclamation-triangle me-3"></i>
+            <span class="hide-on-collapse">Alergias</span>
+          </a>
+          <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
+            <i class="bi bi-heart-pulse me-3"></i>
+            <span class="hide-on-collapse">Sinais Vitais</span>
+          </a>
 
-      <div class="nav flex-column px-2">
-        <a href="dashboard.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-house-door me-3"></i>
-          <span class="hide-on-collapse">Resumo Geral</span>
-        </a>
-        <a href="consultas.html" class="sidebar-link active text-decoration-none p-3">
-          <i class="bi bi-calendar-event me-3"></i>
-          <span class="hide-on-collapse">Consultas</span>
-        </a>
-        <a href="medicacao.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-capsule me-3"></i>
-          <span class="hide-on-collapse">Medicação</span>
-        </a>
-        <a href="exames.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-file-earmark-medical me-3"></i>
-          <span class="hide-on-collapse">Exames</span>
-        </a>
-        <a href="alergias.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-exclamation-triangle me-3"></i>
-          <span class="hide-on-collapse">Alergias</span>
-        </a>
-        <a href="sinais-vitais.html" class="sidebar-link text-decoration-none p-3">
-          <i class="bi bi-heart-pulse me-3"></i>
-          <span class="hide-on-collapse">Sinais Vitais</span>
-        </a>
+          <hr class="text-white opacity-25 mx-3">
 
-        <hr class="text-white opacity-25 mx-3">
+          <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
+            <i class="bi bi-box-arrow-left me-3"></i>
+            <span class="hide-on-collapse">Sair</span>
+          </a>
+        </div>
 
-        <a href="index.html" class="sidebar-link text-danger text-decoration-none p-3">
-          <i class="bi bi-box-arrow-left me-3"></i>
-          <span class="hide-on-collapse">Sair</span>
-        </a>
-      </div>
-
-      <div class="profile-section mt-auto w-100">
+        <div class="profile-section mt-auto w-100">
             <a href="conta.html" class="d-flex align-items-center text-decoration-none w-100 py-3 px-4 profile-link">
-
                 <div class="profile-img-container flex-shrink-0">
                     <img src="https://ui-avatars.com/api/?name=Nadia+Bento&background=0d6efd&color=fff" id="userAvatar"
                         class="rounded-circle"
                         style="width: 45px; height: 45px; border: 2px solid #0d6efd; object-fit: cover;" alt="Perfil">
                 </div>
-
                 <div class="ms-3 profile-info hide-on-collapse">
                     <h6 id="userName" class="mb-1"
                         style="color: #252f40; font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 140px;">
@@ -87,7 +87,7 @@
                 </div>
             </a>
         </div>
-    </nav>
+      </nav>
 
       <main class="main-content">
         <header class="d-flex justify-content-between align-items-center mb-5">
@@ -99,19 +99,26 @@
 
         <div class="row g-4">
           <div class="col-lg-5">
+            
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px">
               <div class="card-body p-3">
                 <div class="row g-2">
-                  <div class="col-6">
+                  <div class="col-4">
                     <button class="btn btn-light w-100 p-3 text-center transition-hover border-0 shadow-sm" style="background-color: #ffffff; border-radius: 10px; border: 1px solid #f0f0f0 !important;" data-bs-toggle="modal" data-bs-target="#modalNovoMedico">
                       <i class="bi bi-person-plus text-primary d-block mb-2 fs-4"></i>
                       <span class="fw-bold text-dark d-block small">Novo Médico</span>
                     </button>
                   </div>
-                  <div class="col-6">
+                  <div class="col-4">
                     <button class="btn btn-light w-100 p-3 text-center transition-hover border-0 shadow-sm" style="background-color: #ffffff; border-radius: 10px; border: 1px solid #f0f0f0 !important;" data-bs-toggle="modal" data-bs-target="#modalNovaUnidade">
                       <i class="bi bi-building-add text-primary d-block mb-2 fs-4"></i>
                       <span class="fw-bold text-dark d-block small">Nova Unidade</span>
+                    </button>
+                  </div>
+                  <div class="col-4">
+                    <button class="btn btn-light w-100 p-3 text-center transition-hover border-0 shadow-sm" style="background-color: #ffffff; border-radius: 10px; border: 1px solid #f0f0f0 !important;" data-bs-toggle="modal" data-bs-target="#modalNovaEspecialidade">
+                      <i class="bi bi-heart-pulse text-primary d-block mb-2 fs-4"></i>
+                      <span class="fw-bold text-dark d-block small">Nova Especialidade</span>
                     </button>
                   </div>
                 </div>
@@ -123,21 +130,26 @@
               <form id="formConsulta">
                 <div class="mb-3">
                   <label class="form-label fw-semibold text-muted small">Médico</label>
-                  <select class="form-select bg-light border-0 p-3" id="medicoInput" onchange="autoPreencherMedico()" required>
-                    <option value="" selected disabled>A carregar médicos...</option>
-                  </select>
+                  <div class="d-flex gap-2 align-items-center">
+                    <select class="form-select bg-light border-0 p-3" id="medicoInput" onchange="autoPreencherMedico()" required>
+                      <option value="" selected disabled>Selecione o médico...</option>
+                    </select>
+                    <button type="button" class="btn btn-light border" id="btnEditarLocais" onclick="abrirModalEditarLocais()" title="Alterar locais de trabalho" style="border-radius: 10px; height: 58px; width: 58px; min-width: 58px; padding: 0; display: flex; align-items: center; justify-content: center;">
+                      <i class="bi bi-pencil-square text-primary fs-5"></i>
+                    </button>
+                  </div>
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label fw-semibold text-muted small">Especialidade</label>
-                  <select class="form-select bg-light border-0 p-3 text-muted" id="especialidadeInput" disabled required>
+                  <select class="form-select bg-light border-0 p-3" id="especialidadeInput" disabled required>
                     <option value="" selected disabled>Preenchimento automático...</option>
                   </select>
                 </div>
 
                 <div class="mb-3">
                   <label class="form-label fw-semibold text-muted small">Unidade de Saúde</label>
-                  <select class="form-select bg-light border-0 p-3 text-muted" id="unidadeInput" disabled required>
+                  <select class="form-select bg-light border-0 p-3" id="unidadeInput" disabled required>
                     <option value="" selected disabled>Preenchimento automático...</option>
                   </select>
                 </div>
@@ -146,10 +158,12 @@
                   <label class="form-label fw-semibold text-muted small">Data e Hora</label>
                   <input type="datetime-local" class="form-control bg-light border-0 p-3" id="dataHoraInput" required />
                 </div>
-                <div class="mb-4">
+                
+                <div class="mb-3">
                   <label class="form-label fw-semibold text-muted small">Notas Médicas</label>
                   <textarea class="form-control bg-light border-0 p-3" id="notasConsulta" rows="3" placeholder="Resumo do parecer médico..."></textarea>
                 </div>
+
                 <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm">
                   <i class="bi bi-check-circle me-2"></i>Guardar Registo
                 </button>
@@ -162,9 +176,14 @@
               <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="fw-bold mb-0">As Minhas Consultas</h5>
                 <div id="acoesMassa" class="d-none">
-                  <button class="btn btn-danger btn-sm shadow-sm px-3" onclick="eliminarSelecionados()">
-                    <i class="bi bi-trash me-1"></i> Eliminar
-                  </button>
+                  <div class="d-flex gap-2">
+                    <button class="btn btn-primary btn-sm shadow-sm px-3" onclick="partilharSelecionados()">
+                      <i class="bi bi-share me-1"></i> Partilhar
+                    </button>
+                    <button class="btn btn-danger btn-sm shadow-sm px-3" onclick="eliminarSelecionados()">
+                      <i class="bi bi-trash me-1"></i> Eliminar
+                    </button>
+                  </div>
                 </div>
               </div>
 
@@ -180,14 +199,22 @@
               <div class="table-responsive">
                 <table class="table table-hover align-middle">
                   <thead class="table-light">
-                    <tr class="small text-muted">
+                    <tr class="small text-muted text-uppercase">
                       <th style="width: 40px;">
                         <input type="checkbox" class="form-check-input border-secondary" id="checkAll" onclick="toggleTodos(this)">
                       </th>
-                      <th>Especialidade</th>
-                      <th>Data</th>
-                      <th>Médico</th>
-                      <th>Local</th>
+                      <th onclick="ordenarPor('especialidade')" style="cursor: pointer; user-select: none;">
+                        Especialidade <i class="bi bi-arrow-down-up ms-1 small text-muted" id="sort-icon-especialidade"></i>
+                      </th>
+                      <th onclick="ordenarPor('data_hora')" style="cursor: pointer; user-select: none;">
+                        Data <i class="bi bi-arrow-down-up ms-1 small text-muted" id="sort-icon-data_hora"></i>
+                      </th>
+                      <th onclick="ordenarPor('medico')" style="cursor: pointer; user-select: none;">
+                        Médico <i class="bi bi-arrow-down-up ms-1 small text-muted" id="sort-icon-medico"></i>
+                      </th>
+                      <th onclick="ordenarPor('local')" style="cursor: pointer; user-select: none;">
+                        Local <i class="bi bi-arrow-down-up ms-1 small text-muted" id="sort-icon-local"></i>
+                      </th>
                       <th class="text-end">Ações</th>
                     </tr>
                   </thead>
@@ -238,6 +265,24 @@
       </div>
     </div>
 
+    <div class="modal fade" id="modalNovaEspecialidade" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
+          <div class="modal-header border-0 pt-4 px-4">
+            <h5 class="modal-title fw-bold">Nova Especialidade</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body px-4">
+            <label class="form-label small fw-bold text-muted">Nome da Especialidade</label>
+            <input type="text" id="inputNovaEspecialidade" class="form-control border-0 bg-light p-3" placeholder="Ex: Cardiologia">
+          </div>
+          <div class="modal-footer border-0 px-4 pb-4">
+            <button class="btn btn-primary fw-bold py-2 px-4 rounded-3" onclick="adicionarEspecialidade()">Adicionar</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="modal fade" id="modalNovaUnidade" tabindex="-1" aria-hidden="true">
       <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
@@ -257,23 +302,51 @@
     </div>
 
     <div class="modal fade" id="modalEditarConsulta" tabindex="-1" aria-hidden="true">
-      <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-dialog modal-dialog-centered modal-lg"> 
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
           <div class="modal-header border-0 pt-4 px-4">
-            <h5 class="modal-title fw-bold">Editar Consulta</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <h5 class="modal-title fw-bold">Detalhes & Medicação da Consulta</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" onclick="limparModais()"></button>
           </div>
           <div class="modal-body px-4">
             <input type="hidden" id="editConsultaId">
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-muted">Nova Data e Hora</label>
-              <input type="datetime-local" id="editDataHora" class="form-control bg-light border-0 p-3">
-            </div>
-            <div class="mb-3">
-              <label class="form-label small fw-bold text-muted">Notas Médicas</label>
-              <textarea id="editNotas" class="form-control bg-light border-0 p-3" rows="4"></textarea>
-            </div>
-          </div>
+            
+            <div class="row">
+              <div class="col-md-6 border-end">
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-muted">Nova Data e Hora</label>
+                  <input type="datetime-local" id="editDataHora" class="form-control bg-light border-0 p-3">
+                </div>
+                <div class="mb-3">
+                  <label class="form-label small fw-bold text-muted">Notas Médicas</label>
+                  <textarea id="editNotas" class="form-control bg-light border-0 p-3" rows="6"></textarea>
+                </div>
+              </div>
+
+              <div class="col-md-6">
+                <h6 class="fw-bold text-primary mb-3"><i class="bi bi-capsule me-1"></i> Medicamentos Receitados</h6>
+                
+                <div class="p-2 rounded bg-light mb-3">
+                  <div class="mb-2">
+                    <select class="form-select form-select-sm border bg-white" id="modalEditMedicamentoSelect">
+                      <option value="" selected disabled>Escolha o medicamento...</option>
+                    </select>
+                  </div>
+                  <div class="mb-2">
+                    <input type="text" class="form-control form-control-sm border bg-white" id="modalEditPosologiaInput" placeholder="Posologia (Ex: 1 comp de 8h/8h)">
+                  </div>
+                  <div class="row g-1">
+                    <div class="col-6"><input type="date" class="form-control form-control-sm border bg-white" id="modalEditDataInicio" title="Data de Início"></div>
+                    <div class="col-6"><input type="date" class="form-control form-control-sm border bg-white" id="modalEditDataFim" title="Data de Fim"></div>
+                  </div>
+                  <button type="button" class="btn btn-sm btn-primary w-100 mt-2 fw-bold" onclick="adicionarMedicamentoAConsultaExistente()">
+                    <i class="bi bi-plus-circle me-1"></i> Vincular Medicamento
+                  </button>
+                </div>
+
+                <div style="max-height: 150px; overflow-y: auto;" id="modalListaMedicamentosVinculados"></div>
+              </div>
+            </div> </div>
           <div class="modal-footer border-0 px-4 pb-4">
             <button type="button" class="btn btn-warning fw-bold py-2 px-4 rounded-3 text-dark" onclick="guardarEdicao()">Guardar Alterações</button>
           </div>
@@ -281,21 +354,34 @@
       </div>
     </div>
 
-    <!--<script>
-      function toggleSidebar() {
-        const sidebar = document.querySelector('.sidebar');
-        if (window.innerWidth <= 768) {
-          sidebar.classList.toggle('active');
-          sidebar.classList.remove('collapsed');
-        } else {
-          sidebar.classList.toggle('collapsed');
-          sidebar.classList.remove('active');
-        }
-      }
-    </script>-->
+    <div class="modal fade" id="modalEditarLocaisMedico" tabindex="-1" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px">
+          <div class="modal-header border-0 pt-4 px-4">
+            <h5 class="modal-title fw-bold">Alterar Locais de Trabalho</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body px-4">
+            <p class="text-muted small mb-3">Adicione ou retire as clínicas para o médico: <strong id="nomeMedicoEditar" class="text-dark"></strong></p>
+            <div class="dropdown">
+              <button class="form-select border-0 bg-light p-3 text-start w-100 text-muted shadow-none" type="button" id="btnEditUnidadesDropdown" data-bs-toggle="dropdown" data-bs-auto-close="outside" aria-expanded="false">
+                Gerir unidades...
+              </button>
+              <div class="dropdown-menu w-100 border-0 shadow p-3" id="listaEditUniMedicoCheckboxes" style="max-height: 200px; overflow-y: auto; background-color: #ffffff; border-radius: 12px;"></div>
+            </div>
+          </div>
+          <div class="modal-footer border-0 px-4 pb-4">
+            <button type="button" class="btn btn-primary fw-bold py-2 px-4 rounded-3" onclick="guardarNovosLocaisMedico()">Guardar Alterações</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="js/main.js"></script>
     <script src="js/consultas.js"></script>
+
+    <script src="https://cdn.jsdelivr.net/npm/tom-select/dist/js/tom-select.complete.min.js"></script>
   </body>
 </html>

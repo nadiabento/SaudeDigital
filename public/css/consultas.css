@@ -100,7 +100,7 @@ body {
   width: var(--sidebar-width-collapsed);
 }
 
-/* Estilo estrito da Nádia para os links e tipografia */
+/* Estilo para os links e tipografia */
 .sidebar-link {
   color: #101616;
   font-weight: 400;
