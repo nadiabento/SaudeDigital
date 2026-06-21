@@ -102,7 +102,7 @@ const authController = {
     });
   },
 
-  // 4. CORREÇÃO: Função de Atualização integrada de forma correta no objeto!
+  // 4Função de Atualização integrada de forma correta
   atualizarPerfil: async (req, res) => {
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
@@ -121,42 +121,54 @@ const authController = {
         .json({ error: "Sessão expirada. Inicie sessão novamente." });
     }
 
-    // 2. TRATAMENTO DEFENSIVO: Converte strings vazias em NULL para o MySQL Strict Mode
-    const nomeFinal = nome && nome.trim() !== "" ? nome.trim() : null;
-    const dataFinal =
-      data_nascimento && data_nascimento.trim() !== ""
-        ? data_nascimento.trim()
-        : null;
-    const grupoFinal =
-      grupo_sanguineo && grupo_sanguineo.trim() !== ""
-        ? grupo_sanguineo.trim()
-        : null;
-
-    // Converte o peso para número flutuante ou passa null se estiver em branco
-    const pesoNumerico = peso && peso.trim() !== "" ? parseFloat(peso) : null;
-    const pesoFinal = isNaN(pesoNumerico) ? null : pesoNumerico;
-
-    // Validação preventiva: impede gravar campos obrigatórios vazios
-    if (!nomeFinal || !dataFinal) {
-      return res
-        .status(400)
-        .json({
-          error: "O Nome Completo e a Data de Nascimento são obrigatórios.",
-        });
-    }
-
-    const sql = `
-      UPDATE Utilizador 
-      SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
-      WHERE id = ?`;
-
     try {
-      // Executa a query passando as variáveis limpas e tratadas
+      // 2.BUSCA OS DADOS ATUAIS DA BASE DE DADOS
+      // Isto permite-nos saber o que está gravado antes de fazermos o UPDATE
+      const [linhas] = await db.query(
+        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ?",
+        [utilizadorId],
+      );
+
+      if (!linhas || linhas.length === 0) {
+        return res.status(404).json({ error: "Utilizador não encontrado." });
+      }
+
+      const dadosAtuais = linhas[0];
+
+      // 3. LÓGICA DE PRESERVAÇÃO (Se for vazio '', mantém o que já existia)
+      const nomeFinal =
+        nome !== undefined && nome.trim() !== ""
+          ? nome.trim()
+          : dadosAtuais.nome;
+      const dataFinal =
+        data_nascimento !== undefined && data_nascimento.trim() !== ""
+          ? data_nascimento.trim()
+          : dadosAtuais.data_nascimento;
+      const grupoFinal =
+        grupo_sanguineo !== undefined && grupo_sanguineo.trim() !== ""
+          ? grupo_sanguineo.trim()
+          : dadosAtuais.grupo_sanguineo;
+
+      // Tratamento especial para o peso (mantém o peso antigo se o novo vier em branco)
+      let pesoFinal = dadosAtuais.peso;
+      if (peso !== undefined && peso.trim() !== "") {
+        const pesoNumerico = parseFloat(peso);
+        if (!isNaN(pesoNumerico)) {
+          pesoFinal = pesoNumerico;
+        }
+      }
+
+      // 4. EXECUTA O UPDATE APENAS COM OS VALORES ATUALIZADOS OU PRESERVADOS
+      const sql = `
+        UPDATE Utilizador 
+        SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
+        WHERE id = ?`;
+
       await db.query(sql, [
         nomeFinal,
         dataFinal,
         grupoFinal,
-        pesoFinal, // Se estiver vazio, insere NULL em vez de '' protegendo o decimal
+        pesoFinal, // Se veio vazio, vai o valor antigo; o decimal do MySQL nunca quebra!
         Number(utilizadorId),
       ]);
 
