@@ -174,6 +174,16 @@
             </div>
 
             <div class="mb-3">
+              <label class="form-label fw-semibold">Consulta associada</label>
+              <select id="consultaMedicacao" class="form-select">
+                <option value="">Sem consulta associada</option>
+              </select>
+              <small class="text-muted">
+                Selecione a consulta na qual esta medicação foi receitada.
+              </small>
+            </div>
+
+            <div class="mb-3">
               <label class="form-label fw-semibold">Posologia</label>
               <input id="posologia" type="text" class="form-control" placeholder="Ex.: 1 comprimido de 8 em 8 horas"
                 required />
@@ -212,14 +222,42 @@
 
       <div class="col-lg-8">
         <div class="card border-0 shadow-sm p-4">
-          <h5 id="titulo-plano" class="fw-bold mb-4">
-            Plano Terapêutico Ativo
-          </h5>
+          <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 id="titulo-plano" class="fw-bold m-0">
+              Plano Terapêutico Ativo
+            </h5>
+
+            <div id="acoesMassaMedicacao" class="d-none">
+              <button class="btn btn-outline-primary btn-sm me-2" onclick="partilharMedicacoesSelecionadas()">
+                <i class="bi bi-share me-1"></i>
+                Partilhar
+              </button>
+
+              <button class="btn btn-outline-secondary btn-sm me-2" onclick="exportarMedicacoesSelecionadasPDF()">
+                <i class="bi bi-file-earmark-pdf me-1"></i>
+                PDF
+              </button>
+
+              <button class="btn btn-outline-danger btn-sm" onclick="eliminarMedicacoesSelecionadas()">
+                <i class="bi bi-trash me-1"></i>
+                Eliminar
+              </button>
+            </div>
+          </div>
 
           <div class="table-responsive w-100">
             <table class="table table-hover align-middle" style="font-size: 0.85rem;">
               <thead class="table-light">
                 <tr>
+                  <th style="width: 40px">
+                    <input
+                      type="checkbox"
+                      id="checkAllMedicacao"
+                      class="form-check-input"
+                      onclick="toggleTodasMedicacoes(this)"
+                    />
+                  </th>
+
                   <th onclick="ordenarMedicacao('medicamento')" style="cursor: pointer">
                     Medicamento
                     <i id="setaMedicamento" class="bi bi-arrow-down-up ms-1 small text-muted"></i>
@@ -252,13 +290,15 @@
               </thead>
               <tbody id="tabela-medicacao">
                 <tr>
-                  <td colspan="7" class="text-center text-muted py-4">
+                  <td colspan="8" class="text-center text-muted py-4">
                     A carregar medicação...
                   </td>
                 </tr>
               </tbody>
             </table>
           </div>
+          
+          <div id="paginacaoMedicacao" class="mt-3 d-flex justify-content-center"></div>
 
           <button id="btn-historico" type="button" class="btn btn-outline-primary mt-3 w-100">
             Ver Histórico Completo
@@ -515,6 +555,10 @@
   
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.8.2/jspdf.plugin.autotable.min.js"></script>
+
   <script src="js/main.js"></script>
   <script src="js/medicacao.js"></script>
 </body>

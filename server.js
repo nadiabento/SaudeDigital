@@ -10,6 +10,7 @@ const db = require("./src/config/db");
 const examenRoutes = require("./src/routes/exameRoutes");
 const authRoutes = require("./src/routes/authRoutes");
 const medRoutes = require("./src/routes/medRoutes");
+const alergiasRoutes = require("./src/routes/alergiasRoutes");
 const consultaRoutes = require("./src/routes/consultaRoutes");
 const sinalVitalRoutes = require("./src/routes/sinalVitalRoutes");
 
@@ -61,6 +62,7 @@ app.use(
 app.use("/api/exames", examenRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/medicacao", medRoutes);
+app.use("/api/alergias", alergiasRoutes);
 app.use("/api/consultas", consultaRoutes);
 app.use("/api/sinais-vitais", sinalVitalRoutes);
 
