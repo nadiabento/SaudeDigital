@@ -105,7 +105,15 @@ const authController = {
   // 4. CORREÇÃO: Função de Atualização integrada de forma correta no objeto!
   atualizarPerfil: async (req, res) => {
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
-    const utilizadorId = req.session.userId;
+
+    // 1. Extração segura do ID do utilizador da sessão
+    let utilizadorId = req.session?.userId;
+    if (utilizadorId && typeof utilizadorId === "object") {
+      utilizadorId =
+        utilizadorId.id_utilizador ||
+        utilizadorId.id ||
+        utilizadorId.utilizador_id;
+    }
 
     if (!utilizadorId) {
       return res
@@ -113,19 +121,45 @@ const authController = {
         .json({ error: "Sessão expirada. Inicie sessão novamente." });
     }
 
+    // 2. TRATAMENTO DEFENSIVO: Converte strings vazias em NULL para o MySQL Strict Mode
+    const nomeFinal = nome && nome.trim() !== "" ? nome.trim() : null;
+    const dataFinal =
+      data_nascimento && data_nascimento.trim() !== ""
+        ? data_nascimento.trim()
+        : null;
+    const grupoFinal =
+      grupo_sanguineo && grupo_sanguineo.trim() !== ""
+        ? grupo_sanguineo.trim()
+        : null;
+
+    // Converte o peso para número flutuante ou passa null se estiver em branco
+    const pesoNumerico = peso && peso.trim() !== "" ? parseFloat(peso) : null;
+    const pesoFinal = isNaN(pesoNumerico) ? null : pesoNumerico;
+
+    // Validação preventiva: impede gravar campos obrigatórios vazios
+    if (!nomeFinal || !dataFinal) {
+      return res
+        .status(400)
+        .json({
+          error: "O Nome Completo e a Data de Nascimento são obrigatórios.",
+        });
+    }
+
     const sql = `
-        UPDATE Utilizador 
-        SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
-        WHERE id = ?`;
+      UPDATE Utilizador 
+      SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
+      WHERE id = ?`;
 
     try {
+      // Executa a query passando as variáveis limpas e tratadas
       await db.query(sql, [
-        nome,
-        data_nascimento,
-        grupo_sanguineo,
-        peso,
-        utilizadorId,
+        nomeFinal,
+        dataFinal,
+        grupoFinal,
+        pesoFinal, // Se estiver vazio, insere NULL em vez de '' protegendo o decimal
+        Number(utilizadorId),
       ]);
+
       return res
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
