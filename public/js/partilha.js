@@ -8,8 +8,8 @@ async function carregarDados() {
   try {
     const response = await fetch(`/api/exames/dados-partilha/${token}`);
 
-    // Se o token falhar, expirar (410) ou não existir (404), redireciona para a página protetora
-    if (!response.ok) {
+    // Se o token falhar, expirar (410) ou não existir (404), redireciona imediatamente
+    if (!response.ok || response.status === 404 || response.status === 410) {
       globalThis.location.href = "/404.html";
       return;
     }

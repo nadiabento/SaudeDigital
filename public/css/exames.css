@@ -11,7 +11,8 @@
   --sidebar-width-collapsed: 85px;
 }
 
-html, body {
+html,
+body {
   margin: 0;
   padding: 0;
   min-height: 100vh;
@@ -20,27 +21,33 @@ html, body {
   overflow-x: hidden;
 }
 
-.exame-card, .card-sombra-moderna, .btn-atalho {
+.exame-card,
+.card-sombra-moderna,
+.btn-atalho {
   background: #ffffff !important;
   border: 1px solid rgba(0, 0, 0, 0.05) !important; /* Definição fina */
-  border-radius: 16px !important;                  /* Cantos arredondados iguais */
-  color: #252f40 !important;                       /* Cor do texto escura e limpa */
-  
+  border-radius: 16px !important; /* Cantos arredondados iguais */
+  color: #252f40 !important; /* Cor do texto escura e limpa */
+
   /* Sombra Premium Idêntica à imagem */
-  box-shadow: 
-    0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.05),
     0 10px 15px -3px rgba(0, 0, 0, 0.08),
     0 0 1px 0 rgba(0, 0, 0, 0.1) !important;
-    
-  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease !important;
 }
 
 /* Efeito opcional: quando o utilizador passa o rato por cima, o card "flutua" ligeiramente */
-.exame-card:hover, .card-sombra-moderna:hover, .btn-atalho:hover {
+.exame-card:hover,
+.card-sombra-moderna:hover,
+.btn-atalho:hover {
   transform: translateY(-3px) !important;
   background: #ffffff !important;
-  box-shadow: 
-    0 10px 20px -5px rgba(0, 0, 0, 0.08), 
+  box-shadow:
+    0 10px 20px -5px rgba(0, 0, 0, 0.08),
     0 20px 25px -5px rgba(0, 0, 0, 0.12) !important;
 }
 
@@ -59,7 +66,9 @@ html, body {
   flex-direction: column;
   border-right: 1px solid #e9ecef;
   z-index: 1050;
-  transition: width 0.3s ease-in-out, transform 0.3s ease-in-out;
+  transition:
+    width 0.3s ease-in-out,
+    transform 0.3s ease-in-out;
 }
 
 .sidebar.collapsed {
@@ -167,11 +176,15 @@ html, body {
    ========================================================================= */
 .main-content {
   margin-left: var(--sidebar-width) !important;
-  width: calc(100% - var(--sidebar-width)) !important; /* Força a largura dinâmica correta */
+  width: calc(
+    100% - var(--sidebar-width)
+  ) !important; /* Força a largura dinâmica correta */
   padding: 2rem;
   min-height: 100vh;
   background-color: var(--bg-light);
-  transition: margin-left 0.3s ease-in-out, width 0.3s ease-in-out; 
+  transition:
+    margin-left 0.3s ease-in-out,
+    width 0.3s ease-in-out;
 }
 
 .collapsed ~ .main-content {
@@ -189,7 +202,7 @@ html, body {
 }
 
 .table-responsive {
-  overflow-x: auto !important;
+  overflow-x: visible !important;
   overflow-y: visible !important;
   border-radius: 8px;
 }
@@ -225,7 +238,7 @@ html, body {
 }
 
 /* Botões de Mídia PDF */
-#tabelaExames a.btn-primary, 
+#tabelaExames a.btn-primary,
 #tabelaExames a.btn-danger {
   display: inline-flex;
   align-items: center;
@@ -242,22 +255,22 @@ html, body {
 }
 
 /* Paginação */
-.pagination { 
-  border-radius: 12px; 
-  overflow: hidden; 
+.pagination {
+  border-radius: 12px;
+  overflow: hidden;
 }
 
-.page-link { 
-  padding: 10px 18px; 
-  color: #0d6efd; 
-  border: 1px solid #dee2e6; 
-  transition: all 0.2s ease; 
+.page-link {
+  padding: 10px 18px;
+  color: #0d6efd;
+  border: 1px solid #dee2e6;
+  transition: all 0.2s ease;
 }
 
-.page-item.active .page-link { 
-  background-color: #0d6efd; 
-  border-color: #0d6efd; 
-  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2); 
+.page-item.active .page-link {
+  background-color: #0d6efd;
+  border-color: #0d6efd;
+  box-shadow: 0 4px 10px rgba(13, 110, 253, 0.2);
 }
 
 /* Botão WhatsApp: Estado Normal */
@@ -269,11 +282,11 @@ html, body {
 }
 
 /* Botão WhatsApp: Efeito Hover (Fundo Verde, Letras Brancas) */
-.btn-outline-success:hover, 
-.btn-outline-success:active, 
+.btn-outline-success:hover,
+.btn-outline-success:active,
 .btn-outline-success:focus {
   background-color: #198754 !important; /* Fundo Verde */
-  color: #ffffff !important;             /* Letras Brancas */
+  color: #ffffff !important; /* Letras Brancas */
   border-color: #198754 !important;
 }
 
@@ -292,7 +305,7 @@ html, body {
     height: 100vh !important;
     z-index: 1200 !important;
   }
-  
+
   .sidebar.active {
     transform: translateX(0) !important;
   }
@@ -304,11 +317,12 @@ html, body {
     padding: 95px 15px 20px 15px !important;
   }
 
-  /* 📑 CORREÇÃO DO CONTAINER DA TABELA (Resolve o desvio para a direita) */
+  /* O scroll horizontal é ativado estritamente para resoluções mobile */
   .table-responsive {
     display: block;
     width: 100% !important;
-    overflow-x: auto !important; /* Cria um sub-ecrã deslizante apenas para a tabela */
+    overflow-x: auto !important;
+    overflow-y: visible !important;
     -webkit-overflow-scrolling: touch;
     border: 1px solid var(--border-color);
     border-radius: 8px;
@@ -318,12 +332,12 @@ html, body {
 
   /* Define a largura interna da tabela sem esticar o card exterior */
   .table-responsive .table {
-    min-width: 650px !important; 
+    min-width: 650px !important;
     margin-bottom: 0 !important;
   }
 
   /* Centra o conteúdo e os cabeçalhos das células no mobile */
-  #tabelaExames td, 
+  #tabelaExames td,
   .table thead th {
     padding: 10px 8px !important;
     text-align: left;
@@ -348,7 +362,7 @@ html, body {
   }
 
   /* Ajuste dos mini botões de PDF para não quebrarem layout */
-  #tabelaExames a.btn-primary, 
+  #tabelaExames a.btn-primary,
   #tabelaExames a.btn-danger {
     min-width: auto !important;
     display: inline-flex !important;
@@ -358,33 +372,28 @@ html, body {
 }
 
 /* =========================================================================
-   6. CORREÇÃO DOS DROPDOWNS EM TABELAS CURTAS (SAÚDEDIGITAL)
+   6. CORREÇÃO DE ACÇÕES DROPDOWN EXTRAS (SAÚDEDIGITAL)
    ========================================================================= */
 
-/* 1. Remove a barreira de posicionamento das células da tabela */
+/* 1. Desativa a âncora restritiva de renderização nas tabelas */
 .table-responsive,
 .table-responsive tbody,
 .table-responsive tr,
 .table-responsive td {
-    position: static !important;
+  position: static !important;
 }
 
-/* 2. Permite que o dropdown se posicione em relação à linha */
+/* 2. Deixa o container nativo do dropdown controlar o eixo x e y */
 .table-responsive .dropdown {
-    position: relative !important;
+  position: relative !important;
 }
 
-/* 3. Cria uma folga invisível no fundo da tabela para o menu abrir */
-.table-responsive {
-    padding-bottom: 110px !important;
-    margin-bottom: -110px !important;
-}
-
-/* 4. Alinha o menu à direita e garante que fica por cima de tudo */
+/* 3. Posiciona o menu flutuante perfeitamente alinhado fora do datatable */
 .table-responsive .dropdown-menu {
-    position: absolute !important;
-    top: 100% !important;
-    right: 0 !important;
-    left: auto !important;
-    z-index: 1060 !important;
+  position: absolute !important;
+  top: 100% !important;
+  right: 0 !important;
+  left: auto !important;
+  z-index: 1070 !important; /* Superior ao cabeçalho e linhas */
+  margin-top: 2px !important;
 }

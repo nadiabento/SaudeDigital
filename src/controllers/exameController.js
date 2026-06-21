@@ -281,6 +281,15 @@ exports.gerarLinkPartilha = async (req, res) => {
     // Hora atual + (Número de horas escolhidas * 60 minutos * 60 segundos * 1000 milissegundos)
     const dataExpiracao = new Date(Date.now() + horas * 60 * 60 * 1000);
 
+    console.log(
+      "gerarLinkPartilha data: ",
+      Date.now(),
+      horas,
+      dataExpiracao.toUTCString(),
+      dataExpiracao.getTime(),
+      dataExpiracao,
+    );
+
     await Partilha.create({
       token,
       exames_ids: examesIds.join(","),
@@ -309,8 +318,17 @@ exports.visualizarPartilha = async (req, res) => {
       return res.redirect("/404.html");
     }
 
+    const dataAtual = new Date();
+    const dataExpiracao = new Date(partilha.data_expiracao);
+
+    console.log(
+      "visualizarPartilha data: ",
+      dataAtual.toUTCString(),
+      dataExpiracao.toUTCString(),
+    );
+
     // 3. Se o tempo já tiver passado, redireciona também para o 404.html
-    if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
+    if (dataAtual > dataExpiracao) {
       return res.redirect("/404.html");
     }
 
