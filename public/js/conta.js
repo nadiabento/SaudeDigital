@@ -297,12 +297,16 @@ async function carregarDadosPerfil() {
       const inputNome = document.getElementById("inputNomeCompleto");
       const inputEmail = document.getElementById("inputEmailBloqueado");
       const inputData = document.getElementById("inputDataNascimento");
+      const inputGrupo = document.getElementById("selectGrupoSanguineo");
+      const inputPeso = document.getElementById("inputPeso");
 
       if (inputNome) inputNome.value = user.nome || "";
       if (inputEmail) inputEmail.value = user.email || "";
       if (inputData && user.data_nascimento) {
         inputData.value = user.data_nascimento.split("T")[0];
       }
+      if (inputGrupo) inputGrupo.value = user.grupo_sanguineo || "";
+      if (inputPeso) inputPeso.value = user.peso || "";
     }
   } catch (e) {
     console.error("Erro ao carregar perfil:", e);
@@ -311,19 +315,48 @@ async function carregarDadosPerfil() {
 
 async function atualizarDadosPerfil(e) {
   e.preventDefault();
-  try {
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData.entries());
 
+  //Captura explícita dos elementos do DOM para evitar inconsistência de chaves vazias
+  const inputNome = document.getElementById("inputNomeCompleto")?.value || "";
+  const inputData = document.getElementById("inputDataNascimento")?.value || "";
+  const inputGrupo =
+    document.getElementById("selectGrupoSanguineo")?.value || "";
+  const inputPeso = document.getElementById("inputPeso")?.value || "";
+
+  // Construção estruturada do payload correspondente com o req.body do Controller
+  const dadosPerfil = {
+    nome: inputNome.trim(),
+    data_nascimento: inputData.trim(),
+    grupo_sanguineo: inputGrupo.trim(),
+    peso: inputPeso.trim(), // O backend vai validar se vem vazio '' e converter para NULL
+  };
+
+  Swal.fire({
+    title: "A guardar alterações...",
+    text: "A atualizar os seus parâmetros biológicos.",
+    allowOutsideClick: false,
+    didOpen: () => Swal.showLoading(),
+  });
+
+  try {
     const response = await fetch("/api/auth/atualizar-perfil", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
+      body: JSON.stringify(dadosPerfil),
     });
 
+    const textoResposta = await response.text();
+    let dadosJson = {};
+    try {
+      dadosJson = JSON.parse(textoResposta);
+    } catch (err) {
+      dadosJson = { error: textoResposta };
+    }
+
     if (!response.ok) {
-      const erroApi = await response.text();
-      throw new Error(erroApi || "Erro ao guardar alterações.");
+      throw new Error(
+        dadosJson.error || dadosJson.message || "Erro ao guardar alterações.",
+      );
     }
 
     Swal.fire({
@@ -331,6 +364,8 @@ async function atualizarDadosPerfil(e) {
       title: "Alterações Guardadas",
       text: "O seu perfil clínico foi atualizado com sucesso.",
       confirmButtonColor: "#0d6efd",
+    }).then(() => {
+      location.reload();
     });
   } catch (error) {
     Swal.fire({
@@ -341,7 +376,6 @@ async function atualizarDadosPerfil(e) {
     });
   }
 }
-
 // --- 5. ZONA CRÍTICA: ELIMINAÇÃO DE CONTA ---
 function confirmarEliminarConta() {
   Swal.fire({
