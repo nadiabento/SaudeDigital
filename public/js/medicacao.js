@@ -5,9 +5,13 @@ let direcaoOrdenacaoMedicacao = "asc";
 
 let modoHistorico = false;
 
+let paginaAtualMedicacao = 1;
+const medicacoesPorPagina = 10;
+
 document.addEventListener("DOMContentLoaded", function () {
   carregarMedicacao();
   carregarMedicamentosParaEfeitos();
+  carregarConsultasMedicacao();
 
   const btnHistorico = document.getElementById("btn-historico");
 
@@ -37,29 +41,34 @@ async function carregarMedicacao() {
     const medicamentos = await resposta.json();
 
     listaMedicamentos = medicamentos;
-
-    renderizarTabelaMedicacao(listaMedicamentos);
+    paginaAtualMedicacao = 1;
+    renderizarTabelaMedicacao();
+    renderizarPaginacaoMedicacao();
   } catch (erro) {
     console.error(erro);
 
     tabela.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center text-danger py-4">
+        <td colspan="8" class="text-center text-danger py-4">
           Não foi possível carregar a medicação.
         </td>
       </tr>
     `;
   }
 }
-function renderizarTabelaMedicacao(medicamentos) {
+function renderizarTabelaMedicacao() {
   const tabela = document.getElementById("tabela-medicacao");
 
   tabela.innerHTML = "";
 
-  if (medicamentos.length === 0) {
+  const inicio = (paginaAtualMedicacao - 1) * medicacoesPorPagina;
+  const fim = inicio + medicacoesPorPagina;
+  const medicamentos = listaMedicamentos.slice(inicio, fim);
+
+  if (listaMedicamentos.length === 0) {
     tabela.innerHTML = `
       <tr>
-        <td colspan="7" class="text-center text-muted py-4">
+        <td colspan="8" class="text-center text-muted py-4">
           Ainda não existe medicação registada.
         </td>
       </tr>
@@ -74,8 +83,16 @@ function renderizarTabelaMedicacao(medicamentos) {
     tabela.innerHTML += `
       <tr>
         <td>
+          <input
+            type="checkbox"
+            class="form-check-input medicacao-checkbox"
+            value="${med.id}"
+            onchange="verificarSelecaoMedicacao()"
+          />
+        </td>
+
+        <td>
           <strong>${med.nome_medicamento}</strong><br>
-          <small class="text-muted">${med.forma_farmaceutica || ""}</small>
         </td>
 
         <td>${med.dosagem || "-"}</td>
@@ -153,6 +170,81 @@ function renderizarTabelaMedicacao(medicamentos) {
     `;
   });
 }
+
+function renderizarPaginacaoMedicacao() {
+  const container = document.getElementById("paginacaoMedicacao");
+
+  if (!container) {
+    return;
+  }
+
+  const totalPaginas = Math.ceil(listaMedicamentos.length / medicacoesPorPagina);
+
+  if (totalPaginas <= 1) {
+    container.innerHTML = "";
+    return;
+  }
+
+  let html = `
+    <nav>
+      <ul class="pagination pagination-sm m-0">
+  `;
+
+  html += `
+    <li class="page-item ${paginaAtualMedicacao === 1 ? "disabled" : ""}">
+      <a class="page-link" href="javascript:void(0)" onclick="mudarPaginaMedicacao(${paginaAtualMedicacao - 1})">
+        Anterior
+      </a>
+    </li>
+  `;
+
+  for (let i = 1; i <= totalPaginas; i++) {
+    html += `
+      <li class="page-item ${i === paginaAtualMedicacao ? "active" : ""}">
+        <a class="page-link" href="javascript:void(0)" onclick="mudarPaginaMedicacao(${i})">
+          ${i}
+        </a>
+      </li>
+    `;
+  }
+
+  html += `
+    <li class="page-item ${paginaAtualMedicacao === totalPaginas ? "disabled" : ""}">
+      <a class="page-link" href="javascript:void(0)" onclick="mudarPaginaMedicacao(${paginaAtualMedicacao + 1})">
+        Próximo
+      </a>
+    </li>
+  `;
+
+  html += `
+      </ul>
+    </nav>
+  `;
+
+  container.innerHTML = html;
+}
+
+function mudarPaginaMedicacao(novaPagina) {
+  const totalPaginas = Math.ceil(listaMedicamentos.length / medicacoesPorPagina);
+
+  if (novaPagina < 1 || novaPagina > totalPaginas) {
+    return;
+  }
+
+  paginaAtualMedicacao = novaPagina;
+
+  renderizarTabelaMedicacao();
+  renderizarPaginacaoMedicacao();
+
+  const checkAll = document.getElementById("checkAllMedicacao");
+
+  if (checkAll) {
+    checkAll.checked = false;
+  }
+
+  verificarSelecaoMedicacao();
+}
+
 function ordenarMedicacao(coluna) {
   if (colunaOrdenacaoMedicacao === coluna) {
     direcaoOrdenacaoMedicacao =
@@ -202,7 +294,10 @@ function ordenarMedicacao(coluna) {
     return 0;
   });
 
-  renderizarTabelaMedicacao(listaMedicamentos);
+  
+  paginaAtualMedicacao = 1;
+  renderizarTabelaMedicacao();
+  renderizarPaginacaoMedicacao();
 }
 
 function calcularDiasRestantes(dataFim) {
@@ -305,6 +400,7 @@ if (formMedicacao) {
     const medicamento = document.getElementById("medicamento").value.trim();
     const idCatalogoMedicamento = document.getElementById("idCatalogoMedicamento").value;
     const dosagem = document.getElementById("dosagem").value.trim();
+    const idConsulta = document.getElementById("consultaMedicacao").value;
     const posologia = document.getElementById("posologia").value.trim();
     const dataInicio = document.getElementById("dataInicio").value;
     const dataFim = document.getElementById("dataFim").value;
@@ -330,7 +426,8 @@ if (formMedicacao) {
         posologia: posologia,
         data_inicio: dataInicio,
         data_fim: dataFim,
-        estado: estado
+        estado: estado,
+        id_consulta: idConsulta || null
       };
 
       const risco = await verificarRiscoPrincipioAtivo(idCatalogoMedicamento);
@@ -561,7 +658,8 @@ Forma farmacêutica: ${med.forma_farmaceutica || "-"}
 Posologia: ${med.posologia || "-"}
 Data de início: ${formatarData(med.data_inicio)}
 Data de fim: ${med.data_fim ? formatarData(med.data_fim) : "Tratamento crónico"}
-Estado: ${med.estado}`;
+Estado: ${med.estado}
+Consulta associada: ${formatarConsultaMedicacao(med)}`;
 
   document.getElementById("textoPartilhaMedicacao").value = texto;
 
@@ -686,6 +784,11 @@ function verDetalhesMedicacao(id) {
     <div class="mb-3 p-3 bg-light rounded-3">
       <label class="text-muted small d-block mb-1">Posologia</label>
       <p class="text-dark m-0">${med.posologia || "Sem posologia indicada."}</p>
+    </div>
+
+    <div class="mb-3 p-3 bg-light rounded-3">
+      <label class="text-muted small d-block mb-1">Consulta associada</label>
+      <p class="text-dark m-0">${formatarConsultaMedicacao(med)}</p>
     </div>
 
     <div class="row">
@@ -1067,4 +1170,285 @@ async function registarMedicacaoNaBaseDados(dadosMedicacao) {
   }
 
   return resultado;
+}
+
+function toggleTodasMedicacoes(master) {
+  document
+    .querySelectorAll(".medicacao-checkbox")
+    .forEach(function (checkbox) {
+      checkbox.checked = master.checked;
+    });
+
+  verificarSelecaoMedicacao();
+}
+
+function verificarSelecaoMedicacao() {
+  const selecionadas = document.querySelectorAll(".medicacao-checkbox:checked");
+  const barraAcoes = document.getElementById("acoesMassaMedicacao");
+
+  if (!barraAcoes) {
+    return;
+  }
+
+  if (selecionadas.length > 0) {
+    barraAcoes.classList.remove("d-none");
+    barraAcoes.style.display = "flex";
+  } else {
+    barraAcoes.classList.add("d-none");
+    barraAcoes.style.display = "none";
+  }
+}
+
+function obterMedicacoesSelecionadas() {
+  const checkboxes = document.querySelectorAll(".medicacao-checkbox:checked");
+
+  const idsSelecionados = Array.from(checkboxes).map(function (checkbox) {
+    return Number(checkbox.value);
+  });
+
+  return listaMedicamentos.filter(function (med) {
+    return idsSelecionados.includes(med.id);
+  });
+}
+
+function partilharMedicacoesSelecionadas() {
+  const selecionadas = obterMedicacoesSelecionadas();
+
+  if (selecionadas.length === 0) {
+    Swal.fire({
+      title: "Atenção",
+      text: "Selecione pelo menos uma medicação para partilhar.",
+      icon: "info",
+      confirmButtonColor: "#0d6efd"
+    });
+    return;
+  }
+
+  let texto = "Medicação - SaúdeDigital\n\n";
+
+  selecionadas.forEach(function (med, index) {
+    texto += `${index + 1}. ${med.nome_medicamento}\n`;
+    texto += `Substância ativa: ${med.substancia_ativa || "Não indicada"}\n`;
+    texto += `Dosagem: ${med.dosagem || "-"}\n`;
+    texto += `Forma farmacêutica: ${med.forma_farmaceutica || "-"}\n`;
+    texto += `Posologia: ${med.posologia || "-"}\n`;
+    texto += `Data de início: ${formatarData(med.data_inicio)}\n`;
+    texto += `Data de fim: ${med.data_fim ? formatarData(med.data_fim) : "Tratamento crónico"}\n`;
+    texto += `Estado: ${med.estado}\n\n`;
+    texto += `Consulta associada: ${formatarConsultaMedicacao(med)}\n`;
+  });
+
+  document.getElementById("textoPartilhaMedicacao").value = texto;
+
+  new bootstrap.Modal(document.getElementById("modalPartilhaMedicacao")).show();
+}
+
+async function eliminarMedicacoesSelecionadas() {
+  const selecionadas = obterMedicacoesSelecionadas();
+
+  if (selecionadas.length === 0) {
+    Swal.fire({
+      title: "Atenção",
+      text: "Selecione pelo menos uma medicação para eliminar.",
+      icon: "info",
+      confirmButtonColor: "#0d6efd"
+    });
+    return;
+  }
+
+  const resultado = await Swal.fire({
+    title: `Eliminar ${selecionadas.length} medicação(ões)?`,
+    text: "Esta ação irá remover os registos selecionados do plano terapêutico.",
+    icon: "warning",
+    showCancelButton: true,
+    confirmButtonColor: "#dc3545",
+    cancelButtonColor: "#6c757d",
+    confirmButtonText: "Sim, eliminar",
+    cancelButtonText: "Cancelar"
+  });
+
+  if (!resultado.isConfirmed) {
+    return;
+  }
+
+  try {
+    for (const med of selecionadas) {
+      const resposta = await fetch(`/api/medicacao/${med.id}`, {
+        method: "DELETE"
+      });
+
+      const resultadoDelete = await resposta.json();
+
+      if (!resposta.ok) {
+        throw new Error(resultadoDelete.erro || "Erro ao eliminar medicação.");
+      }
+    }
+
+    Swal.fire({
+      title: "Eliminado com sucesso!",
+      text: "As medicações selecionadas foram removidas.",
+      icon: "success",
+      showConfirmButton: false,
+      timer: 2000
+    });
+
+    const checkAll = document.getElementById("checkAllMedicacao");
+    if (checkAll) {
+      checkAll.checked = false;
+    }
+
+    carregarMedicacao();
+    carregarMedicamentosParaEfeitos();
+    verificarSelecaoMedicacao();
+  } catch (erro) {
+    Swal.fire({
+      title: "Erro",
+      text: erro.message,
+      icon: "error",
+      confirmButtonColor: "#dc3545"
+    });
+  }
+}
+
+function exportarMedicacoesSelecionadasPDF() {
+  const selecionadas = obterMedicacoesSelecionadas();
+
+  if (selecionadas.length === 0) {
+    Swal.fire({
+      title: "Atenção",
+      text: "Selecione pelo menos uma medicação para exportar.",
+      icon: "info",
+      confirmButtonColor: "#0d6efd"
+    });
+    return;
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF("landscape");
+
+  const dataGeracao = new Date().toLocaleDateString("pt-PT");
+
+  doc.setFontSize(18);
+  doc.text("SaúdeDigital", 14, 18);
+
+  doc.setFontSize(13);
+  doc.text("Plano Terapêutico Selecionado", 14, 28);
+
+  doc.setFontSize(10);
+  doc.text(`Data de geração: ${dataGeracao}`, 14, 36);
+
+  const linhas = selecionadas.map(function (med) {
+    return [
+      med.nome_medicamento || "-",
+      med.substancia_ativa || "-",
+      med.dosagem || "-",
+      med.posologia || "-",
+      formatarData(med.data_inicio),
+      med.data_fim ? formatarData(med.data_fim) : "Crónico",
+      med.estado || "-",
+      formatarConsultaMedicacao(med)
+    ];
+  });
+
+  doc.autoTable({
+    startY: 45,
+    head: [[
+      "Medicamento",
+      "Princípio ativo",
+      "Dosagem",
+      "Posologia",
+      "Data início",
+      "Data fim",
+      "Estado",
+      "Consulta"
+    ]],
+    body: linhas,
+    styles: {
+      fontSize: 8,
+      cellPadding: 2
+    },
+    headStyles: {
+      fillColor: [13, 110, 253]
+    },
+    columnStyles: {
+      0: { cellWidth: 32 },
+      1: { cellWidth: 30 },
+      2: { cellWidth: 22 },
+      3: { cellWidth: 45 },
+      4: { cellWidth: 22 },
+      5: { cellWidth: 22 },
+      6: { cellWidth: 20 }
+    }
+  });
+
+  const alturaFinal = doc.lastAutoTable.finalY || 45;
+
+  doc.setFontSize(9);
+  doc.text(
+    "Documento gerado automaticamente pela plataforma SaúdeDigital.",
+    14,
+    alturaFinal + 12
+  );
+
+  doc.save("plano-terapeutico.pdf");
+}
+
+async function carregarConsultasMedicacao() {
+  const select = document.getElementById("consultaMedicacao");
+
+  if (!select) {
+    return;
+  }
+
+  try {
+    const resposta = await fetch("/api/medicacao/consultas");
+
+    if (!resposta.ok) {
+      throw new Error("Erro ao carregar consultas.");
+    }
+
+    const consultas = await resposta.json();
+
+    select.innerHTML = `
+      <option value="">Sem consulta associada</option>
+    `;
+
+    consultas.forEach(function (consulta) {
+      const data = consulta.data_hora
+        ? new Date(consulta.data_hora).toLocaleString("pt-PT")
+        : "Sem data";
+
+      const notas = consulta.notas || "Sem notas";
+      const unidade = consulta.unidade_nome || "Sem unidade";
+      const localizacao = consulta.unidade_localizacao || "Sem localização";
+      const especialidade = consulta.especialidade_nome || "Sem especialidade";
+      const medico = consulta.medico_nome || "Sem médico";
+
+      select.innerHTML += `
+        <option value="${consulta.id}">
+          ${data} | ${especialidade} | ${medico} | ${unidade} - ${localizacao} | ${notas}
+        </option>
+      `;
+    });
+  } catch (erro) {
+    console.error(erro);
+  }
+}
+
+function formatarConsultaMedicacao(med) {
+  if (!med.id_consulta) {
+    return "Sem consulta associada";
+  }
+
+  const data = med.consulta_data_hora
+    ? new Date(med.consulta_data_hora).toLocaleString("pt-PT")
+    : "Sem data";
+
+  const especialidade = med.consulta_especialidade_nome || "Sem especialidade";
+  const medico = med.consulta_medico_nome || "Sem médico";
+  const unidade = med.consulta_unidade_nome || "Sem unidade";
+  const localizacao = med.consulta_unidade_localizacao || "Sem localização";
+  const notas = med.consulta_notas || "Sem notas";
+
+  return `${data} | ${especialidade} | ${medico} | ${unidade} - ${localizacao} | ${notas}`;
 }

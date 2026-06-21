@@ -183,6 +183,61 @@ router.get("/verificar-risco/:idCatalogoMedicamento", async (req, res) => {
   }
 });
 
+router.get("/consultas", async (req, res) => {
+  try {
+    const idUtilizador = req.session.userId;
+
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+
+    const [consultas] = await db.query(
+      `
+      SELECT
+        Consulta.id,
+        Consulta.data_hora,
+        Consulta.notas,
+        Consulta.id_unidade,
+        Consulta.id_especialidade,
+        Consulta.id_medico,
+
+        Unidade_Saude.nome AS unidade_nome,
+        Unidade_Saude.localizacao AS unidade_localizacao,
+
+        Especialidade.nome AS especialidade_nome,
+
+        Medico.nome AS medico_nome
+
+      FROM Consulta
+
+      LEFT JOIN Unidade_Saude
+        ON Consulta.id_unidade = Unidade_Saude.id_unidade
+
+      LEFT JOIN Especialidade
+        ON Consulta.id_especialidade = Especialidade.id_especialidade
+
+      LEFT JOIN Medico
+        ON Consulta.id_medico = Medico.id_medico
+
+      WHERE Consulta.id_utilizador = ?
+
+      ORDER BY Consulta.data_hora DESC
+      `,
+      [idUtilizador]
+    );
+
+    res.json(consultas);
+  } catch (erro) {
+    console.error("Erro ao obter consultas:", erro);
+
+    res.status(500).json({
+      erro: "Erro ao obter consultas."
+    });
+  }
+});
+
 router.get("/", async (req, res) => {
   console.log("GET /api/medicacao foi chamado");
 
@@ -215,6 +270,7 @@ router.get("/", async (req, res) => {
         Medicamento.id,
         Medicamento.id_utilizador,
         Medicamento.id_catalogo_medicamento,
+        Medicamento.id_consulta,
         Medicamento.posologia,
         Medicamento.data_inicio,
         Medicamento.data_fim,
@@ -223,16 +279,41 @@ router.get("/", async (req, res) => {
         Catalogo_Medicamentos.nome_medicamento,
         Catalogo_Medicamentos.substancia_ativa,
         Catalogo_Medicamentos.dosagem,
-        Catalogo_Medicamentos.forma_farmaceutica
+        Catalogo_Medicamentos.forma_farmaceutica,
+
+        Consulta.data_hora AS consulta_data_hora,
+        Consulta.notas AS consulta_notas,
+
+        Unidade_Saude.nome AS consulta_unidade_nome,
+        Unidade_Saude.localizacao AS consulta_unidade_localizacao,
+
+        Especialidade.nome AS consulta_especialidade_nome,
+
+        Medico.nome AS consulta_medico_nome
 
       FROM Medicamento
+
       INNER JOIN Catalogo_Medicamentos
         ON Medicamento.id_catalogo_medicamento = Catalogo_Medicamentos.id
+
+      LEFT JOIN Consulta
+        ON Medicamento.id_consulta = Consulta.id
+
+      LEFT JOIN Unidade_Saude
+        ON Consulta.id_unidade = Unidade_Saude.id_unidade
+
+      LEFT JOIN Especialidade
+        ON Consulta.id_especialidade = Especialidade.id_especialidade
+
+      LEFT JOIN Medico
+        ON Consulta.id_medico = Medico.id_medico
+
       WHERE Medicamento.id_utilizador = ?
       ${filtroEstado}
+
       ORDER BY Medicamento.data_inicio DESC
       `,
-      [idUtilizador],
+      [idUtilizador]
     );
 
     res.json(medicamentos);
@@ -262,6 +343,7 @@ router.post("/", async (req, res) => {
       data_inicio,
       data_fim,
       estado,
+      id_consulta
     } = req.body;
 
     if (
@@ -284,9 +366,17 @@ router.post("/", async (req, res) => {
     await db.query(
       `
       INSERT INTO Medicamento
-        (id_utilizador, id_catalogo_medicamento, posologia, data_inicio, data_fim, estado)
+        (
+          id_utilizador,
+          id_catalogo_medicamento,
+          posologia,
+          data_inicio,
+          data_fim,
+          estado,
+          id_consulta
+        )
       VALUES
-        (?, ?, ?, ?, ?, ?)
+        (?, ?, ?, ?, ?, ?, ?)
       `,
       [
         idUtilizador,
@@ -295,7 +385,8 @@ router.post("/", async (req, res) => {
         data_inicio,
         data_fim || null,
         estado || "Ativo",
-      ],
+        id_consulta || null
+      ]
     );
 
     res.status(201).json({
@@ -312,7 +403,13 @@ router.post("/", async (req, res) => {
 
 router.delete("/:id", async (req, res) => {
   try {
-    const idUtilizador = req.session.userId || 1;
+    const idUtilizador = req.session.userId;
+    if (!idUtilizador) {
+      return res.status(401).json({
+        erro: "Utilizador não autenticado."
+      });
+    }
+    
     const idMedicamento = req.params.id;
 
     const [resultado] = await db.query(
