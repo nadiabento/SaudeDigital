@@ -10,7 +10,7 @@ const crypto = require("node:crypto");
 const cloudinary = require("cloudinary").v2;
 const { CloudinaryStorage } = require("multer-storage-cloudinary");
 
-//CONFIGURAÇÃO REAL DA TUA CONTA CLOUDINARY (Insere o teu API Secret após clicares em "View API Keys")
+//CONFIGURAÇÃO REAL DA TUA CONTA CLOUDINARY
 cloudinary.config({
   cloud_name: "dqg9adey1",
   api_key: "114693438458876",
