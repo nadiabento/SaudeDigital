@@ -109,7 +109,7 @@ const authController = {
     });
   },
 
-  // 4 - Função de Atualização integrada de forma correta
+  // 4 - Função de Atualização corrigida para o motor do Sequelize
   atualizarPerfil: async (req, res) => {
     // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
@@ -130,20 +130,24 @@ const authController = {
     }
 
     try {
-      // 1. Vai buscar os dados atuais diretamente à tabela da Cloud
-      const [linhas] = await db.query(
-        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM defaultdb.Utilizador WHERE id = ?",
-        [utilizadorId],
+      // 1. No Sequelize, a query direta devolve os resultados no primeiro elemento do array.
+      // Usamos a propriedade replacements para evitar injeções e mapear de forma limpa.
+      const resultados = await db.query(
+        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
+        {
+          replacements: [utilizadorId],
+          type: db.QueryTypes?.SELECT || "SELECT",
+        },
       );
 
-      if (!linhas || linhas.length === 0) {
+      // Garante que o registo existe antes de avançar
+      if (!resultados || resultados.length === 0) {
         return res.status(404).json({ error: "Utilizador não encontrado." });
       }
 
-      // Sendo uma query direta no Sequelize, o resultado vem direto no primeiro índice
-      const dadosAtuais = linhas[0];
+      const dadosAtuais = resultados[0];
 
-      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier em branco, mantém o valor atual da BD
+      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier vazio ou em branco '', mantém o valor que já está na BD
       const nomeFinal =
         nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
@@ -155,7 +159,7 @@ const authController = {
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Só altera se for digitado um número válido. Se vier vazio, mantém o antigo!
+      // Validação do Peso: Só altera se for preenchido com algo válido. Caso contrário, preserva o atual da BD.
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -164,19 +168,22 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE com os valores finais validados
+      // 3. Executa o UPDATE usando o motor do Sequelize
       const sql = `
-        UPDATE defaultdb.Utilizador 
+        UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
         WHERE id = ?`;
 
-      await db.query(sql, [
-        nomeFinal,
-        dataFinal,
-        grupoFinal,
-        pesoFinal,
-        Number(utilizadorId),
-      ]);
+      await db.query(sql, {
+        replacements: [
+          nomeFinal,
+          dataFinal,
+          grupoFinal,
+          pesoFinal,
+          Number(utilizadorId),
+        ],
+        type: db.QueryTypes?.UPDATE || "UPDATE",
+      });
 
       return res
         .status(200)
