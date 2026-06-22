@@ -113,7 +113,6 @@ const authController = {
   atualizarPerfil: async (req, res) => {
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
-    // 1. Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
       utilizadorId =
@@ -129,10 +128,9 @@ const authController = {
     }
 
     try {
-      // 2.BUSCA OS DADOS ATUAIS DA BASE DE DADOS
-      // Isto permite-nos saber o que está gravado antes de fazermos o UPDATE
+      // Procura os dados atuais na base de dados usando o catálogo correto
       const [linhas] = await db.query(
-        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ?",
+        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM defaultdb.Utilizador WHERE id = ?",
         [utilizadorId],
       );
 
@@ -140,34 +138,34 @@ const authController = {
         return res.status(404).json({ error: "Utilizador não encontrado." });
       }
 
-      const dadosAtuais = linhas[0];
+      // Trata o retorno caso venha num array limpo ou encapsulado pelo Sequelize
+      const dadosAtuais = Array.isArray(linhas) ? linhas[0] : linhas;
 
-      // 3. LÓGICA DE PRESERVAÇÃO (Se for vazio '', mantém o que já existia)
+      // 🎯 CORREÇÃO CRÍTICA: Se o 'nome' foi enviado pelo frontend e não está em branco, USA-O diretamente!
       const nomeFinal =
-        nome !== undefined && nome.trim() !== ""
-          ? nome.trim()
-          : dadosAtuais.nome;
+        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome || "";
       const dataFinal =
-        data_nascimento !== undefined && data_nascimento.trim() !== ""
+        data_nascimento && data_nascimento.trim() !== ""
           ? data_nascimento.trim()
-          : dadosAtuais.data_nascimento;
+          : dadosAtuais.data_nascimento || "";
       const grupoFinal =
-        grupo_sanguineo !== undefined && grupo_sanguineo.trim() !== ""
+        grupo_sanguineo && grupo_sanguineo.trim() !== ""
           ? grupo_sanguineo.trim()
-          : dadosAtuais.grupo_sanguineo;
+          : dadosAtuais.grupo_sanguineo || "";
 
-      // Tratamento especial para o peso (mantém o peso antigo se o novo vier em branco)
       let pesoFinal = dadosAtuais.peso;
-      if (peso !== undefined && peso.trim() !== "") {
+      if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
         if (!isNaN(pesoNumerico)) {
           pesoFinal = pesoNumerico;
         }
+      } else if (peso === "") {
+        pesoFinal = null; // Permite limpar o peso na BD se o utilizador apagar o campo
       }
 
-      // 4. EXECUTA O UPDATE APENAS COM OS VALORES ATUALIZADOS OU PRESERVADOS
+      // Executa o UPDATE apontando para o catálogo correto explicitamente
       const sql = `
-        UPDATE Utilizador 
+        UPDATE defaultdb.Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
         WHERE id = ?`;
 
@@ -175,7 +173,7 @@ const authController = {
         nomeFinal,
         dataFinal,
         grupoFinal,
-        pesoFinal, // Se veio vazio, vai o valor antigo; o decimal do MySQL nunca quebra!
+        pesoFinal,
         Number(utilizadorId),
       ]);
 
