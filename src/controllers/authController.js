@@ -109,12 +109,10 @@ const authController = {
     });
   },
 
-  // 4 - Função de Atualização corrigida para o motor do Sequelize
+  // 4Função de Atualização integrada de forma correta
   atualizarPerfil: async (req, res) => {
-    // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
-    // Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
       utilizadorId =
@@ -130,24 +128,22 @@ const authController = {
     }
 
     try {
-      // 1. No Sequelize, a query direta devolve os resultados no primeiro elemento do array.
-      // Usamos a propriedade replacements para evitar injeções e mapear de forma limpa.
+      // Vai buscar os dados atuais para usar como fallback
       const resultados = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         {
           replacements: [utilizadorId],
-          type: db.QueryTypes?.SELECT || "SELECT",
+          type: db.QueryTypes.SELECT,
         },
       );
 
-      // Garante que o registo existe antes de avançar
       if (!resultados || resultados.length === 0) {
         return res.status(404).json({ error: "Utilizador não encontrado." });
       }
 
       const dadosAtuais = resultados[0];
 
-      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier vazio ou em branco '', mantém o valor que já está na BD
+      // Se o campo vier vazio do frontend '', mantém estritamente o valor antigo da BD
       const nomeFinal =
         nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
@@ -159,7 +155,7 @@ const authController = {
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Só altera se for preenchido com algo válido. Caso contrário, preserva o atual da BD.
+      // Validação do Peso: Mantém o antigo se não enviares nada no input
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -168,7 +164,6 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE usando o motor do Sequelize
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
@@ -182,18 +177,52 @@ const authController = {
           pesoFinal,
           Number(utilizadorId),
         ],
-        type: db.QueryTypes?.UPDATE || "UPDATE",
+        type: db.QueryTypes.UPDATE,
       });
 
       return res
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
     } catch (error) {
-      console.error("Erro crítico no SQL ao atualizar perfil:", error);
+      console.error("Erro crítico ao atualizar perfil:", error);
       return res
         .status(500)
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
+
+  // 5. Função de Eliminar Conta
+  eliminarConta: async (req, res) => {
+    try {
+      const utilizadorId = req.session.userId;
+
+      if (!utilizadorId) {
+        return res
+          .status(401)
+          .json({ erro: "Sessão expirada. Inicie sessão novamente." });
+      }
+
+      const sql = `DELETE FROM Utilizador WHERE id = ?`;
+
+      // Executa de forma simples. Se for mysql2 com promessas, isto funciona universalmente
+      await db.query(sql, [utilizadorId]);
+
+      // Destruir a sessão no servidor para o utilizador não ficar "logado" sem conta
+      req.session.destroy((err) => {
+        if (err) {
+          console.error("Erro ao limpar sessão pós-eliminação:", err);
+        }
+        res.clearCookie("connect.sid");
+        return res.status(200).send("Conta eliminada com sucesso.");
+      });
+    } catch (error) {
+      // Isto vai imprimir o erro exato nos logs do Render (ex: erro de chave estrangeira/Foreign Key)
+      console.error("ERRO CRÍTICO NO BANCO DE DADOS:", error.message);
+      return res
+        .status(500)
+        .send("Erro interno do servidor ao eliminar a conta.");
+    }
+  },
 };
+
 module.exports = authController;
