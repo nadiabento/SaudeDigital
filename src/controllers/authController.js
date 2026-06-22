@@ -117,7 +117,10 @@ const authController = {
     // Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
-      utilizadorId = utilizadorId.id_utilizador || utilizadorId.id || utilizadorId.utilizador_id;
+      utilizadorId =
+        utilizadorId.id_utilizador ||
+        utilizadorId.id ||
+        utilizadorId.utilizador_id;
     }
 
     if (!utilizadorId) {
@@ -130,7 +133,7 @@ const authController = {
       // 1. Vai buscar os dados atuais diretamente à tabela da Cloud
       const [linhas] = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM defaultdb.Utilizador WHERE id = ?",
-        [utilizadorId]
+        [utilizadorId],
       );
 
       if (!linhas || linhas.length === 0) {
@@ -141,10 +144,17 @@ const authController = {
       const dadosAtuais = linhas[0];
 
       // 2. Lógica Estrita de Preservação: Se o campo do formulário vier em branco, mantém o valor atual da BD
-      const nomeFinal = nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
-      const dataFinal = data_nascimento && data_nascimento.trim() !== "" ? data_nascimento.trim() : dadosAtuais.data_nascimento;
-      const grupoFinal = grupo_sanguineo && grupo_sanguineo.trim() !== "" ? grupo_sanguineo.trim() : dadosAtuais.grupo_sanguineo;
-      
+      const nomeFinal =
+        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
+      const dataFinal =
+        data_nascimento && data_nascimento.trim() !== ""
+          ? data_nascimento.trim()
+          : dadosAtuais.data_nascimento;
+      const grupoFinal =
+        grupo_sanguineo && grupo_sanguineo.trim() !== ""
+          ? grupo_sanguineo.trim()
+          : dadosAtuais.grupo_sanguineo;
+
       // Validação do Peso: Só altera se for digitado um número válido. Se vier vazio, mantém o antigo!
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
@@ -165,13 +175,12 @@ const authController = {
         dataFinal,
         grupoFinal,
         pesoFinal,
-        Number(utilizadorId)
+        Number(utilizadorId),
       ]);
 
       return res
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
-
     } catch (error) {
       console.error("Erro crítico no SQL ao atualizar perfil:", error);
       return res
@@ -179,5 +188,5 @@ const authController = {
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
-
+};
 module.exports = authController;
