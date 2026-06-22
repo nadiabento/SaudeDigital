@@ -3,10 +3,11 @@ const db = require("../config/db");
 const { QueryTypes } = require("sequelize");
 
 class User {
+  // 1. Pesquisa de Email (Aponta agora explicitamente para defaultdb.Utilizador)
   static async encontrarEmail(email) {
     try {
       const resultados = await db.query(
-        "SELECT * FROM utilizador WHERE email = ? LIMIT 1",
+        "SELECT * FROM defaultdb.Utilizador WHERE email = ? LIMIT 1",
         {
           replacements: [email],
           type: QueryTypes.SELECT,
@@ -19,13 +20,14 @@ class User {
     }
   }
 
+  // 2. Inserção de Nova Conta (Aponta agora explicitamente para defaultdb.Utilizador)
   static async criar(userData) {
     const { nome, email, password_hash, data_nascimento, grupo_sanguineo } =
       userData;
 
     try {
       const [resultado, metadata] = await db.query(
-        `INSERT INTO utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
+        `INSERT INTO defaultdb.Utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
         {
           replacements: [
