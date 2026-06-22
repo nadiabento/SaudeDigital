@@ -1,8 +1,7 @@
 // src/models/User.js
-const db = require('../config/db'); // Assumindo que a ligação à BD está configurada aqui
+const db = require('../config/db');
 
 class User {
-    
     static async encontrarEmail(email) {
         try {
             const [rows] = await db.execute('SELECT * FROM Utilizador WHERE email = ?', [email]);
@@ -13,16 +12,21 @@ class User {
         }
     }
 
-    
     static async criar(userData) {
-       
         const { nome, email, password_hash, data_nascimento, grupo_sanguineo } = userData;
         
         try {
+            // O truque '|| null' previne o crash fatal se algum dado chegar como 'undefined'
             const [result] = await db.execute(
                 `INSERT INTO Utilizador (nome, email, password_hash, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
-                [nome, email, password_hash, data_nascimento, grupo_sanguineo]
+                [
+                    nome || null, 
+                    email || null, 
+                    password_hash || null, 
+                    data_nascimento || null, 
+                    grupo_sanguineo || null
+                ]
             );
             return result.insertId; 
         } catch (error) {
