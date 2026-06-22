@@ -111,14 +111,13 @@ const authController = {
 
   // 4Função de Atualização integrada de forma correta
   atualizarPerfil: async (req, res) => {
+    // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
+    // Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
-      utilizadorId =
-        utilizadorId.id_utilizador ||
-        utilizadorId.id ||
-        utilizadorId.utilizador_id;
+      utilizadorId = utilizadorId.id_utilizador || utilizadorId.id || utilizadorId.utilizador_id;
     }
 
     if (!utilizadorId) {
@@ -128,98 +127,50 @@ const authController = {
     }
 
     try {
-      // Procura os dados atuais na base de dados usando o catálogo correto
-      const [linhas] = await db.query(
-        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM defaultdb.Utilizador WHERE id = ?",
-        [utilizadorId],
-      );
-
-      if (!linhas || linhas.length === 0) {
-        return res.status(404).json({ error: "Utilizador não encontrado." });
-      }
-
-      // Trata o retorno caso venha num array limpo ou encapsulado pelo Sequelize
-      const dadosAtuais = Array.isArray(linhas) ? linhas[0] : linhas;
-
-      // 🎯 CORREÇÃO CRÍTICA: Se o 'nome' foi enviado pelo frontend e não está em branco, USA-O diretamente!
-      const nomeFinal =
-        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome || "";
-      const dataFinal =
-        data_nascimento && data_nascimento.trim() !== ""
-          ? data_nascimento.trim()
-          : dadosAtuais.data_nascimento || "";
-      const grupoFinal =
-        grupo_sanguineo && grupo_sanguineo.trim() !== ""
-          ? grupo_sanguineo.trim()
-          : dadosAtuais.grupo_sanguineo || "";
-
-      let pesoFinal = dadosAtuais.peso;
+      // Prepara os valores vindo do frontend de forma limpa (se for vazio ou espaços, vira null)
+      const novoNome = nome && nome.trim() !== "" ? nome.trim() : null;
+      const novaData = data_nascimento && data_nascimento.trim() !== "" ? data_nascimento.trim() : null;
+      const novoGrupo = grupo_sanguineo && grupo_sanguineo.trim() !== "" ? grupo_sanguineo.trim() : null;
+      
+      let novoPeso = null;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
         if (!isNaN(pesoNumerico)) {
-          pesoFinal = pesoNumerico;
+          novoPeso = pesoNumerico;
         }
-      } else if (peso === "") {
-        pesoFinal = null; // Permite limpar o peso na BD se o utilizador apagar o campo
       }
 
-      // Executa o UPDATE apontando para o catálogo correto explicitamente
       const sql = `
         UPDATE defaultdb.Utilizador 
-        SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
+        SET 
+          nome = IFNULL(?, nome), 
+          data_nascimento = IFNULL(?, data_nascimento), 
+          grupo_sanguineo = IFNULL(?, grupo_sanguineo), 
+          peso = IF(? IS NOT NULL, ?, peso)
         WHERE id = ?`;
 
-      await db.query(sql, [
-        nomeFinal,
-        dataFinal,
-        grupoFinal,
-        pesoFinal,
-        Number(utilizadorId),
-      ]);
+      await db.query(sql, {
+        replacements: [
+          novoNome, 
+          novaData, 
+          novoGrupo, 
+          novoPeso, // Para a validação do IF IS NOT NULL
+          novoPeso, // Para a atribuição do valor
+          Number(utilizadorId)
+        ],
+        type: db.QueryTypes.UPDATE
+      });
 
       return res
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
+
     } catch (error) {
-      console.error("Erro SQL ao atualizar perfil:", error);
+      console.error("Erro crítico no SQL ao atualizar perfil:", error);
       return res
         .status(500)
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
-
-  // 5. Função de Eliminar Conta
-  eliminarConta: async (req, res) => {
-    try {
-      const utilizadorId = req.session.userId;
-
-      if (!utilizadorId) {
-        return res
-          .status(401)
-          .json({ erro: "Sessão expirada. Inicie sessão novamente." });
-      }
-
-      const sql = `DELETE FROM Utilizador WHERE id = ?`;
-
-      // Executa de forma simples. Se for mysql2 com promessas, isto funciona universalmente
-      await db.query(sql, [utilizadorId]);
-
-      // Destruir a sessão no servidor para o utilizador não ficar "logado" sem conta
-      req.session.destroy((err) => {
-        if (err) {
-          console.error("Erro ao limpar sessão pós-eliminação:", err);
-        }
-        res.clearCookie("connect.sid");
-        return res.status(200).send("Conta eliminada com sucesso.");
-      });
-    } catch (error) {
-      // Isto vai imprimir o erro exato nos logs do Render (ex: erro de chave estrangeira/Foreign Key)
-      console.error("ERRO CRÍTICO NO BANCO DE DADOS:", error.message);
-      return res
-        .status(500)
-        .send("Erro interno do servidor ao eliminar a conta.");
-    }
-  },
-};
 
 module.exports = authController;
