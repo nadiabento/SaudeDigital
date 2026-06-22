@@ -109,10 +109,12 @@ const authController = {
     });
   },
 
-  // 4Função de Atualização integrada de forma correta
+  // 4. Função de Atualização de Perfil
   atualizarPerfil: async (req, res) => {
+    // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
+    // Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
       utilizadorId =
@@ -128,12 +130,12 @@ const authController = {
     }
 
     try {
-      // Vai buscar os dados atuais para usar como fallback
+      // 1. Procura os dados atuais na base de dados de forma crua
       const resultados = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         {
           replacements: [utilizadorId],
-          type: db.QueryTypes.SELECT,
+          type: "SELECT", // 🎯 CORREÇÃO: String direta para evitar o erro de 'undefined'
         },
       );
 
@@ -143,7 +145,7 @@ const authController = {
 
       const dadosAtuais = resultados[0];
 
-      // Se o campo vier vazio do frontend '', mantém estritamente o valor antigo da BD
+      // 2. LÓGICA DE PRESERVAÇÃO: Se o campo veio vazio ou em branco, mantém o valor que já está guardado na BD
       const nomeFinal =
         nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
@@ -155,7 +157,7 @@ const authController = {
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Mantém o antigo se não enviares nada no input
+      // Validação do Peso: Só substitui se for digitado um número válido no input. Se vier vazio, mantém o antigo intocável!
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -164,6 +166,7 @@ const authController = {
         }
       }
 
+      // 3. Executa o UPDATE com os valores finais combinados
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
@@ -174,10 +177,10 @@ const authController = {
           nomeFinal,
           dataFinal,
           grupoFinal,
-          pesoFinal,
+          pesoFinal, // Vai o valor antigo se não alteraste o peso no ecrã!
           Number(utilizadorId),
         ],
-        type: db.QueryTypes.UPDATE,
+        type: "UPDATE", // 🎯 CORREÇÃO: String direta para evitar quebras de sintaxe
       });
 
       return res
