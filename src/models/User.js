@@ -1,18 +1,14 @@
 // src/models/User.js
 const db = require("../config/db");
-const { QueryTypes } = require("sequelize");
 
 class User {
   static async encontrarEmail(email) {
     try {
-      const resultados = await db.query(
-        "SELECT * FROM defaultdb.Utilizador WHERE email = ? LIMIT 1",
-        {
-          replacements: [email],
-          type: QueryTypes.SELECT,
-        },
+      const [rows] = await db.execute(
+        "SELECT * FROM Utilizador WHERE email = ?",
+        [email],
       );
-      return resultados.length > 0 ? resultados[0] : null;
+      return rows[0];
     } catch (error) {
       console.error("Erro no modelo encontrarEmail:", error);
       throw error;
@@ -20,29 +16,25 @@ class User {
   }
 
   static async criar(userData) {
-    // 🎯 CORREÇÃO: Captura 'password_hash' exatamente como o teu authController envia!
     const { nome, email, password_hash, data_nascimento, grupo_sanguineo } =
       userData;
 
     try {
-      const [resultado, metadata] = await db.query(
-        `INSERT INTO defaultdb.Utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
+      // O truque '|| null' previne o crash fatal se algum dado chegar como 'undefined'
+      const [result] = await db.execute(
+        `INSERT INTO Utilizador (nome, email, password_hash, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
-        {
-          // Passa o password_hash no terceiro parâmetro de substituição
-          replacements: [
-            nome,
-            email,
-            password_hash,
-            data_nascimento,
-            grupo_sanguineo,
-          ],
-          type: QueryTypes.INSERT,
-        },
+        [
+          nome || null,
+          email || null,
+          password_hash || null,
+          data_nascimento || null,
+          grupo_sanguineo || null,
+        ],
       );
-      return resultado;
+      return result.insertId;
     } catch (error) {
-      console.error("Erro crítico no modelo criar User:", error);
+      console.error("Erro no modelo criar User:", error);
       throw error;
     }
   }
