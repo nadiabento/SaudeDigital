@@ -376,7 +376,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 async function carregarTabelaSinaisVitais() {
   const tbody = document.getElementById("tabelaSinaisVitais");
-  if (!tbody) return; // Se não estivermos na página dos sinais vitais, esta função não faz nada
+  if (!tbody) return; 
 
   try {
     const response = await fetch("/api/vitals");
@@ -384,6 +384,16 @@ async function carregarTabelaSinaisVitais() {
 
     const dados = await response.json();
     tbody.innerHTML = "";
+
+    // 1. CARREGA OS DADOS PARA A VARIÁVEL DO PDF FUNCIONAR
+    if (typeof todosSinaisVitais !== 'undefined') {
+        todosSinaisVitais = dados.map(item => ({
+            id: item.id,
+            data: new Date(item.data_registo).toLocaleString('pt-PT'),
+            metrica: item.tipo_metrica,
+            valor: item.valor_secundario ? `${item.valor_primario} / ${item.valor_secundario}` : item.valor_primario
+        }));
+    }
 
     if (dados.length === 0) {
       tbody.innerHTML =
@@ -393,7 +403,6 @@ async function carregarTabelaSinaisVitais() {
 
     dados.forEach((item) => {
       const tr = document.createElement("tr");
-      // Formata a data e trata se houver valor secundário (ex: PA)
       const dataFormatada = new Date(item.data_registo).toLocaleString("pt-PT");
       const valorExibido = item.valor_secundario
         ? `${item.valor_primario} / ${item.valor_secundario}`
@@ -404,7 +413,7 @@ async function carregarTabelaSinaisVitais() {
     <td>${limparHTML(item.tipo_metrica)}</td>
     <td>${limparHTML(valorExibido)}</td>
     <td class="text-center">
-        <button class="btn btn-sm btn-outline-danger" onclick="apagarSinal(${item.id})">
+        <button class="btn btn-sm btn-outline-danger" onclick="apagarRegisto(${item.id})">
             <i class="bi bi-trash"></i>
         </button>
     </td>
