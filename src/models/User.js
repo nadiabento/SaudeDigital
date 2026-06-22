@@ -16,7 +16,7 @@ class User {
         const { nome, email, password_hash, data_nascimento, grupo_sanguineo } = userData;
         
         try {
-            // O truque '|| null' previne o crash fatal se algum dado chegar como 'undefined'
+            
             const [result] = await db.execute(
                 `INSERT INTO Utilizador (nome, email, password_hash, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
