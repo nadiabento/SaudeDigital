@@ -3,7 +3,6 @@ const db = require("../config/db");
 const { QueryTypes } = require("sequelize");
 
 class User {
-  // 1. Pesquisa de Email (Aponta agora explicitamente para defaultdb.Utilizador)
   static async encontrarEmail(email) {
     try {
       const resultados = await db.query(
@@ -20,8 +19,8 @@ class User {
     }
   }
 
-  // 2. Inserção de Nova Conta (Aponta agora explicitamente para defaultdb.Utilizador)
   static async criar(userData) {
+    // 🎯 CORREÇÃO: Captura 'password_hash' exatamente como o teu authController envia!
     const { nome, email, password_hash, data_nascimento, grupo_sanguineo } =
       userData;
 
@@ -30,6 +29,7 @@ class User {
         `INSERT INTO defaultdb.Utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
         {
+          // Passa o password_hash no terceiro parâmetro de substituição
           replacements: [
             nome,
             email,

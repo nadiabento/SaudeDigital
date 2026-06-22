@@ -10,30 +10,37 @@ const authController = {
       const { nome, email, password, data_nascimento, grupo_sanguineo } =
         req.body;
 
-      // Verifica se o email já existe
+      // 1. Verifica de forma limpa se o e-mail já existe
       const utilizadorExistente = await User.encontrarEmail(email);
       if (utilizadorExistente) {
         return res.status(400).json({ erro: "Este e-mail já está registado." });
       }
 
-      // Encripta a password
+      // 2. Encripta a password
       const password_hash = await bcrypt.hash(password, 10);
 
-      // Cria o utilizador na BD
+      // 3. Cria o utilizador na BD passando o objeto esperado pelo User.js
       const novoUserId = await User.criar({
         nome,
         email,
-        password_hash,
+        password_hash, // Passa exatamente a propriedade que o teu User.js vai desestruturar
         data_nascimento,
         grupo_sanguineo,
       });
 
-      res
-        .status(201)
-        .json({ mensagem: "Conta criada com sucesso!", id: novoUserId });
+      // Retorna o status de sucesso explicitamente
+      return res.status(201).json({
+        mensagem: "Conta criada com sucesso!",
+        id: novoUserId,
+      });
     } catch (error) {
-      console.error("Erro no Registo:", error);
-      res.status(500).json({ erro: "Erro interno no servidor ao registar." });
+      // Se houver algum erro de syntax ou de coluna, ele vai ser impresso aqui nos logs do Render
+      console.error("Erro real detetado no fluxo de Registo:", error);
+
+      // Envia uma mensagem genérica de erro do servidor em vez de dizer que o e-mail existe
+      return res
+        .status(500)
+        .json({ erro: "Erro interno no servidor ao processar o registo." });
     }
   },
 
