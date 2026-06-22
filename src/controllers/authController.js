@@ -109,7 +109,7 @@ const authController = {
     });
   },
 
-  // 4Função de Atualização integrada de forma correta
+  // 4 - Função de Atualização integrada de forma correta
   atualizarPerfil: async (req, res) => {
     // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
@@ -127,39 +127,46 @@ const authController = {
     }
 
     try {
-      // Prepara os valores vindo do frontend de forma limpa (se for vazio ou espaços, vira null)
-      const novoNome = nome && nome.trim() !== "" ? nome.trim() : null;
-      const novaData = data_nascimento && data_nascimento.trim() !== "" ? data_nascimento.trim() : null;
-      const novoGrupo = grupo_sanguineo && grupo_sanguineo.trim() !== "" ? grupo_sanguineo.trim() : null;
+      // 1. Vai buscar os dados atuais diretamente à tabela da Cloud
+      const [linhas] = await db.query(
+        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM defaultdb.Utilizador WHERE id = ?",
+        [utilizadorId]
+      );
+
+      if (!linhas || linhas.length === 0) {
+        return res.status(404).json({ error: "Utilizador não encontrado." });
+      }
+
+      // Sendo uma query direta no Sequelize, o resultado vem direto no primeiro índice
+      const dadosAtuais = linhas[0];
+
+      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier em branco, mantém o valor atual da BD
+      const nomeFinal = nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
+      const dataFinal = data_nascimento && data_nascimento.trim() !== "" ? data_nascimento.trim() : dadosAtuais.data_nascimento;
+      const grupoFinal = grupo_sanguineo && grupo_sanguineo.trim() !== "" ? grupo_sanguineo.trim() : dadosAtuais.grupo_sanguineo;
       
-      let novoPeso = null;
+      // Validação do Peso: Só altera se for digitado um número válido. Se vier vazio, mantém o antigo!
+      let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
         if (!isNaN(pesoNumerico)) {
-          novoPeso = pesoNumerico;
+          pesoFinal = pesoNumerico;
         }
       }
 
+      // 3. Executa o UPDATE com os valores finais validados
       const sql = `
         UPDATE defaultdb.Utilizador 
-        SET 
-          nome = IFNULL(?, nome), 
-          data_nascimento = IFNULL(?, data_nascimento), 
-          grupo_sanguineo = IFNULL(?, grupo_sanguineo), 
-          peso = IF(? IS NOT NULL, ?, peso)
+        SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
         WHERE id = ?`;
 
-      await db.query(sql, {
-        replacements: [
-          novoNome, 
-          novaData, 
-          novoGrupo, 
-          novoPeso, // Para a validação do IF IS NOT NULL
-          novoPeso, // Para a atribuição do valor
-          Number(utilizadorId)
-        ],
-        type: db.QueryTypes.UPDATE
-      });
+      await db.query(sql, [
+        nomeFinal,
+        dataFinal,
+        grupoFinal,
+        pesoFinal,
+        Number(utilizadorId)
+      ]);
 
       return res
         .status(200)
