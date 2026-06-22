@@ -5,9 +5,8 @@ const { QueryTypes } = require("sequelize");
 class User {
   static async encontrarEmail(email) {
     try {
-      // Executa o SELECT usando o padrão estrito do Sequelize
       const resultados = await db.query(
-        "SELECT * FROM Utilizador WHERE email = ? LIMIT 1",
+        "SELECT * FROM utilizador WHERE email = ? LIMIT 1",
         {
           replacements: [email],
           type: QueryTypes.SELECT,
@@ -25,9 +24,8 @@ class User {
       userData;
 
     try {
-      // Executa o INSERT mapeando para a coluna física 'password' da tua BD
       const [resultado, metadata] = await db.query(
-        `INSERT INTO Utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
+        `INSERT INTO utilizador (nome, email, password, data_nascimento, grupo_sanguineo) 
                  VALUES (?, ?, ?, ?, ?)`,
         {
           replacements: [
@@ -40,7 +38,6 @@ class User {
           type: QueryTypes.INSERT,
         },
       );
-      // O Sequelize devolve o ID gerado diretamente como o resultado do INSERT
       return resultado;
     } catch (error) {
       console.error("Erro crítico no modelo criar User:", error);
