@@ -461,3 +461,59 @@ document.addEventListener("DOMContentLoaded", () => {
     sidebar.classList.add("collapsed");
   }
 });
+
+//  ADICIONAR ESTE BLOCO NO FINAL DO TEU FICHEIRO public/js/main.js
+
+document.addEventListener("DOMContentLoaded", () => {
+  const registoForm = document.getElementById("registoForm");
+  const mensagemRegisto = document.getElementById("mensagemRegisto");
+
+  if (registoForm) {
+    registoForm.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      // Captura os valores dos inputs mapeados no teu registo.html
+      const nome = document.getElementById("regNome").value;
+      const data_nascimento = document.getElementById("regDataNasc").value;
+      const grupo_sanguineo = document.getElementById("regGrupoSang").value;
+      const email = document.getElementById("regEmail").value;
+      const password = document.getElementById("regPassword").value;
+
+      if (mensagemRegisto) {
+        mensagemRegisto.innerHTML = `<div class="alert alert-info">A processar a criação de conta...</div>`;
+      }
+
+      try {
+        const response = await fetch("/api/auth/registo", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            nome,
+            email,
+            password,
+            data_nascimento,
+            grupo_sanguineo,
+          }),
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+          mensagemRegisto.innerHTML = `<div class="alert alert-success">Conta criada com sucesso! A redirecionar para o login...</div>`;
+          registoForm.reset();
+          setTimeout(() => {
+            window.location.href = "index.html";
+          }, 1500);
+        } else {
+          // 🧠 CORREÇÃO: Lê 'data.erro' para bater certo com o teu authController.js
+          mensagemRegisto.innerHTML = `<div class="alert alert-danger">${data.erro || "Erro ao efetuar registo."}</div>`;
+        }
+      } catch (error) {
+        console.error("Erro na submissão:", error);
+        if (mensagemRegisto) {
+          mensagemRegisto.innerHTML = `<div class="alert alert-danger">Erro de ligação ao servidor.</div>`;
+        }
+      }
+    });
+  }
+});
