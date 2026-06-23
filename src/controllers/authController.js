@@ -111,10 +111,8 @@ const authController = {
 
   // 4. Função de Atualização de Perfil
   atualizarPerfil: async (req, res) => {
-    // Captura os dados vindos do teu public/js/conta.js
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
-    // Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
       utilizadorId =
@@ -130,7 +128,7 @@ const authController = {
     }
 
     try {
-      // 1. No driver cru, db.query() devolve um array [linhas, colunas]
+      // 1. Vamos buscar os valores atuais para servir de plano B caso o campo venha vazio
       const [linhas] = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         [utilizadorId],
@@ -142,19 +140,24 @@ const authController = {
 
       const dadosAtuais = linhas[0];
 
-      // 2. Lógica Estrita de Preservação: Se o campo vier vazio '', mantém o valor atual da BD
+      // 2. Definição estrita e direta dos valores finais
       const nomeFinal =
-        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
+        nome !== undefined && nome !== null && String(nome).trim() !== ""
+          ? String(nome).trim()
+          : dadosAtuais.nome;
       const dataFinal =
-        data_nascimento && data_nascimento.trim() !== ""
-          ? data_nascimento.trim()
+        data_nascimento !== undefined &&
+        data_nascimento !== null &&
+        String(data_nascimento).trim() !== ""
+          ? String(data_nascimento).trim()
           : dadosAtuais.data_nascimento;
       const grupoFinal =
-        grupo_sanguineo && grupo_sanguineo.trim() !== ""
-          ? grupo_sanguineo.trim()
+        grupo_sanguineo !== undefined &&
+        grupo_sanguineo !== null &&
+        String(grupo_sanguineo).trim() !== ""
+          ? String(grupo_sanguineo).trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Mantém o antigo intacto se o input do ecrã vier em branco
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -163,7 +166,7 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE passando o array de parâmetros diretamente (padrão mysql2)
+      // 3. Executa o UPDATE direto na tabela
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
