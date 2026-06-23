@@ -130,12 +130,12 @@ const authController = {
     }
 
     try {
-      // 1. Procura os dados atuais na base de dados de forma crua
+      // 1. Vai buscar os dados atuais diretamente à tabela da Cloud
       const resultados = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         {
           replacements: [utilizadorId],
-          type: "SELECT", // 🎯 CORREÇÃO: String direta para evitar o erro de 'undefined'
+          type: "SELECT",
         },
       );
 
@@ -145,7 +145,7 @@ const authController = {
 
       const dadosAtuais = resultados[0];
 
-      // 2. LÓGICA DE PRESERVAÇÃO: Se o campo veio vazio ou em branco, mantém o valor que já está guardado na BD
+      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier em branco, mantém o valor atual da BD
       const nomeFinal =
         nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
@@ -157,7 +157,7 @@ const authController = {
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Só substitui se for digitado um número válido no input. Se vier vazio, mantém o antigo intocável!
+      // Validação do Peso: Só altera se for digitado um número válido. Se vier vazio, mantém o antigo!
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -166,7 +166,7 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE com os valores finais combinados
+      // 3. Executa o UPDATE embrulhando os parâmetros em 'replacements' para o Sequelize
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
@@ -177,23 +177,22 @@ const authController = {
           nomeFinal,
           dataFinal,
           grupoFinal,
-          pesoFinal, // Vai o valor antigo se não alteraste o peso no ecrã!
+          pesoFinal,
           Number(utilizadorId),
         ],
-        type: "UPDATE", // 🎯 CORREÇÃO: String direta para evitar quebras de sintaxe
+        type: "UPDATE",
       });
 
       return res
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
     } catch (error) {
-      console.error("Erro crítico ao atualizar perfil:", error);
+      console.error("Erro crítico no SQL ao atualizar perfil:", error);
       return res
         .status(500)
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
-
   // 5. Função de Eliminar Conta
   eliminarConta: async (req, res) => {
     try {
