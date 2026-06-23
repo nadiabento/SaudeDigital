@@ -130,22 +130,19 @@ const authController = {
     }
 
     try {
-      // 1. Vai buscar os dados atuais diretamente à tabela da Cloud
-      const resultados = await db.query(
+      // 1. No driver cru, db.query() devolve um array [linhas, colunas]
+      const [linhas] = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
-        {
-          replacements: [utilizadorId],
-          type: "SELECT",
-        },
+        [utilizadorId],
       );
 
-      if (!resultados || resultados.length === 0) {
+      if (!linhas || linhas.length === 0) {
         return res.status(404).json({ error: "Utilizador não encontrado." });
       }
 
-      const dadosAtuais = resultados[0];
+      const dadosAtuais = linhas[0];
 
-      // 2. Lógica Estrita de Preservação: Se o campo do formulário vier em branco, mantém o valor atual da BD
+      // 2. Lógica Estrita de Preservação: Se o campo vier vazio '', mantém o valor atual da BD
       const nomeFinal =
         nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
@@ -157,7 +154,7 @@ const authController = {
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Validação do Peso: Só altera se for digitado um número válido. Se vier vazio, mantém o antigo!
+      // Validação do Peso: Mantém o antigo intacto se o input do ecrã vier em branco
       let pesoFinal = dadosAtuais.peso;
       if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
@@ -166,22 +163,19 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE embrulhando os parâmetros em 'replacements' para o Sequelize
+      // 3. Executa o UPDATE passando o array de parâmetros diretamente (padrão mysql2)
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
         WHERE id = ?`;
 
-      await db.query(sql, {
-        replacements: [
-          nomeFinal,
-          dataFinal,
-          grupoFinal,
-          pesoFinal,
-          Number(utilizadorId),
-        ],
-        type: "UPDATE",
-      });
+      await db.query(sql, [
+        nomeFinal,
+        dataFinal,
+        grupoFinal,
+        pesoFinal,
+        Number(utilizadorId),
+      ]);
 
       return res
         .status(200)
@@ -193,6 +187,7 @@ const authController = {
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
+
   // 5. Função de Eliminar Conta
   eliminarConta: async (req, res) => {
     try {
