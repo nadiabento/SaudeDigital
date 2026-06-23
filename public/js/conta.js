@@ -294,7 +294,7 @@ async function carregarDadosPerfil() {
     const response = await fetch("/api/auth/meu-perfil");
     if (response.ok) {
       const user = await response.json();
-      const inputNome = document.getElementById("inputNomeCompleto");
+      const inputNome = document.getElementById("inputAtualizarNome");
       const inputEmail = document.getElementById("inputEmailBloqueado");
       const inputData = document.getElementById("inputDataNascimento");
       const inputGrupo = document.getElementById("selectGrupoSanguineo");
@@ -316,19 +316,18 @@ async function carregarDadosPerfil() {
 async function atualizarDadosPerfil(e) {
   e.preventDefault();
 
-  //Captura explícita dos elementos do DOM para evitar inconsistência de chaves vazias
-  const inputNome = document.getElementById("inputNomeCompleto")?.value || "";
+  const inputNome = document.getElementById("inputAtualizarNome")?.value || "";
   const inputData = document.getElementById("inputDataNascimento")?.value || "";
   const inputGrupo =
     document.getElementById("selectGrupoSanguineo")?.value || "";
   const inputPeso = document.getElementById("inputPeso")?.value || "";
 
-  // Construção estruturada do payload correspondente com o req.body do Controller
+  // 🎯 CORREÇÃO: Inclui novamente o 'nome' no payload
   const dadosPerfil = {
     nome: inputNome.trim(),
     data_nascimento: inputData.trim(),
     grupo_sanguineo: inputGrupo.trim(),
-    peso: inputPeso.trim(), // O backend vai validar se vem vazio '' e converter para NULL
+    peso: inputPeso.trim(),
   };
 
   Swal.fire({

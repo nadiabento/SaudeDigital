@@ -128,7 +128,6 @@ const authController = {
     }
 
     try {
-      // 1. Vamos buscar os valores atuais para servir de plano B caso o campo venha vazio
       const [linhas] = await db.query(
         "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         [utilizadorId],
@@ -140,22 +139,16 @@ const authController = {
 
       const dadosAtuais = linhas[0];
 
-      // 2. Definição estrita e direta dos valores finais
+      // Reatribuição do nome com lógica de fallback
       const nomeFinal =
-        nome !== undefined && nome !== null && String(nome).trim() !== ""
-          ? String(nome).trim()
-          : dadosAtuais.nome;
+        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
-        data_nascimento !== undefined &&
-        data_nascimento !== null &&
-        String(data_nascimento).trim() !== ""
-          ? String(data_nascimento).trim()
+        data_nascimento && data_nascimento.trim() !== ""
+          ? data_nascimento.trim()
           : dadosAtuais.data_nascimento;
       const grupoFinal =
-        grupo_sanguineo !== undefined &&
-        grupo_sanguineo !== null &&
-        String(grupo_sanguineo).trim() !== ""
-          ? String(grupo_sanguineo).trim()
+        grupo_sanguineo && grupo_sanguineo.trim() !== ""
+          ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
       let pesoFinal = dadosAtuais.peso;
@@ -166,7 +159,7 @@ const authController = {
         }
       }
 
-      // 3. Executa o UPDATE direto na tabela
+      // Adicionado novamente o campo nome à consulta SQL
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
@@ -190,7 +183,6 @@ const authController = {
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
-
   // 5. Função de Eliminar Conta
   eliminarConta: async (req, res) => {
     try {
