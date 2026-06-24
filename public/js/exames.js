@@ -675,12 +675,12 @@ async function gerarLinkPartilha() {
     text: "Durante quantas horas o médico poderá visualizar estes exames?",
     input: "select",
     inputOptions: {
-      0.08333: "5 Minutos",
       1: "1 Hora",
       2: "2 Horas",
       24: "24 Horas",
       48: "48 Horas",
       168: "1 Semana",
+      0.08333: "5 Minutos",
     },
     inputValue: "2",
     showCancelButton: true,
