@@ -274,9 +274,9 @@ exports.gerarLinkPartilha = async (req, res) => {
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
-    // 2. Transforma o valor que vem do frontend num número inteiro seguro
-    // Se por alguma razão o frontend não enviar o valor, assume 2 horas como padrão (fallback)
-    const horas = Number.parseFloat(horasValidade) || 2;
+    const horasParsed = Number.parseFloat(horasValidade);
+    const horas =
+      Number.isNaN(horasParsed) || horasParsed <= 0 ? 2 : horasParsed;
 
     // Hora atual + (Número de horas escolhidas * 60 minutos * 60 segundos * 1000 milissegundos)
     const dataExpiracao = new Date(Date.now() + horas * 60 * 60 * 1000);

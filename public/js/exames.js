@@ -707,7 +707,7 @@ async function gerarLinkPartilha() {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         examesIds: examesIds,
-        horasValidade: Number.parseInt(horasExpiracao, 10),
+        horasValidade: Number.parseFloat(horasExpiracao),
       }),
     });
 
