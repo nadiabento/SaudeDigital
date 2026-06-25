@@ -717,6 +717,14 @@ async function gerarLinkPartilha() {
 
     const urlCompleta = `${globalThis.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
 
+    // Nome do utilizador autenticado, já guardado por carregarUtilizadorLogado()
+    const nomeUtilizador =
+      localStorage.getItem("userName") || "Utilizador SaúdeDigital";
+
+    const mensagemEmail = `Olá,\n\nSou ${nomeUtilizador} e venho por este meio partilhar o link seguro para os meus exames clínicos:\n${urlCompleta}\n\nEste link é válido por ${horasExpiracao} hora(s).\n\nMelhores cumprimentos,\n${nomeUtilizador}`;
+
+    const mensagemWhatsApp = `Olá, sou ${nomeUtilizador}. Aqui está o link seguro para os meus resultados de exames do SaúdeDigital: ${urlCompleta}\n\n(Válido por ${horasExpiracao} hora(s))`;
+
     Swal.fire({
       title: "Portal Médico Gerado!",
       html: `
@@ -728,10 +736,10 @@ async function gerarLinkPartilha() {
         <p class="text-danger small mb-3"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
         <hr class="my-3 text-muted opacity-25">
         <div class="d-grid gap-2">
-          <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent("Olá,\n\nPartilho o link seguro para os meus exames clínicos:\n" + urlCompleta + "\n\nMelhores cumprimentos.")}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
+          <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent(mensagemEmail)}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
             <i class="bi bi-envelope-at me-2"></i> Enviar por Email
           </a>
-          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent("Olá, aqui está o link seguro para os meus resultados de exames do SaúdeDigital: " + urlCompleta)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
+          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(mensagemWhatsApp)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
             <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
           </a>
         </div>`,
