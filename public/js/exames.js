@@ -204,7 +204,7 @@ function renderizarTabela(totalPaginas) {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
                         <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -732,14 +732,6 @@ async function gerarLinkPartilha() {
 
     const urlCompleta = `${globalThis.location.origin}/api/exames/visualizar-partilha/${dados.token}`;
 
-    // Nome do utilizador autenticado, já guardado por carregarUtilizadorLogado()
-    const nomeUtilizador =
-      localStorage.getItem("userName") || "Utilizador SaúdeDigital";
-
-    const mensagemEmail = `Olá,\n\nSou ${nomeUtilizador} e venho por este meio partilhar o link seguro para os meus exames clínicos:\n${urlCompleta}\n\nEste link é válido por ${horasExpiracao} hora(s).\n\nMelhores cumprimentos,\n${nomeUtilizador}`;
-
-    const mensagemWhatsApp = `Olá, sou ${nomeUtilizador}. Aqui está o link seguro para os meus resultados de exames do SaúdeDigital: ${urlCompleta}\n\n(Válido por ${horasExpiracao} hora(s))`;
-
     Swal.fire({
       title: "Portal Médico Gerado!",
       html: `
@@ -751,10 +743,10 @@ async function gerarLinkPartilha() {
         <p class="text-danger small mb-3"><i class="bi bi-clock-history"></i> Este link expira automaticamente em ${horasExpiracao} hora(s).</p>
         <hr class="my-3 text-muted opacity-25">
         <div class="d-grid gap-2">
-          <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent(mensagemEmail)}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
+          <a href="mailto:?subject=${encodeURIComponent("Resultados de Exames - SaúdeDigital")}&body=${encodeURIComponent("Olá,\n\nPartilho o link seguro para os meus exames clínicos:\n" + urlCompleta + "\n\nMelhores cumprimentos.")}" class="btn btn-outline-primary py-2 fw-bold text-start px-4">
             <i class="bi bi-envelope-at me-2"></i> Enviar por Email
           </a>
-          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent(mensagemWhatsApp)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
+          <a href="https://api.whatsapp.com/send?text=${encodeURIComponent("Olá, aqui está o link seguro para os meus resultados de exames do SaúdeDigital: " + urlCompleta)}" target="_blank" class="btn btn-outline-success py-2 fw-bold text-start px-4" style="color: #198754; border-color: #198754;">
             <i class="bi bi-whatsapp me-2"></i> Enviar por WhatsApp
           </a>
         </div>`,
@@ -848,7 +840,7 @@ async function guardarEdicao() {
   }
 }
 
-function verDetalhes(id, nome, data, obs, ficheiro) {
+function verDetalhes(id, nome, data, obs, resultado, relatorio) {
   const selecionados = document.querySelectorAll(".exame-checkbox:checked");
 
   if (selecionados.length > 1) {
@@ -882,8 +874,10 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
                 <label class="text-muted small d-block mb-1">Observações / Descrição</label>
                 <p class="text-dark m-0" style="white-space: pre-wrap">${limparHTML(obs) || "Sem observações."}</p>
             </div>
-            <div class="mt-3">
-                ${ficheiro ? `<a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF</a>` : '<p class="text-muted text-center italic">Sem anexo.</p>'}
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                ${resultado ? `<a href="${resultado}" target="_blank" class="btn btn-danger fw-bold flex-fill"><i class="bi bi-file-earmark-pdf me-2"></i>Ver Exame</a>` : ""}
+                ${relatorio ? `<a href="${relatorio}" target="_blank" class="btn btn-outline-danger fw-bold flex-fill"><i class="bi bi-file-pdf me-2"></i>Ver Relatório</a>` : ""}
+                ${!resultado && !relatorio ? '<p class="text-muted text-center italic w-100">Sem anexos.</p>' : ""}
             </div>
         </div>`;
 
@@ -920,7 +914,10 @@ function mostrarDetalhesMultiplos() {
                     <h6 class="fw-bold text-primary mb-1">${limparHTML(ex.nome)}</h6>
                     <p class="small text-muted mb-2"><i class="bi bi-calendar3"></i> ${dataF}</p>
                     <p class="mb-2 small">${limparHTML(ex.observacoes) || "Sem observações."}</p>
-                    ${ex.resultado ? `<a href="/uploads/${ex.resultado}" target="_blank" class="btn btn-sm btn-danger py-1 px-3">Ver PDF</a>` : ""}
+                    <div class="d-flex gap-2 flex-wrap">
+                        ${ex.resultado ? `<a href="${ex.resultado}" target="_blank" class="btn btn-sm btn-danger py-1 px-3">Ver Exame</a>` : ""}
+                        ${ex.relatorio ? `<a href="${ex.relatorio}" target="_blank" class="btn btn-sm btn-outline-danger py-1 px-3">Ver Relatório</a>` : ""}
+                    </div>
                 </div>
             </div>`;
   });
