@@ -11,7 +11,7 @@ exports.apagar = async (req, res) => {
     }
 
     try {
-        // 2. A MAGIA: Só apaga se o registo for X E pertencer ao Utilizador Y
+        // 2.Só apaga se o registo for X E pertencer ao Utilizador Y
         const resultado = await db.sequelize.query(
             "DELETE FROM Sinal_Vital WHERE id = ? AND id_utilizador = ?", 
             {
