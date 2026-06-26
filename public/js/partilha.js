@@ -1,3 +1,17 @@
+// Sanitiza texto do utilizador antes de o inserir no HTML, prevenindo XSS
+function limparHTML(texto) {
+  if (texto === null || texto === undefined) {
+    return "";
+  }
+
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 async function carregarDados() {
   const path = globalThis.location.pathname.replace(/\/$/, "");
   const token = path.split("/").pop();
@@ -38,7 +52,7 @@ async function carregarDados() {
           <div class="exame-card p-4 mb-3 border rounded shadow-sm bg-white">
               <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 w-100">
                   <div>
-                      <h5 class="fw-bold mb-2 text-dark">${ex.nome}</h5>
+                      <h5 class="fw-bold mb-2 text-dark">${limparHTML(ex.nome)}</h5>
                       <span class="data-badge">
                           <i class="bi bi-calendar3 me-1"></i> ${dataFinalFormatada}
                       </span>
@@ -69,7 +83,7 @@ async function carregarDados() {
                   <div class="mt-3 pt-3 border-top">
                       <p class="mb-0 text-muted" style="font-size: 0.95rem;">
                           <strong class="text-secondary"><i class="bi bi-chat-left-text me-1"></i> Observações do Paciente:</strong><br>
-                          ${ex.observacoes}
+                          ${limparHTML(ex.observacoes)}
                       </p>
                   </div>`
                   : ""
