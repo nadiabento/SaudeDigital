@@ -313,9 +313,11 @@ exports.visualizarPartilha = async (req, res) => {
     // 1. Procura a credencial de partilha na Base de Dados
     const partilha = await Partilha.findOne({ where: { token } });
 
-    // 2. Se o token não existir, redireciona logo para o 404.html na raiz
+    // 2. Se o token não existir, envia diretamente o 404 com o status correto
     if (!partilha) {
-      return res.redirect("/404.html");
+      return res
+        .status(404)
+        .sendFile(path.join(__dirname, "../../public/404.html"));
     }
 
     const dataAtual = new Date();
@@ -327,16 +329,21 @@ exports.visualizarPartilha = async (req, res) => {
       dataExpiracao.toUTCString(),
     );
 
-    // 3. Se o tempo já tiver passado, redireciona também para o 404.html
+    // 3. Se o tempo já tiver passado, envia também o 404
     if (dataAtual > dataExpiracao) {
-      return res.redirect("/404.html");
+      return res
+        .status(404)
+        .sendFile(path.join(__dirname, "../../public/404.html"));
     }
 
     // 4. Se estiver tudo correto e dentro do tempo, serve a página do portal
     return res.sendFile(path.join(__dirname, "../../public/partilha.html"));
   } catch (error) {
     console.error("Erro ao validar visualização de partilha:", error);
-    return res.redirect("/404.html");
+    // Em caso de erro crítico, serve também a página 404
+    return res
+      .status(404)
+      .sendFile(path.join(__dirname, "../../public/404.html"));
   }
 };
 
