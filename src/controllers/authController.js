@@ -10,30 +10,37 @@ const authController = {
       const { nome, email, password, data_nascimento, grupo_sanguineo } =
         req.body;
 
-      // Verifica se o email já existe
+      // 1. Verifica de forma limpa se o e-mail já existe
       const utilizadorExistente = await User.encontrarEmail(email);
       if (utilizadorExistente) {
         return res.status(400).json({ erro: "Este e-mail já está registado." });
       }
 
-      // Encripta a password
+      // 2. Encripta a password
       const password_hash = await bcrypt.hash(password, 10);
 
-      // Cria o utilizador na BD
+      // 3. Cria o utilizador na BD passando o objeto esperado pelo User.js
       const novoUserId = await User.criar({
         nome,
         email,
-        password_hash,
+        password_hash, // Passa exatamente a propriedade que o teu User.js vai desestruturar
         data_nascimento,
         grupo_sanguineo,
       });
 
-      res
-        .status(201)
-        .json({ mensagem: "Conta criada com sucesso!", id: novoUserId });
+      // Retorna o status de sucesso explicitamente
+      return res.status(201).json({
+        mensagem: "Conta criada com sucesso!",
+        id: novoUserId,
+      });
     } catch (error) {
-      console.error("Erro no Registo:", error);
-      res.status(500).json({ erro: "Erro interno no servidor ao registar." });
+      // Se houver algum erro de syntax ou de coluna, ele vai ser impresso aqui nos logs do Render
+      console.error("Erro real detetado no fluxo de Registo:", error);
+
+      // Envia uma mensagem genérica de erro do servidor em vez de dizer que o e-mail existe
+      return res
+        .status(500)
+        .json({ erro: "Erro interno no servidor ao processar o registo." });
     }
   },
 
@@ -102,11 +109,10 @@ const authController = {
     });
   },
 
-  // 4Função de Atualização integrada de forma correta
+  // 4. Função de Atualização de Perfil
   atualizarPerfil: async (req, res) => {
     const { nome, data_nascimento, grupo_sanguineo, peso } = req.body;
 
-    // 1. Extração segura do ID do utilizador da sessão
     let utilizadorId = req.session?.userId;
     if (utilizadorId && typeof utilizadorId === "object") {
       utilizadorId =
@@ -122,10 +128,8 @@ const authController = {
     }
 
     try {
-      // 2.BUSCA OS DADOS ATUAIS DA BASE DE DADOS
-      // Isto permite-nos saber o que está gravado antes de fazermos o UPDATE
       const [linhas] = await db.query(
-        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ?",
+        "SELECT nome, data_nascimento, grupo_sanguineo, peso FROM Utilizador WHERE id = ? LIMIT 1",
         [utilizadorId],
       );
 
@@ -135,30 +139,27 @@ const authController = {
 
       const dadosAtuais = linhas[0];
 
-      // 3. LÓGICA DE PRESERVAÇÃO (Se for vazio '', mantém o que já existia)
+      // Reatribuição do nome com lógica de fallback
       const nomeFinal =
-        nome !== undefined && nome.trim() !== ""
-          ? nome.trim()
-          : dadosAtuais.nome;
+        nome && nome.trim() !== "" ? nome.trim() : dadosAtuais.nome;
       const dataFinal =
-        data_nascimento !== undefined && data_nascimento.trim() !== ""
+        data_nascimento && data_nascimento.trim() !== ""
           ? data_nascimento.trim()
           : dadosAtuais.data_nascimento;
       const grupoFinal =
-        grupo_sanguineo !== undefined && grupo_sanguineo.trim() !== ""
+        grupo_sanguineo && grupo_sanguineo.trim() !== ""
           ? grupo_sanguineo.trim()
           : dadosAtuais.grupo_sanguineo;
 
-      // Tratamento especial para o peso (mantém o peso antigo se o novo vier em branco)
       let pesoFinal = dadosAtuais.peso;
-      if (peso !== undefined && peso.trim() !== "") {
+      if (peso !== undefined && peso !== null && String(peso).trim() !== "") {
         const pesoNumerico = parseFloat(peso);
         if (!isNaN(pesoNumerico)) {
           pesoFinal = pesoNumerico;
         }
       }
 
-      // 4. EXECUTA O UPDATE APENAS COM OS VALORES ATUALIZADOS OU PRESERVADOS
+      // Adicionado novamente o campo nome à consulta SQL
       const sql = `
         UPDATE Utilizador 
         SET nome = ?, data_nascimento = ?, grupo_sanguineo = ?, peso = ? 
@@ -168,7 +169,7 @@ const authController = {
         nomeFinal,
         dataFinal,
         grupoFinal,
-        pesoFinal, // Se veio vazio, vai o valor antigo; o decimal do MySQL nunca quebra!
+        pesoFinal,
         Number(utilizadorId),
       ]);
 
@@ -176,13 +177,12 @@ const authController = {
         .status(200)
         .json({ message: "Perfil modificado com sucesso!" });
     } catch (error) {
-      console.error("Erro SQL ao atualizar perfil:", error);
+      console.error("Erro crítico no SQL ao atualizar perfil:", error);
       return res
         .status(500)
         .json({ error: "Erro interno ao gravar na base de dados." });
     }
   },
-
   // 5. Função de Eliminar Conta
   eliminarConta: async (req, res) => {
     try {

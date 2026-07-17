@@ -11,6 +11,21 @@ const examesPorPagina = 10;
 
 const itensSelecionados = new Set();
 
+// Sanitiza texto do utilizador antes de o inserir no HTML, prevenindo XSS
+// (mesma função usada em alergias.js / sinais-vitais.js / partilha.js, para consistência no projeto)
+function limparHTML(texto) {
+  if (texto === null || texto === undefined) {
+    return "";
+  }
+
+  return String(texto)
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
 // --- CONFIGURAÇÃO INICIAL ---
 // --- CONFIGURAÇÃO INICIAL ---
 window.onload = () => {
@@ -160,7 +175,7 @@ function renderizarTabela(totalPaginas) {
             <td>
                 <input type="checkbox" class="form-check-input exame-checkbox" value="${exame.id}" onchange="verificarSelecao()">
             </td>
-            <td><strong>${exame.nome || "Exame Indefinido"}</strong></td>
+            <td><strong>${limparHTML(exame.nome) || "Exame Indefinido"}</strong></td>
             <td style="white-space: nowrap;">${dataF}</td>
             
            <td>
@@ -189,7 +204,7 @@ function renderizarTabela(totalPaginas) {
                         <i class="bi bi-three-dots"></i>
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
+                        <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="verDetalhes(${exame.id}, '${(exame.nome || "").replaceAll("'", String.raw`\'`)}', '${exame.data}', '${obsLimpa}', '${exame.resultado || ""}', '${exame.relatorio || ""}')"><i class="bi bi-eye me-2"></i> Ver Detalhes</a></li>
                         <li><a class="dropdown-item btn-acao-individual" href="javascript:void(0)" onclick="abrirModalEditar(${exame.id}, '${exame.data}', '${obsLimpa}')"><i class="bi bi-pencil me-2"></i> Editar</a></li>
                         <li><a class="dropdown-item" href="javascript:void(0)" onclick="gerarLinkPartilha(${exame.id})"><i class="bi bi-share me-2"></i> Partilhar</a></li>
                         <li><hr class="dropdown-divider"></li>
@@ -674,14 +689,15 @@ async function gerarLinkPartilha() {
     title: "Validade do Link",
     text: "Durante quantas horas o médico poderá visualizar estes exames?",
     input: "select",
-    inputOptions: {
-      1: "1 Hora",
-      2: "2 Horas",
-      24: "24 Horas",
-      48: "48 Horas",
-      168: "1 Semana",
-    },
-    inputValue: "2",
+    inputOptions: new Map([
+      ["0.08333", "5 Minutos"],
+      ["1", "1 Hora"],
+      ["2", "2 Horas"],
+      ["24", "24 Horas"],
+      ["48", "48 Horas"],
+      ["168", "1 Semana"],
+    ]),
+    inputValue: "0.08333",
     showCancelButton: true,
     confirmButtonText: "Gerar Link Seguro",
     cancelButtonText: "Cancelar",
@@ -824,7 +840,7 @@ async function guardarEdicao() {
   }
 }
 
-function verDetalhes(id, nome, data, obs, ficheiro) {
+function verDetalhes(id, nome, data, obs, resultado, relatorio) {
   const selecionados = document.querySelectorAll(".exame-checkbox:checked");
 
   if (selecionados.length > 1) {
@@ -848,7 +864,7 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
         <div id="layoutIndividual">
             <div class="mb-3">
                 <label class="text-muted small d-block">Nome do Exame</label>
-                <span class="fw-bold fs-5 text-dark">${nome}</span>
+                <span class="fw-bold fs-5 text-dark">${limparHTML(nome)}</span>
             </div>
             <div class="mb-3">
                 <label class="text-muted small d-block">Data de Realização</label>
@@ -856,10 +872,12 @@ function verDetalhes(id, nome, data, obs, ficheiro) {
             </div>
             <div class="mb-3 p-3 bg-light rounded-3">
                 <label class="text-muted small d-block mb-1">Observações / Descrição</label>
-                <p class="text-dark m-0" style="white-space: pre-wrap">${obs || "Sem observações."}</p>
+                <p class="text-dark m-0" style="white-space: pre-wrap">${limparHTML(obs) || "Sem observações."}</p>
             </div>
-            <div class="mt-3">
-                ${ficheiro ? `<a href="/uploads/${ficheiro}" target="_blank" class="btn btn-danger w-100 fw-bold"><i class="bi bi-file-earmark-pdf me-2"></i>Ver PDF</a>` : '<p class="text-muted text-center italic">Sem anexo.</p>'}
+            <div class="mt-3 d-flex gap-2 flex-wrap">
+                ${resultado ? `<a href="${resultado}" target="_blank" class="btn btn-danger fw-bold flex-fill"><i class="bi bi-file-earmark-pdf me-2"></i>Ver Exame</a>` : ""}
+                ${relatorio ? `<a href="${relatorio}" target="_blank" class="btn btn-outline-danger fw-bold flex-fill"><i class="bi bi-file-pdf me-2"></i>Ver Relatório</a>` : ""}
+                ${!resultado && !relatorio ? '<p class="text-muted text-center italic w-100">Sem anexos.</p>' : ""}
             </div>
         </div>`;
 
@@ -893,10 +911,13 @@ function mostrarDetalhesMultiplos() {
     conteudoHtml += `
             <div class="card mb-3 border-0 bg-light rounded-3">
                 <div class="card-body">
-                    <h6 class="fw-bold text-primary mb-1">${ex.nome}</h6>
+                    <h6 class="fw-bold text-primary mb-1">${limparHTML(ex.nome)}</h6>
                     <p class="small text-muted mb-2"><i class="bi bi-calendar3"></i> ${dataF}</p>
-                    <p class="mb-2 small">${ex.observacoes || "Sem observações."}</p>
-                    ${ex.resultado ? `<a href="/uploads/${ex.resultado}" target="_blank" class="btn btn-sm btn-danger py-1 px-3">Ver PDF</a>` : ""}
+                    <p class="mb-2 small">${limparHTML(ex.observacoes) || "Sem observações."}</p>
+                    <div class="d-flex gap-2 flex-wrap">
+                        ${ex.resultado ? `<a href="${ex.resultado}" target="_blank" class="btn btn-sm btn-danger py-1 px-3">Ver Exame</a>` : ""}
+                        ${ex.relatorio ? `<a href="${ex.relatorio}" target="_blank" class="btn btn-sm btn-outline-danger py-1 px-3">Ver Relatório</a>` : ""}
+                    </div>
                 </div>
             </div>`;
   });

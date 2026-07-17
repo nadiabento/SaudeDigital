@@ -67,6 +67,8 @@ router.post("/gerar-partilha", exameController.gerarLinkPartilha);
 router.post("/categorias", exameController.criarCategoria);
 router.post("/tipos", exameController.criarTipo);
 
+router.put("/editar/:id", exameController.editarExame);
+
 router.delete("/eliminar-massa", exameController.eliminarMassa);
 
 module.exports = router;
