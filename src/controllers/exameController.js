@@ -262,8 +262,7 @@ exports.eliminarMassa = async (req, res) => {
 // =========================================================================
 
 exports.gerarLinkPartilha = async (req, res) => {
-  // 1. Extrai os IDs dos exames e as horas escolhidas que vêm do teu Frontend
-  const { examesIds, horasValidade } = req.body; //
+  const { examesIds, horasValidade } = req.body;
   const utilizadorId = obterUtilizadorSessao(req);
 
   if (!examesIds || !Array.isArray(examesIds) || examesIds.length === 0) {
@@ -274,26 +273,19 @@ exports.gerarLinkPartilha = async (req, res) => {
 
   try {
     const token = crypto.randomBytes(16).toString("hex");
+
+    // 1. IMPORTANTE: Usar parseFloat também no backend!
     const horasParsed = Number.parseFloat(horasValidade);
     const horas =
       Number.isNaN(horasParsed) || horasParsed <= 0 ? 2 : horasParsed;
 
-    // Hora atual + (Número de horas escolhidas * 60 minutos * 60 segundos * 1000 milissegundos)
+    // 2. Calcula a data somando os milissegundos exatos à data atual do servidor
     const dataExpiracao = new Date(Date.now() + horas * 60 * 60 * 1000);
-
-    console.log(
-      "gerarLinkPartilha data: ",
-      Date.now(),
-      horas,
-      dataExpiracao.toUTCString(),
-      dataExpiracao.getTime(),
-      dataExpiracao,
-    );
 
     await Partilha.create({
       token,
       exames_ids: examesIds.join(","),
-      data_expiracao: dataExpiracao,
+      data_expiracao: dataExpiracao, // O Sequelize vai converter isto corretamente para o fuso da BD
       utilizador_id: Number(utilizadorId),
     });
 
