@@ -307,16 +307,12 @@ exports.visualizarPartilha = async (req, res) => {
 
     // 2. Se o token não existir, serve diretamente o ficheiro 404 da pasta public
     if (!partilha) {
-      return res
-        .status(404)
-        .sendFile(path.join(__dirname, "../../public/404.html"));
+      return res.status(404).sendFile(path.join(__dirname, "../../404.html"));
     }
 
     // 3. Validação robusta do tempo por milissegundos (evita problemas de fuso horário)
     if (new Date(partilha.data_expiracao).getTime() < Date.now()) {
-      return res
-        .status(404)
-        .sendFile(path.join(__dirname, "../../public/404.html"));
+      return res.status(404).sendFile(path.join(__dirname, "../../404.html"));
     }
 
     // 4. Se estiver tudo correto e dentro do tempo, serve a página do portal médico
@@ -324,9 +320,7 @@ exports.visualizarPartilha = async (req, res) => {
   } catch (error) {
     console.error("Erro ao validar visualização de partilha:", error);
     // Em caso de erro crítico de BD, serve também o 404 de segurança
-    return res
-      .status(404)
-      .sendFile(path.join(__dirname, "../../public/404.html"));
+    return res.status(404).sendFile(path.join(__dirname, "../../404.html"));
   }
 };
 
